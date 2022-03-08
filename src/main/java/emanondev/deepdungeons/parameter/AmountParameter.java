@@ -1,0 +1,47 @@
+package emanondev.deepdungeons.parameter;
+
+import java.util.Arrays;
+import java.util.List;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+
+import emanondev.core.gui.GuiButton;
+import emanondev.core.gui.NumberEditorFButton;
+import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.generic.StandGui;
+
+public class AmountParameter extends Parameter<Integer> {
+
+	public AmountParameter() {
+		super("amount", 1);
+	}
+
+	@Override
+	public String toString(Integer value) {
+		return value == null ? String.valueOf(this.defaultValue) : String.valueOf(Math.max(1, value));
+	}
+
+	@Override
+	public Integer fromString(String value) {
+		try {
+			return Math.max(1, Integer.valueOf(value));
+		} catch (Exception e) {
+			return 1;
+		}
+	}
+
+	public Integer readValue(List<String> text) {
+		Integer i = super.readValue(text);
+		return i == null ? defaultValue : i;
+	}
+
+	@Override
+	public GuiButton getEditorButton(StandGui gui) {
+		return new NumberEditorFButton<Integer>(gui, 1, 1, 10, () -> gui.getValue(AmountParameter.this),
+				(v) -> gui.setValue(AmountParameter.this, Math.max(1, v)), () -> new ItemStack(Material.REPEATER),
+				() -> DeepDungeons.get().getLanguageConfig(gui.getTargetPlayer())
+						.loadStringList("parameter.amount.info", Arrays.asList("&6&lAmount: &e%value%", "")),
+				null);
+	}
+
+}
