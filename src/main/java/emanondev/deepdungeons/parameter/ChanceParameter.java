@@ -25,7 +25,7 @@ public class ChanceParameter extends Parameter<Integer> {
 	@Override
 	public Integer fromString(String value) {
 		try {
-			return Math.min(100, Math.max(0, Integer.valueOf(value)));
+			return Math.min(100, Math.max(0, Integer.parseInt(value)));
 		} catch (Exception e) {
 			return 100;
 		}
@@ -38,8 +38,8 @@ public class ChanceParameter extends Parameter<Integer> {
 
 	@Override
 	public GuiButton getEditorButton(StandGui gui) {
-		return new NumberEditorFButton<Integer>(gui, 10, 1, 100, () -> gui.getValue(ChanceParameter.this),
-				(v) -> gui.setValue(ChanceParameter.this, Math.min(100, Math.max(0, Integer.valueOf(v)))),
+		return new NumberEditorFButton<>(gui, 10, 1, 100, () -> gui.getValue(ChanceParameter.this),
+				(v) -> gui.setValue(ChanceParameter.this, Math.min(100, Math.max(0, v))),
 				() -> new ItemStack(Material.REPEATER),
 				() -> DeepDungeons.get().getLanguageConfig(gui.getTargetPlayer()).loadStringList(
 						"mobprovider.chance.info", Arrays.asList("&6&lSpawn Chance: &e%value% &9%", "")),

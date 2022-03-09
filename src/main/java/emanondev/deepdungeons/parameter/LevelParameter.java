@@ -24,7 +24,7 @@ public class LevelParameter extends Parameter<Integer> {
 	@Override
 	public Integer fromString(String value) {
 		try {
-			return Math.max(0, Integer.valueOf(value));
+			return Math.max(0, Integer.parseInt(value));
 		} catch (Exception e) {
 			return this.defaultValue;
 		}
@@ -37,7 +37,7 @@ public class LevelParameter extends Parameter<Integer> {
 
 	@Override
 	public GuiButton getEditorButton(StandGui gui) {
-		return new NumberEditorFButton<Integer>(gui, 1, 1, 10, () -> gui.getValue(LevelParameter.this),
+		return new NumberEditorFButton<>(gui, 1, 1, 10, () -> gui.getValue(LevelParameter.this),
 				(v) -> gui.setValue(LevelParameter.this, v), () -> new ItemStack(Material.IRON_SWORD),
 				() -> DeepDungeons.get().getLanguageConfig(gui.getTargetPlayer())
 						.loadStringList("parameter.level.info", Arrays.asList("&6&lLevel: &e%value%", "")),

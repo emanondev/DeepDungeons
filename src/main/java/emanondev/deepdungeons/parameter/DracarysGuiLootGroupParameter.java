@@ -3,6 +3,7 @@ package emanondev.deepdungeons.parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.bukkit.Material;
 
@@ -30,19 +31,19 @@ public class DracarysGuiLootGroupParameter extends Parameter<String> {
 
 	@Override
 	public GuiButton getEditorButton(StandGui gui) {
-		return new ResearchFButton<String>(gui, () -> new ItemBuilder(Material.GOLD_INGOT).setDescription(Arrays.asList(
+		return new ResearchFButton<>(gui, () -> new ItemBuilder(Material.GOLD_INGOT).setDescription(Arrays.asList(
 				"&6&lLootGroup: &e%value%",
 				"",
-				"&7[&fClick&7] &9Any &7> &9Change type"),"%value%",""+gui.getValue(this)
-				).build(),
+				"&7[&fClick&7] &9Any &7> &9Change type"), "%value%", "" + gui.getValue(this)
+		).build(),
 				(s, v) -> v.toLowerCase().contains(s), (event, v) -> {
-					gui.setValue(this, v);
-					return true;
-				}, (v) -> new ItemBuilder(Material.GOLD_INGOT).setDescription(Arrays.asList("&6" + v)).build(), () -> {
-					ArrayList<String> tab = new ArrayList<>(DracarysGUIAPI.getLootGroups());
-					Collections.sort(tab);
-					return tab;
-				});
+			gui.setValue(this, v);
+			return true;
+		}, (v) -> new ItemBuilder(Material.GOLD_INGOT).setDescription(List.of("&6" + v)).build(), () -> {
+			ArrayList<String> tab = new ArrayList<>(DracarysGUIAPI.getLootGroups());
+			Collections.sort(tab);
+			return tab;
+		});
 	}
 
 }

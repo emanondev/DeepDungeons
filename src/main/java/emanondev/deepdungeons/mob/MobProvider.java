@@ -11,9 +11,9 @@ import emanondev.deepdungeons.room.handler.RoomHandler;
 
 public interface MobProvider extends Provider {
 
-	public void spawn(List<String> info, Location loc, RoomHandler handler);
+	void spawn(List<String> info, Location loc, RoomHandler handler);
 
-	public StandGui setupGui(Player user,ArmorStand stand);
+	StandGui setupGui(Player user, ArmorStand stand);
 	
 	
 }

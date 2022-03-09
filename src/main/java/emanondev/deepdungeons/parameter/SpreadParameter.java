@@ -25,7 +25,7 @@ public class SpreadParameter extends Parameter<Double> {
 	@Override
 	public Double fromString(String value) {
 		try {
-			return Math.max(0, Double.valueOf(value));
+			return Math.max(0, Double.parseDouble(value));
 		} catch (Exception e) {
 			return this.defaultValue;
 		}
@@ -38,8 +38,8 @@ public class SpreadParameter extends Parameter<Double> {
 
 	@Override
 	public GuiButton getEditorButton(StandGui gui) {
-		return new NumberEditorFButton<Double>(gui, 1D, 0.01D, 10D, () -> gui.getValue(SpreadParameter.this),
-				(v) -> gui.setValue(SpreadParameter.this, Math.max(0, Double.valueOf(v))), () -> new ItemStack(Material.REPEATER),
+		return new NumberEditorFButton<>(gui, 1D, 0.01D, 10D, () -> gui.getValue(SpreadParameter.this),
+				(v) -> gui.setValue(SpreadParameter.this, Math.max(0, v)), () -> new ItemStack(Material.REPEATER),
 				() -> DeepDungeons.get().getLanguageConfig(gui.getTargetPlayer())
 						.loadStringList("parameter.spread.info", Arrays.asList("&6&lSpread: &e%value%", "")),
 				null);

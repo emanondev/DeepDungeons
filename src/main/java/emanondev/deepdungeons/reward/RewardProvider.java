@@ -12,8 +12,8 @@ import emanondev.deepdungeons.room.handler.RoomHandler;
 
 public interface RewardProvider extends Provider {
 
-	public void populate(List<String> info, Inventory inventory, RoomHandler handler);
+	void populate(List<String> info, Inventory inventory, RoomHandler handler);
 
-	public Gui setupGui(Player user, ArmorStand stand);
+	Gui setupGui(Player user, ArmorStand stand);
 
 }

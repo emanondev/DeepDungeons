@@ -6,6 +6,7 @@ import java.util.Map;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.util.BlockVector;
+import org.jetbrains.annotations.NotNull;
 
 public class Offset implements ConfigurationSerializable {
 
@@ -70,13 +71,11 @@ public class Offset implements ConfigurationSerializable {
 			return false;
 		if (z != other.z)
 			return false;
-		if (y != other.y)
-			return false;
-		return true;
+		return y == other.y;
 	}
 
 	@Override
-	public Map<String, Object> serialize() {
+	public @NotNull Map<String, Object> serialize() {
 		LinkedHashMap<String, Object> map = new LinkedHashMap<>();
 		map.put("x", x);
 		map.put("y", y);

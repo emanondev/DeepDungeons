@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
@@ -17,24 +18,24 @@ public interface StandGui extends PagedGui {
 	 * 
 	 * @return a List containing all parameters needed for spawning the mob
 	 */
-	public abstract List<String> fillInfo();
+	List<String> fillInfo();
 
-	public default List<String> getInfo() {
+	default List<String> getInfo() {
 		if (!getStand().isValid()) {
-			this.getInventory().getViewers().forEach((V) -> V.closeInventory());
+			this.getInventory().getViewers().forEach(HumanEntity::closeInventory);
 			return Collections.emptyList();
 		}
 		ItemStack item = getStand().getEquipment().getItem(EquipmentSlot.HAND);
-		if (item == null || !item.hasItemMeta())
+		if (!item.hasItemMeta())
 			return Collections.emptyList();
 		return item.getItemMeta().getLore();
 	}
 
-	public <T> T getValue(Parameter<T> param);
+	<T> T getValue(Parameter<T> param);
 
-	public <T extends Object> void setValue(Parameter<T> param);
+	<T> void setValue(Parameter<T> param);
 
-	public <T extends Object> void setValue(Parameter<T> param, T value);
+	<T> void setValue(Parameter<T> param, T value);
 
-	public ArmorStand getStand();
+	ArmorStand getStand();
 }

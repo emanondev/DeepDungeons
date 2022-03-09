@@ -25,25 +25,19 @@ public class DeepDungeons extends CorePlugin {
 
 	@Override
 	protected boolean registerReloadCommand() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public void disable() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void reload() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void enable() {
-		// TODO Auto-generated method stub
 		ConfigurationSerialization.registerClass(Offset.class);
 		this.roomManager = new RoomManager();
 		this.roomDataFactory = new RoomDataFactory();

@@ -24,7 +24,7 @@ public class AmountParameter extends Parameter<Integer> {
 	@Override
 	public Integer fromString(String value) {
 		try {
-			return Math.max(1, Integer.valueOf(value));
+			return Math.max(1, Integer.parseInt(value));
 		} catch (Exception e) {
 			return 1;
 		}
@@ -37,7 +37,7 @@ public class AmountParameter extends Parameter<Integer> {
 
 	@Override
 	public GuiButton getEditorButton(StandGui gui) {
-		return new NumberEditorFButton<Integer>(gui, 1, 1, 10, () -> gui.getValue(AmountParameter.this),
+		return new NumberEditorFButton<>(gui, 1, 1, 10, () -> gui.getValue(AmountParameter.this),
 				(v) -> gui.setValue(AmountParameter.this, Math.max(1, v)), () -> new ItemStack(Material.REPEATER),
 				() -> DeepDungeons.get().getLanguageConfig(gui.getTargetPlayer())
 						.loadStringList("parameter.amount.info", Arrays.asList("&6&lAmount: &e%value%", "")),
