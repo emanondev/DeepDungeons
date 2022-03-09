@@ -1,7 +1,7 @@
-name: DeepDungeons
-main: emanondev.deepdungeons.DeepDungeons
-version: 1.0
+name: "${project.name}"
+main: "${groupId}.DeepDungeons"
+version: "${project.version}"
 author: emanon
-api-version: 1.13
-depend: [DeepCore]
-softdepend: [SuperVanish,PremiumVanish,PlaceholderAPI,VirginBlock,Vault,ProtocolLib,CMI,Towny,DracarysGUI,MythicMobs]
+api-version: "1.13"
+depend: [ DeepCore ]
+softdepend: [ SuperVanish,PremiumVanish,PlaceholderAPI,VirginBlock,Vault,ProtocolLib,CMI,Towny,DracarysGUI,MythicMobs ]
