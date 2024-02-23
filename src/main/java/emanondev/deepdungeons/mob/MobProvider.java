@@ -2,7 +2,7 @@ package emanondev.deepdungeons.mob;
 
 import emanondev.deepdungeons.generic.Provider;
 import emanondev.deepdungeons.generic.StandGui;
-import emanondev.deepdungeons.room.handler.RoomHandler;
+import emanondev.deepdungeons.roomold.handler.RoomHandler;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;

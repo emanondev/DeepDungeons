@@ -5,8 +5,8 @@ import emanondev.deepdungeons.command.DeepDungeonsCommand;
 import emanondev.deepdungeons.command.DungeonRoomCommand;
 import emanondev.deepdungeons.mob.MobManager;
 import emanondev.deepdungeons.reward.RewardManager;
-import emanondev.deepdungeons.room.RoomDataFactory;
-import emanondev.deepdungeons.room.RoomManager;
+import emanondev.deepdungeons.roomold.RoomDataFactory;
+import emanondev.deepdungeons.roomold.RoomManager;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 
 public class DeepDungeons extends CorePlugin {

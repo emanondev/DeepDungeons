@@ -1,7 +1,7 @@
 package emanondev.deepdungeons.reward;
 
 import emanondev.deepdungeons.parameter.Parameters;
-import emanondev.deepdungeons.room.handler.RoomHandler;
+import emanondev.deepdungeons.roomold.handler.RoomHandler;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;

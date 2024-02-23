@@ -3,7 +3,7 @@ package emanondev.deepdungeons.mob;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.generic.AProvider;
 import emanondev.deepdungeons.parameter.Parameters;
-import emanondev.deepdungeons.room.handler.RoomHandler;
+import emanondev.deepdungeons.roomold.handler.RoomHandler;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
