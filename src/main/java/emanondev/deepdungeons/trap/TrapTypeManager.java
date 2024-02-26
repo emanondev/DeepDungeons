@@ -1,4 +1,4 @@
-package emanondev.deepdungeons.spawner;
+package emanondev.deepdungeons.trap;
 
 import emanondev.core.util.DRegistry;
 import emanondev.deepdungeons.DeepDungeons;
@@ -10,26 +10,30 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class MonsterSpawnerTypeManager extends DRegistry<MonsterSpawnerType> {
+public class TrapTypeManager extends DRegistry<TrapType> {
 
-    public static final String LINE_ONE = "MONSTERSPAWNER BLUEPRINT";
-    private static final MonsterSpawnerTypeManager instance = new MonsterSpawnerTypeManager();
+    public static final String LINE_ONE = "TRAP BLUEPRINT";
+    private static final TrapTypeManager instance = new TrapTypeManager();
 
-    public MonsterSpawnerTypeManager() {
-        super(DeepDungeons.get(), "MonsterSpawnerManager", true);
+    public TrapTypeManager() {
+        super(DeepDungeons.get(), "TreasureManager", true);
     }
 
-    public static @NotNull MonsterSpawnerTypeManager getInstance() {
+    public static TrapTypeManager getInstance() {
         return instance;
     }
 
-    public @Nullable MonsterSpawnerType getMonsterSpawnerType(@NotNull ItemStack itemStack) {
-        if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
-            return null;
-        return getMonsterSpawnerType(itemStack.getItemMeta());
+    public boolean isTrapItem(@NotNull ItemStack itemStack) {
+        return getTrapType(itemStack) != null;
     }
 
-    public @Nullable MonsterSpawnerType getMonsterSpawnerType(@NotNull ItemMeta meta) {
+    public @Nullable TrapType getTrapType(@NotNull ItemStack itemStack) {
+        if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
+            return null;
+        return getTrapType(itemStack.getItemMeta());
+    }
+
+    public @Nullable TrapType getTrapType(@NotNull ItemMeta meta) {
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))
             return null;
         List<String> lore = meta.getLore();
@@ -38,21 +42,22 @@ public class MonsterSpawnerTypeManager extends DRegistry<MonsterSpawnerType> {
         return get(lore.get(0).split(" ")[1]);
     }
 
-    public MonsterSpawnerType.MonsterSpawnerInstanceBuilder getMonsterSpawnerInstance(@NotNull ItemStack itemStack) {
+    public TrapType.@Nullable TrapInstanceBuilder getTrapInstance(@NotNull ItemStack itemStack) {
         if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
             return null;
-        return getMonsterSpawnerInstance(itemStack.getItemMeta());
+        return getTrapInstance(itemStack.getItemMeta());
     }
 
-    public MonsterSpawnerType.MonsterSpawnerInstanceBuilder getMonsterSpawnerInstance(@NotNull ItemMeta meta) {
+    public @Nullable TrapType.TrapInstanceBuilder getTrapInstance(@NotNull ItemMeta meta) {
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))
             return null;
         List<String> lore = meta.getLore();
         if (lore.size() == 0)
             return null;
-        MonsterSpawnerType type = get(lore.get(0).split(" ")[1]);
+        TrapType type = get(lore.get(0).split(" ")[1]);
         if (type == null)
             return null;
         return type.getBuilder().fromItemLines(lore);
     }
+
 }

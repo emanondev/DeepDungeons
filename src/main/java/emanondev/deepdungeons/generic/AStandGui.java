@@ -23,6 +23,10 @@ import java.util.List;
 
 public abstract class AStandGui extends PagedMapGui implements StandGui {
     private final String managerName;
+    private final ArmorStand stand;
+    private final Provider provider;
+    @SuppressWarnings("rawtypes")
+    private final HashMap<Parameter, Object> params = new HashMap<>();
 
     public AStandGui(@NotNull String managerName, @NotNull Player player, @NotNull ArmorStand stand, @NotNull Provider provider) {
         super("&9" + managerName + "Provider " + provider.getId(), 6, player, null, DeepDungeons.get());
@@ -48,23 +52,16 @@ public abstract class AStandGui extends PagedMapGui implements StandGui {
         loadValues(item.hasItemMeta() ? item.getItemMeta().getLore() : Collections.emptyList());
     }
 
-    private final ArmorStand stand;
-    private final Provider provider;
-
     public abstract void registerParams();
 
     public Provider getProvider() {
         return provider;
     }
 
-
     public <T> void registerParam(Parameter<T> param, int slot) {
         this.setValue(param);
         this.setButton(slot, param.getEditorButton(this));
     }
-
-    @SuppressWarnings("rawtypes")
-    private final HashMap<Parameter, Object> params = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     public <T> T getValue(Parameter<T> param) {

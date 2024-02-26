@@ -43,6 +43,11 @@ public class MythicMobsMobProvider extends AProvider implements MobProvider {
         return loc.clone().add(Math.random() * 2 * spread - spread, 0, Math.random() * 2 * spread - spread);
     }
 
+    @Override
+    public MobStandGui setupGui(Player user, ArmorStand stand) {
+        return new MythicMobsStandGui(user, stand);
+    }
+
     private class MythicMobsStandGui extends MobStandGui {
 
         public MythicMobsStandGui(Player player, ArmorStand stand) {
@@ -54,11 +59,6 @@ public class MythicMobsMobProvider extends AProvider implements MobProvider {
             this.registerParam(Parameters.MYTHICMOBTYPE, 0);
         }
 
-    }
-
-    @Override
-    public MobStandGui setupGui(Player user, ArmorStand stand) {
-        return new MythicMobsStandGui(user, stand);
     }
 
 }

@@ -1,4 +1,4 @@
 package emanondev.deepdungeons.dungeon;
 
-public class DungeonInstance {
+public class DungeonHandler {
 }

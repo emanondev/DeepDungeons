@@ -37,6 +37,11 @@ public class Offset implements ConfigurationSerializable {
         this.direction = direction;
     }
 
+    public static Offset deserialize(Map<String, Object> map) {
+        return new Offset((int) map.get("x"), (int) map.get("y"), (int) map.get("z"),
+                BlockFace.valueOf((String) map.get("direction")));
+    }
+
     public BlockVector getOffset() {
         return new BlockVector(x, y, z);
     }
@@ -82,11 +87,6 @@ public class Offset implements ConfigurationSerializable {
         map.put("z", z);
         map.put("direction", direction.name());
         return map;
-    }
-
-    public static Offset deserialize(Map<String, Object> map) {
-        return new Offset((int) map.get("x"), (int) map.get("y"), (int) map.get("z"),
-                BlockFace.valueOf((String) map.get("direction")));
     }
 
 }

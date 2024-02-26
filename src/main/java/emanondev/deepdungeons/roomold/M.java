@@ -9,7 +9,7 @@ import java.util.List;
 
 public class M {
 
-    public static void BUILDER_START(Player p){
+    public static void BUILDER_START(Player p) {
         new MessageBuilder(DeepDungeons.get(), p)
                 .addTextTranslation("command.DungeonRoom.start.message",
                         List.of("&9[&bDungeonRoom&9] &bStai creando una stanza, Segui le istruzioni passo passo"

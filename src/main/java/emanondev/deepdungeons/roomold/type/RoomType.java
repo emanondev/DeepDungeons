@@ -48,6 +48,8 @@ import java.util.*;
 
 public abstract class RoomType {
 
+    private static final DeepDungeons PLUGIN = DeepDungeons.get();
+
     public boolean hasEntrace() {
         return true;
     }
@@ -66,13 +68,10 @@ public abstract class RoomType {
 
     public abstract RoomConfiguration createRoom(YMLSection section);
 
-    private static final DeepDungeons PLUGIN = DeepDungeons.get();
-
     public class RoomBuilder implements Listener {
 
-        private int phase = 0;
-
         private final UUID builder;
+        private int phase = 0;
         private World w;
         private BlockVector loc1;
         private BlockVector loc2;
@@ -81,6 +80,18 @@ public abstract class RoomType {
 
         public RoomBuilder(@NotNull Player builder) {
             this.builder = builder.getUniqueId();
+        }
+
+        public static void next(Player p) {
+            if (!rooms.containsKey(p.getUniqueId()))
+                throw new IllegalArgumentException();
+            rooms.get(p.getUniqueId()).next();
+        }
+
+        public static void abort(Player p) {
+            if (!rooms.containsKey(p.getUniqueId()))
+                throw new IllegalArgumentException();
+            rooms.get(p.getUniqueId()).abort();
         }
 
         public Player getPlayer() {
@@ -92,11 +103,11 @@ public abstract class RoomType {
             advancePhase();
         }
 
-        protected void incPhase(){
+        protected void incPhase() {
             phase++;
         }
 
-        private void onNextAreaSelected(String[] args){
+        private void onNextAreaSelected(String[] args) {
             try {
                 Region sel = WorldEdit.getInstance().getSessionManager().get(BukkitAdapter.adapt(getPlayer()))
                         .getSelection(BukkitAdapter.adapt(getPlayer().getWorld()));
@@ -173,11 +184,12 @@ public abstract class RoomType {
                 return;
             }
         }
+
         public void onNext(String[] args) {
             switch (phase) {
                 case 1:
                     onNextAreaSelected(args);
-                return;
+                    return;
                 case 2: {
 
                     MessageBuilder mb = new MessageBuilder(PLUGIN, getPlayer());
@@ -301,163 +313,6 @@ public abstract class RoomType {
                                 p.sendBlockChange(b.getLocation(), b.getBlockData());
                 }
             }.runTaskTimer(PLUGIN, 0L, 15L);
-        }
-
-        public static void next(Player p) {
-            if (!rooms.containsKey(p.getUniqueId()))
-                throw new IllegalArgumentException();
-            rooms.get(p.getUniqueId()).next();
-        }
-
-        public static void abort(Player p) {
-            if (!rooms.containsKey(p.getUniqueId()))
-                throw new IllegalArgumentException();
-            rooms.get(p.getUniqueId()).abort();
-        }
-
-        private static class RoomBuilderListener implements Listener {
-
-            private RoomBuilderListener() {
-                PLUGIN.registerListener(this);
-            }
-
-            @EventHandler
-            private void event(BlockPlaceEvent event) {
-                if (!rooms.containsKey(event.getPlayer().getUniqueId()))
-                    return;
-                emanondev.deepdungeons.roomold.RoomBuilder rBuilder = rooms.get(event.getPlayer().getUniqueId());
-                switch (rBuilder.phase) {
-                    case 2:
-                        if (event.getBlockPlaced().getType() != Material.EMERALD_BLOCK)
-                            return;
-                        event.setCancelled(true);
-                        rBuilder.setEntraceDoor(event.getBlock());
-                        return;
-                    case 3:
-                        if (event.getBlockPlaced().getType() != Material.REDSTONE_BLOCK)
-                            return;
-                        event.setCancelled(true);
-                        rBuilder.setExitDoor(event.getBlock());
-                        return;
-                }
-            }
-
-            @EventHandler
-            private void event(EntityPlaceEvent event) {
-                // Bukkit.broadcastMessage(event.getPlayer().getName()+" placed stand");
-                if (!rooms.containsKey(event.getPlayer().getUniqueId()))
-                    return;
-                emanondev.deepdungeons.roomold.RoomBuilder rBuilder = rooms.get(event.getPlayer().getUniqueId());
-                // Bukkit.broadcastMessage("Phase "+rBuilder.phase);
-                switch (rBuilder.phase) {
-                    case 4:
-                        if (!(event.getEntity() instanceof ArmorStand))
-                            return;
-                        // event.setCancelled(true);
-                        ArmorStand stand = (ArmorStand) event.getEntity();
-                        stand.setGravity(false);
-                        stand.setInvulnerable(true);
-                        stand.setCustomName(MobManager.NAME);
-                        stand.setSmall(true);
-                        rBuilder.setPlaceMobProvider(stand);
-                        return;
-                    /*
-                     * case 4: if (event.getBlockPlaced().getType() != Material.REDSTONE_BLOCK)
-                     * return; event.setCancelled(true);
-                     * rBuilder.setPlaceRewardProvider(event.getBlock()); return;
-                     */
-                }
-            }
-
-            @EventHandler
-            private void event(PlayerInteractAtEntityEvent event) {
-                if (!rooms.containsKey(event.getPlayer().getUniqueId()))
-                    return;
-                emanondev.deepdungeons.roomold.RoomBuilder rBuilder = rooms.get(event.getPlayer().getUniqueId());
-                if (!(event.getRightClicked() instanceof ArmorStand))
-                    return;
-
-                ArmorStand stand = (ArmorStand) event.getRightClicked();
-                checkStand(stand, rBuilder, event);
-            }
-
-            public void checkStand(ArmorStand stand, emanondev.deepdungeons.roomold.RoomBuilder rBuilder, Cancellable event) {
-                switch (rBuilder.phase) {
-                    case 4:
-                    case 5: {
-                        ItemStack item = stand.getEquipment().getItemInMainHand();
-                        if (item == null || !item.hasItemMeta())
-                            return;
-                        ItemMeta meta = item.getItemMeta();
-                        if (!meta.hasDisplayName())
-                            return;
-                        if (meta.getDisplayName().startsWith(MobManager.NAME + " ")) {
-                            event.setCancelled(true);
-                            MobProvider prov = DeepDungeons.get().getMobManager()
-                                    .getProvider(meta.getDisplayName().substring(MobManager.NAME.length() + 1));
-                            rBuilder.editPlaceMobProvider(stand, prov);
-                        }
-                        if (meta.getDisplayName().startsWith(RewardManager.NAME + " ")) {
-                            event.setCancelled(true);
-                            RewardProvider prov = DeepDungeons.get().getRewardManager()
-                                    .getProvider(meta.getDisplayName().substring(RewardManager.NAME.length() + 1));
-                            rBuilder.editPlaceRewardProvider(stand, prov);
-                        }
-                    }
-                }
-            }
-
-            @EventHandler
-            private void event(EntityDamageByEntityEvent event) {
-                if (!rooms.containsKey(event.getDamager().getUniqueId()) || (!(event.getDamager() instanceof Player)))
-                    return;
-                Bukkit.broadcastMessage("PlayerInteractEntityEvent");
-                emanondev.deepdungeons.roomold.RoomBuilder rBuilder = rooms.get(event.getDamager().getUniqueId());
-                if (!(event.getEntity() instanceof ArmorStand))
-                    return;
-
-                ArmorStand stand = (ArmorStand) event.getEntity();
-                checkStand(stand, rBuilder, event);
-            }
-
-            @EventHandler
-            private void event(PlayerInteractEvent event) {
-                if (!rooms.containsKey(event.getPlayer().getUniqueId()))
-                    return;
-                emanondev.deepdungeons.roomold.RoomBuilder rBuilder = rooms.get(event.getPlayer().getUniqueId());
-                switch (rBuilder.phase) {
-                    case 5:
-                        if (event.getItem() == null || event.getItem().getType() != Material.GOLD_INGOT
-                                || event.getClickedBlock() == null)
-                            return;
-                        if (!(event.getClickedBlock().getState() instanceof Container))
-                            return;
-                        event.setCancelled(true);
-                        Collection<Entity> coll = event.getClickedBlock().getWorld().getNearbyEntities(
-                                event.getClickedBlock().getBoundingBox(), (e) -> e.getType() == EntityType.ARMOR_STAND);
-                        for (Entity e : coll) {
-                            if (!e.getLocation().getBlock().equals(event.getClickedBlock()))
-                                continue;
-                            ArmorStand stand = (ArmorStand) e;
-                            ItemStack item = stand.getEquipment().getItemInMainHand();
-                            if (!item.hasItemMeta())
-                                continue;
-                            ItemMeta meta = item.getItemMeta();
-                            if (!meta.hasDisplayName() || !meta.getDisplayName().startsWith(RewardManager.NAME + " "))
-                                continue;
-                            RewardProvider prov = DeepDungeons.get().getRewardManager()
-                                    .getProvider(meta.getDisplayName().substring(RewardManager.NAME.length() + 1));
-                            rBuilder.editPlaceRewardProvider(stand, prov);
-                            return;
-                        }
-                        ArmorStand stand = (ArmorStand) event.getClickedBlock().getWorld()
-                                .spawnEntity(event.getClickedBlock().getLocation().add(0.5, 0D, 0.5), EntityType.ARMOR_STAND);
-                        stand.setInvisible(true);
-                        rBuilder.setPlaceRewardProvider(stand);
-                        return;
-                }
-
-            }
         }
 
         private boolean checkDoorLocation(Block b) {
@@ -766,6 +621,151 @@ public abstract class RoomType {
                 displayFakeDoorBlocks(Material.EMERALD_BLOCK, entraceDoor);
             for (Offset door : exitDoors)
                 displayFakeDoorBlocks(Material.REDSTONE_BLOCK, door);
+        }
+
+        private static class RoomBuilderListener implements Listener {
+
+            private RoomBuilderListener() {
+                PLUGIN.registerListener(this);
+            }
+
+            @EventHandler
+            private void event(BlockPlaceEvent event) {
+                if (!rooms.containsKey(event.getPlayer().getUniqueId()))
+                    return;
+                emanondev.deepdungeons.roomold.RoomBuilder rBuilder = rooms.get(event.getPlayer().getUniqueId());
+                switch (rBuilder.phase) {
+                    case 2:
+                        if (event.getBlockPlaced().getType() != Material.EMERALD_BLOCK)
+                            return;
+                        event.setCancelled(true);
+                        rBuilder.setEntraceDoor(event.getBlock());
+                        return;
+                    case 3:
+                        if (event.getBlockPlaced().getType() != Material.REDSTONE_BLOCK)
+                            return;
+                        event.setCancelled(true);
+                        rBuilder.setExitDoor(event.getBlock());
+                        return;
+                }
+            }
+
+            @EventHandler
+            private void event(EntityPlaceEvent event) {
+                // Bukkit.broadcastMessage(event.getPlayer().getName()+" placed stand");
+                if (!rooms.containsKey(event.getPlayer().getUniqueId()))
+                    return;
+                emanondev.deepdungeons.roomold.RoomBuilder rBuilder = rooms.get(event.getPlayer().getUniqueId());
+                // Bukkit.broadcastMessage("Phase "+rBuilder.phase);
+                switch (rBuilder.phase) {
+                    case 4:
+                        if (!(event.getEntity() instanceof ArmorStand))
+                            return;
+                        // event.setCancelled(true);
+                        ArmorStand stand = (ArmorStand) event.getEntity();
+                        stand.setGravity(false);
+                        stand.setInvulnerable(true);
+                        stand.setCustomName(MobManager.NAME);
+                        stand.setSmall(true);
+                        rBuilder.setPlaceMobProvider(stand);
+                        return;
+                    /*
+                     * case 4: if (event.getBlockPlaced().getType() != Material.REDSTONE_BLOCK)
+                     * return; event.setCancelled(true);
+                     * rBuilder.setPlaceRewardProvider(event.getBlock()); return;
+                     */
+                }
+            }
+
+            @EventHandler
+            private void event(PlayerInteractAtEntityEvent event) {
+                if (!rooms.containsKey(event.getPlayer().getUniqueId()))
+                    return;
+                emanondev.deepdungeons.roomold.RoomBuilder rBuilder = rooms.get(event.getPlayer().getUniqueId());
+                if (!(event.getRightClicked() instanceof ArmorStand))
+                    return;
+
+                ArmorStand stand = (ArmorStand) event.getRightClicked();
+                checkStand(stand, rBuilder, event);
+            }
+
+            public void checkStand(ArmorStand stand, emanondev.deepdungeons.roomold.RoomBuilder rBuilder, Cancellable event) {
+                switch (rBuilder.phase) {
+                    case 4:
+                    case 5: {
+                        ItemStack item = stand.getEquipment().getItemInMainHand();
+                        if (item == null || !item.hasItemMeta())
+                            return;
+                        ItemMeta meta = item.getItemMeta();
+                        if (!meta.hasDisplayName())
+                            return;
+                        if (meta.getDisplayName().startsWith(MobManager.NAME + " ")) {
+                            event.setCancelled(true);
+                            MobProvider prov = DeepDungeons.get().getMobManager()
+                                    .getProvider(meta.getDisplayName().substring(MobManager.NAME.length() + 1));
+                            rBuilder.editPlaceMobProvider(stand, prov);
+                        }
+                        if (meta.getDisplayName().startsWith(RewardManager.NAME + " ")) {
+                            event.setCancelled(true);
+                            RewardProvider prov = DeepDungeons.get().getRewardManager()
+                                    .getProvider(meta.getDisplayName().substring(RewardManager.NAME.length() + 1));
+                            rBuilder.editPlaceRewardProvider(stand, prov);
+                        }
+                    }
+                }
+            }
+
+            @EventHandler
+            private void event(EntityDamageByEntityEvent event) {
+                if (!rooms.containsKey(event.getDamager().getUniqueId()) || (!(event.getDamager() instanceof Player)))
+                    return;
+                Bukkit.broadcastMessage("PlayerInteractEntityEvent");
+                emanondev.deepdungeons.roomold.RoomBuilder rBuilder = rooms.get(event.getDamager().getUniqueId());
+                if (!(event.getEntity() instanceof ArmorStand))
+                    return;
+
+                ArmorStand stand = (ArmorStand) event.getEntity();
+                checkStand(stand, rBuilder, event);
+            }
+
+            @EventHandler
+            private void event(PlayerInteractEvent event) {
+                if (!rooms.containsKey(event.getPlayer().getUniqueId()))
+                    return;
+                emanondev.deepdungeons.roomold.RoomBuilder rBuilder = rooms.get(event.getPlayer().getUniqueId());
+                switch (rBuilder.phase) {
+                    case 5:
+                        if (event.getItem() == null || event.getItem().getType() != Material.GOLD_INGOT
+                                || event.getClickedBlock() == null)
+                            return;
+                        if (!(event.getClickedBlock().getState() instanceof Container))
+                            return;
+                        event.setCancelled(true);
+                        Collection<Entity> coll = event.getClickedBlock().getWorld().getNearbyEntities(
+                                event.getClickedBlock().getBoundingBox(), (e) -> e.getType() == EntityType.ARMOR_STAND);
+                        for (Entity e : coll) {
+                            if (!e.getLocation().getBlock().equals(event.getClickedBlock()))
+                                continue;
+                            ArmorStand stand = (ArmorStand) e;
+                            ItemStack item = stand.getEquipment().getItemInMainHand();
+                            if (!item.hasItemMeta())
+                                continue;
+                            ItemMeta meta = item.getItemMeta();
+                            if (!meta.hasDisplayName() || !meta.getDisplayName().startsWith(RewardManager.NAME + " "))
+                                continue;
+                            RewardProvider prov = DeepDungeons.get().getRewardManager()
+                                    .getProvider(meta.getDisplayName().substring(RewardManager.NAME.length() + 1));
+                            rBuilder.editPlaceRewardProvider(stand, prov);
+                            return;
+                        }
+                        ArmorStand stand = (ArmorStand) event.getClickedBlock().getWorld()
+                                .spawnEntity(event.getClickedBlock().getLocation().add(0.5, 0D, 0.5), EntityType.ARMOR_STAND);
+                        stand.setInvisible(true);
+                        rBuilder.setPlaceRewardProvider(stand);
+                        return;
+                }
+
+            }
         }
 
     }

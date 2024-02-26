@@ -5,19 +5,20 @@ import org.jetbrains.annotations.NotNull;
 
 public class RoomHandler {
 
-    private final RoomInstance instance;
+    private final RoomType.RoomInstance instance;
     private final Location location;
 
-    public RoomHandler(@NotNull RoomInstance instance, @NotNull Location location){
+    public RoomHandler(@NotNull RoomType.RoomInstance instance, @NotNull Location location) {
         this.instance = instance;
         this.location = location;
+        //TODO
     }
 
     public @NotNull Location getLocation() {
         return location;
     }
 
-    public @NotNull RoomInstance getRoomInstance() {
+    public @NotNull RoomType.RoomInstance getRoomInstance() {
         return instance;
     }
 }

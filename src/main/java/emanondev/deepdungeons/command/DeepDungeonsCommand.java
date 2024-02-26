@@ -20,6 +20,7 @@ import java.util.List;
 public class DeepDungeonsCommand extends CoreCommand {
 
     private static final DeepDungeons plugin = DeepDungeons.get();
+    private int k = 0;
 
     public DeepDungeonsCommand() {
         super("DeepDungeons", plugin, PermissionBuilder.ofCommand(plugin, "DeepDungeons").buildAndRegister(plugin), "Allow to use the command /DeepDungeons");
@@ -58,8 +59,6 @@ public class DeepDungeonsCommand extends CoreCommand {
                 throw new IllegalArgumentException();
         }
     }
-
-    private int k = 0;
 
     @Override
     public List<String> onComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args,

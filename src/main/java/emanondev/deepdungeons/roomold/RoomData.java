@@ -11,11 +11,13 @@ import java.util.*;
 
 public class RoomData {
 
-    protected YMLSection section;
-    private Offset entrace;
+    private static final String ENTRACE_PATH = "entrace";
+    private static final String EXITS_PATH = "exists";
     private final Set<Offset> exits;
     @SuppressWarnings("unused")
     private final Set<Material> breakableBlockTypes = new HashSet<>();
+    protected YMLSection section;
+    private Offset entrace;
 
     @SuppressWarnings("unchecked")
     public RoomData(YMLSection section) {
@@ -24,9 +26,6 @@ public class RoomData {
         this.exits = new HashSet<>(
                 (List<Offset>) section.getList(EXITS_PATH, new ArrayList<>()));
     }
-
-    private static final String ENTRACE_PATH = "entrace";
-    private static final String EXITS_PATH = "exists";
 
     public Offset getEntrace() {
         return entrace;

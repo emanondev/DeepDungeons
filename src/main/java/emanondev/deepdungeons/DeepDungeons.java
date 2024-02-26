@@ -11,16 +11,16 @@ import org.bukkit.configuration.serialization.ConfigurationSerialization;
 
 public class DeepDungeons extends CorePlugin {
 
-    private static DeepDungeons instance;
-
     public static final boolean DEBUG = true;
+    private static DeepDungeons instance;
+    private RoomManager roomManager;
+    private RoomDataFactory roomDataFactory;
+    private MobManager mobManager;
+    private RewardManager rewardManager;
 
     public static DeepDungeons get() {
         return instance;
     }
-
-    private RoomManager roomManager;
-    private RoomDataFactory roomDataFactory;
 
     @Override
     protected boolean registerReloadCommand() {
@@ -59,13 +59,9 @@ public class DeepDungeons extends CorePlugin {
         return roomManager;
     }
 
-    private MobManager mobManager;
-
     public MobManager getMobManager() {
         return mobManager;
     }
-
-    private RewardManager rewardManager;
 
     public RewardManager getRewardManager() {
         return rewardManager;

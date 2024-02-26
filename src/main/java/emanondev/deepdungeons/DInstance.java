@@ -7,11 +7,11 @@ public class DInstance<T extends DRegistryElement> {
 
     private final T type;
 
-    public DInstance(@NotNull T type){
+    public DInstance(@NotNull T type) {
         this.type = type;
     }
 
-    public final @NotNull T getType(){
+    public final @NotNull T getType() {
         return type;
     }
 }
