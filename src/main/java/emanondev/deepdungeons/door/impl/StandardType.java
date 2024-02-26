@@ -26,12 +26,21 @@ public class StandardType extends DoorType {
             super();
         }
 
+        @Override
+        protected void writeToImpl(@NotNull YMLSection section) {
+        }
+
     }
 
     public class StandardInstance extends DoorInstance {
 
         public StandardInstance(@NotNull RoomType.RoomInstance roomInstance, @NotNull YMLSection section) {
             super(roomInstance, section);
+        }
+
+        @Override
+        public @NotNull DoorHandler getHandler() {
+            return null;
         }
     }
 }

@@ -14,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
@@ -82,16 +81,7 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
             return room;
         }
 
-        /**
-         * Return a collection of not null ItemStacks, collection may be empty
-         * <br><br>Implementation note: generated treasures should be consistent with given random
-         *
-         * @param random   seed for generation
-         * @param location where the treasure is generated
-         * @param who      optional who's getting the treasure
-         * @return A collection of not null ItemStacks, collection may be empty
-         */
-        public abstract @NotNull Collection<ItemStack> getMonsterSpawner(@NotNull Random random, @NotNull Location location, @Nullable Player who);
+        public abstract void spawnMobs(@NotNull Random random, @NotNull Location location, @Nullable Player who);
 
     }
 

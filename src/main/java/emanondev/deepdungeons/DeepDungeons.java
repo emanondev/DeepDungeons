@@ -1,22 +1,24 @@
 package emanondev.deepdungeons;
 
 import emanondev.core.CorePlugin;
-import emanondev.deepdungeons.command.DeepDungeonsCommand;
-import emanondev.deepdungeons.command.DungeonRoomCommand;
-import emanondev.deepdungeons.mob.MobManager;
-import emanondev.deepdungeons.reward.RewardManager;
-import emanondev.deepdungeons.roomold.RoomDataFactory;
-import emanondev.deepdungeons.roomold.RoomManager;
-import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import emanondev.deepdungeons.command.DungeonTreasureCommand;
+import emanondev.deepdungeons.door.DoorTypeManager;
+import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
+import emanondev.deepdungeons.dungeon.DungeonTypeManager;
+import emanondev.deepdungeons.room.RoomInstanceManager;
+import emanondev.deepdungeons.room.RoomTypeManager;
+import emanondev.deepdungeons.spawner.MonsterSpawnerTypeManager;
+import emanondev.deepdungeons.trap.TrapTypeManager;
+import emanondev.deepdungeons.treasure.TreasureTypeManager;
 
 public class DeepDungeons extends CorePlugin {
 
-    public static final boolean DEBUG = true;
+    //public static final boolean DEBUG = true;
     private static DeepDungeons instance;
-    private RoomManager roomManager;
+    /*private RoomManager roomManager;
     private RoomDataFactory roomDataFactory;
     private MobManager mobManager;
-    private RewardManager rewardManager;
+    private RewardManager rewardManager;*/
 
     public static DeepDungeons get() {
         return instance;
@@ -33,10 +35,29 @@ public class DeepDungeons extends CorePlugin {
 
     @Override
     public void reload() {
+
     }
 
     @Override
     public void enable() {
+        this.registerCommand(new DungeonTreasureCommand());
+
+        TreasureTypeManager.getInstance();
+        TrapTypeManager.getInstance();
+        MonsterSpawnerTypeManager.getInstance();
+        DoorTypeManager.getInstance();
+        RoomTypeManager.getInstance();
+        RoomInstanceManager.getInstance();
+        DungeonTypeManager.getInstance();
+        DungeonInstanceManager.getInstance();
+    }
+
+    @Override
+    public void load() {
+        instance = this;
+    }
+
+    /*
         ConfigurationSerialization.registerClass(Offset.class);
         this.roomManager = new RoomManager();
         this.roomDataFactory = new RoomDataFactory();
@@ -44,11 +65,6 @@ public class DeepDungeons extends CorePlugin {
         this.registerCommand(new DungeonRoomCommand());
         mobManager = new MobManager();
         rewardManager = new RewardManager();
-    }
-
-    @Override
-    public void load() {
-        instance = this;
     }
 
     public RoomDataFactory getRoomDataFactory() {
@@ -65,6 +81,6 @@ public class DeepDungeons extends CorePlugin {
 
     public RewardManager getRewardManager() {
         return rewardManager;
-    }
+    }*/
 
 }

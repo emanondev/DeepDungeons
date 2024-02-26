@@ -2,7 +2,6 @@ package emanondev.deepdungeons.parameter;
 
 import emanondev.core.UtilsString;
 import emanondev.core.gui.GuiButton;
-import emanondev.deepdungeons.generic.StandGui;
 
 import java.util.List;
 

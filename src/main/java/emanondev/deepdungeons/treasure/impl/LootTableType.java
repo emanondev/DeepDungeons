@@ -1,12 +1,19 @@
 package emanondev.deepdungeons.treasure.impl;
 
+import emanondev.core.ItemBuilder;
 import emanondev.core.YMLSection;
+import emanondev.core.gui.PagedMapGui;
+import emanondev.core.gui.ResearchFButton;
+import emanondev.core.message.DMessage;
+import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.room.RoomType;
 import emanondev.deepdungeons.treasure.TreasureType;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootContext;
 import org.bukkit.loot.LootTable;
@@ -15,10 +22,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class LootTableType extends TreasureType {
 
@@ -73,12 +77,39 @@ public class LootTableType extends TreasureType {
         @Contract("_ -> this")
         public TreasureInstanceBuilder fromItemLines(@NotNull List<String> lines) {
             if (lines.size() >= 2) {
-                String args[] = lines.get(1).split(" ")[1].split(":");
+                String[] args = lines.get(1).split(" ")[1].split(":");
                 table = Bukkit.getLootTable(new NamespacedKey(args[0], args[1]));
             }
             return this;
         }
 
+        @Override
+        protected void craftGuiButtons(@NotNull PagedMapGui gui) {
+            gui.addButton(new ResearchFButton<>(gui, () -> new ItemBuilder(Material.CHEST).setDescription(
+                    new DMessage(DeepDungeons.get(), gui.getTargetPlayer())
+                            .append("&6Type:&9 " + table.getKey())).setGuiProperty().build(),
+                    (String text, LootTables lootTable) -> {
+                        String[] split = text.split(" ");
+                        for (String s : split) {
+                            if (!(lootTable.name().toLowerCase(Locale.ENGLISH).contains(s.toLowerCase(Locale.ENGLISH))
+                                    || lootTable.getKey().toString().contains(s.toLowerCase(Locale.ENGLISH))))
+                                return false;
+                        }
+                        return true;
+                    },
+                    (InventoryClickEvent event, LootTables lootTable) -> {
+                        setTable(lootTable.getLootTable());
+                        gui.open(gui.getTargetPlayer());
+                        gui.getTargetPlayer().getInventory().setItemInMainHand(this.toItem());
+                        return false;
+                    },
+                    (LootTables lootTable) -> new ItemBuilder(Material.CHEST).setDescription(
+                            new DMessage(DeepDungeons.get(), gui.getTargetPlayer())
+                                    .append("&6&l " + lootTable.name())
+                                    .append("&6Type:&9 " + lootTable.getKey())).setGuiProperty().build(),
+                    () -> Arrays.asList(LootTables.values())
+            ));
+        }
     }
 
     public class LootTableInstance extends TreasureInstance {

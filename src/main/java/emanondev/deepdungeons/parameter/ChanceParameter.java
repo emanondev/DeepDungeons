@@ -3,7 +3,6 @@ package emanondev.deepdungeons.parameter;
 import emanondev.core.gui.GuiButton;
 import emanondev.core.gui.NumberEditorFButton;
 import emanondev.deepdungeons.DeepDungeons;
-import emanondev.deepdungeons.generic.StandGui;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 

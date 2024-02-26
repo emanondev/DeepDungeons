@@ -10,8 +10,8 @@ public class SimpleType extends RoomType {
     }
 
     @Override
-    public RoomInstanceBuilder getBuilder() {
-        return new SimpleInstanceBuilder();
+    public @NotNull RoomInstanceBuilder getBuilder(@NotNull String id) {
+        return new SimpleInstanceBuilder(id);
     }
 
     @Override
@@ -20,8 +20,8 @@ public class SimpleType extends RoomType {
     }
 
     public class SimpleInstanceBuilder extends RoomInstanceBuilder {
-        public SimpleInstanceBuilder() {
-            super();
+        public SimpleInstanceBuilder(@NotNull String id) {
+            super(id);
         }
 
         @Override

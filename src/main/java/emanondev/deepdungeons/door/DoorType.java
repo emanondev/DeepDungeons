@@ -24,9 +24,57 @@ public abstract class DoorType extends DRegistryElement {
 
     public abstract class DoorInstanceBuilder extends DInstance<DoorType> {
 
+        private BoundingBox box = new BoundingBox();
+        private Vector spawnOffset = new Vector();
+        private float spawnYaw;
+        private float spawnPitch;
+
         public DoorInstanceBuilder() {
             super(DoorType.this);
         }
+
+        public final void writeTo(@NotNull YMLSection section) {
+            section.set("type", getType().getId());
+            section.set("box", Util.toString(box.getMin().toBlockVector()) + " " + Util.toString(box.getMax().toBlockVector()));
+            section.set("spawnOffset", Util.toString(spawnOffset));
+            section.set("spawnYaw", spawnYaw);
+            section.set("spawnPitch", spawnPitch);
+            writeToImpl(section);
+        }
+
+        public BoundingBox getBoundingBox() {
+            return box;
+        }
+
+        public void setBoundingBox(BoundingBox box) {
+            this.box = box;
+        }
+
+        public Vector getSpawnOffset() {
+            return spawnOffset;
+        }
+
+        public void setSpawnOffset(Vector spawnOffset) {
+            this.spawnOffset = spawnOffset;
+        }
+
+        public float getSpawnYaw() {
+            return spawnYaw;
+        }
+
+        public void setSpawnYaw(float spawnYaw) {
+            this.spawnYaw = spawnYaw;
+        }
+
+        public float getSpawnPitch() {
+            return spawnPitch;
+        }
+
+        public void setSpawnPitch(float spawnPitch) {
+            this.spawnPitch = spawnPitch;
+        }
+
+        protected abstract void writeToImpl(@NotNull YMLSection section);
 
     }
 
@@ -105,6 +153,16 @@ public abstract class DoorType extends DRegistryElement {
 
         public float getSpawnPitch() {
             return spawnPitch;
+        }
+
+        public abstract @NotNull DoorHandler getHandler();
+
+        public abstract class DoorHandler {
+
+            public final DoorInstance getInstance() {
+                return DoorInstance.this;
+            }
+
         }
 
     }

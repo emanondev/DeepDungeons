@@ -3,7 +3,6 @@ package emanondev.deepdungeons.parameter;
 import emanondev.core.ItemBuilder;
 import emanondev.core.gui.GuiButton;
 import emanondev.core.gui.ResearchFButton;
-import emanondev.deepdungeons.generic.StandGui;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 
