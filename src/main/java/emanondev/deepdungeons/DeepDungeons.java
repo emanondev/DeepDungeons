@@ -1,6 +1,7 @@
 package emanondev.deepdungeons;
 
 import emanondev.core.CorePlugin;
+import emanondev.deepdungeons.command.DungeonMonsterSpawnerCommand;
 import emanondev.deepdungeons.command.DungeonTreasureCommand;
 import emanondev.deepdungeons.door.DoorTypeManager;
 import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
@@ -41,6 +42,7 @@ public class DeepDungeons extends CorePlugin {
     @Override
     public void enable() {
         this.registerCommand(new DungeonTreasureCommand());
+        this.registerCommand(new DungeonMonsterSpawnerCommand());
 
         TreasureTypeManager.getInstance();
         TrapTypeManager.getInstance();

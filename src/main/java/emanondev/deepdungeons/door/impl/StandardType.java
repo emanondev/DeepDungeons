@@ -16,18 +16,24 @@ public class StandardType extends DoorType {
     }
 
     @Override
-    public StandardInstanceBuilder getBuilder() {
-        return new StandardInstanceBuilder();
+    public @NotNull StandardInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+        return new StandardInstanceBuilder( room);
     }
 
     public class StandardInstanceBuilder extends DoorInstanceBuilder {
 
-        public StandardInstanceBuilder() {
-            super();
+        @Override
+        public void start() {
+
+        }
+
+        public StandardInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+            super(room);
         }
 
         @Override
         protected void writeToImpl(@NotNull YMLSection section) {
+
         }
 
     }

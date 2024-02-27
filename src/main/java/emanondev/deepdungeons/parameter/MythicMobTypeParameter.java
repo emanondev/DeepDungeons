@@ -4,8 +4,8 @@ import emanondev.core.ItemBuilder;
 import emanondev.core.UtilsString;
 import emanondev.core.gui.GuiButton;
 import emanondev.core.gui.ResearchFButton;
-import io.lumine.xikage.mythicmobs.MythicMobs;
-import io.lumine.xikage.mythicmobs.mobs.MythicMob;
+import io.lumine.mythic.api.mobs.MythicMob;
+import io.lumine.mythic.bukkit.MythicBukkit;
 import org.bukkit.Material;
 
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ public class MythicMobTypeParameter extends Parameter<MythicMob> {
     @Override
     public MythicMob fromString(String value) {
         try {
-            return MythicMobs.inst().getMobManager().getMythicMob(value);
+            return MythicBukkit.inst().getMobManager().getMythicMob(value).get();
         } catch (Exception e) {
             return this.defaultValue;
         }
@@ -66,7 +66,7 @@ public class MythicMobTypeParameter extends Parameter<MythicMob> {
     }
 
     private Collection<MythicMob> getEnabledEntity() {
-        ArrayList<MythicMob> mobs = new ArrayList<>(MythicMobs.inst().getMobManager().getMobTypes());
+        ArrayList<MythicMob> mobs = new ArrayList<>(MythicBukkit.inst().getMobManager().getMobTypes());
         mobs.sort((o1, o2) -> o1.getInternalName().compareToIgnoreCase(o2.getInternalName()));
         return mobs;
     }

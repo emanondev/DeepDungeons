@@ -2,6 +2,7 @@ package emanondev.deepdungeons.spawner;
 
 import emanondev.core.util.DRegistry;
 import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.spawner.impl.VanillaMobsType;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -15,8 +16,9 @@ public class MonsterSpawnerTypeManager extends DRegistry<MonsterSpawnerType> {
     public static final String LINE_ONE = "MONSTERSPAWNER BLUEPRINT";
     private static final MonsterSpawnerTypeManager instance = new MonsterSpawnerTypeManager();
 
-    public MonsterSpawnerTypeManager() {
+    private MonsterSpawnerTypeManager() {
         super(DeepDungeons.get(), "MonsterSpawnerManager", true);
+        this.register(new VanillaMobsType());
     }
 
     public static @NotNull MonsterSpawnerTypeManager getInstance() {

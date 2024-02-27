@@ -2,8 +2,11 @@ package emanondev.deepdungeons.spawner;
 
 import emanondev.core.ItemBuilder;
 import emanondev.core.YMLSection;
+import emanondev.core.gui.PagedMapGui;
+import emanondev.core.message.DMessage;
 import emanondev.core.util.DRegistryElement;
 import emanondev.deepdungeons.DInstance;
+import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -27,6 +30,10 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
 
 
     public abstract @NotNull MonsterSpawnerType.MonsterSpawnerInstanceBuilder getBuilder();
+
+    public @NotNull DMessage getDescription(Player player) {
+        return new DMessage(DeepDungeons.get(), player).append("<red>Description of <gold>" + getId() + "</gold> not implemented</red>");//TODO
+    }
 
     public abstract class MonsterSpawnerInstanceBuilder extends DInstance<MonsterSpawnerType> {
 
@@ -65,6 +72,20 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
 
         @Contract("_ -> this")
         public abstract MonsterSpawnerType.MonsterSpawnerInstanceBuilder fromItemLines(@NotNull List<String> lines);
+
+        public void openGui(Player player) {
+            craftGui(player).open(player);
+        }
+
+        protected PagedMapGui craftGui(@NotNull Player player) {
+            PagedMapGui gui = new PagedMapGui(new DMessage(DeepDungeons.get()).append("&9MonsterSpawner: &6%type%",
+                    "%type%", MonsterSpawnerType.this.getId()), 6, player, null, DeepDungeons.get());
+            craftGuiButtons(gui);
+            return gui;
+        }
+
+        protected abstract void craftGuiButtons(@NotNull PagedMapGui gui);
+
     }
 
     public abstract class MonsterSpawnerInstance extends DInstance<MonsterSpawnerType> {

@@ -8,7 +8,7 @@ public class RoomTypeManager extends DRegistry<RoomType> {
 
     private static final RoomTypeManager instance = new RoomTypeManager();
 
-    public RoomTypeManager() {
+    private RoomTypeManager() {
         super(DeepDungeons.get(), "RooomTypeManager", true);
     }
 

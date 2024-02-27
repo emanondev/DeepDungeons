@@ -12,6 +12,8 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.CompletableFuture;
+
 public abstract class DoorType extends DRegistryElement {
 
     public DoorType(@NotNull String id) {
@@ -20,22 +22,43 @@ public abstract class DoorType extends DRegistryElement {
 
     public abstract @NotNull DoorInstance read(@NotNull RoomType.RoomInstance instance, @NotNull YMLSection section);
 
-    public abstract DoorInstanceBuilder getBuilder();
+    public abstract @NotNull DoorInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room);
 
     public abstract class DoorInstanceBuilder extends DInstance<DoorType> {
 
-        private BoundingBox box = new BoundingBox();
+        private final RoomType.RoomInstanceBuilder roomBuilder;
+        private BoundingBox boundingBox = new BoundingBox();
         private Vector spawnOffset = new Vector();
         private float spawnYaw;
         private float spawnPitch;
+        private final CompletableFuture<DoorInstanceBuilder> completableFuture = new CompletableFuture<>();
 
-        public DoorInstanceBuilder() {
+        public @NotNull CompletableFuture<DoorInstanceBuilder> getCompletableFuture() {
+            return completableFuture;
+        }
+
+        public abstract void start();
+
+        public void abort(){
+            completableFuture.completeExceptionally(new Exception("aborted"));
+        }
+
+        public void complete(){
+            completableFuture.complete(this);
+        }
+
+        public @NotNull RoomType.RoomInstanceBuilder getRoomBuilder() {
+            return roomBuilder;
+        }
+
+        public DoorInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
             super(DoorType.this);
+            this.roomBuilder = room;
         }
 
         public final void writeTo(@NotNull YMLSection section) {
             section.set("type", getType().getId());
-            section.set("box", Util.toString(box.getMin().toBlockVector()) + " " + Util.toString(box.getMax().toBlockVector()));
+            section.set("box", Util.toString(boundingBox.getMin().toBlockVector()) + " " + Util.toString(boundingBox.getMax().toBlockVector()));
             section.set("spawnOffset", Util.toString(spawnOffset));
             section.set("spawnYaw", spawnYaw);
             section.set("spawnPitch", spawnPitch);
@@ -43,11 +66,11 @@ public abstract class DoorType extends DRegistryElement {
         }
 
         public BoundingBox getBoundingBox() {
-            return box;
+            return boundingBox;
         }
 
         public void setBoundingBox(BoundingBox box) {
-            this.box = box;
+            this.boundingBox = box;
         }
 
         public Vector getSpawnOffset() {

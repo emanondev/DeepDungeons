@@ -8,7 +8,7 @@ public class DungeonInstanceManager extends DRegistry<DungeonType.DungeonInstanc
 
     private static final DungeonInstanceManager instance = new DungeonInstanceManager();
 
-    public DungeonInstanceManager() {
+    private DungeonInstanceManager() {
         super(DeepDungeons.get(), "DungeonInstanceManager", false);
     }
 

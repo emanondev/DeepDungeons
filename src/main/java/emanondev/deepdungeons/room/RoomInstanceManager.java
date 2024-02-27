@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 public class RoomInstanceManager extends DRegistry<RoomType.RoomInstance> {
     private static final RoomInstanceManager instance = new RoomInstanceManager();
 
-    public RoomInstanceManager() {
+    private RoomInstanceManager() {
         super(DeepDungeons.get(), "RoomInstanceManager", false);
     }
 

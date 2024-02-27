@@ -17,9 +17,14 @@ import emanondev.deepdungeons.trap.TrapType;
 import emanondev.deepdungeons.trap.TrapTypeManager;
 import emanondev.deepdungeons.treasure.TreasureType;
 import emanondev.deepdungeons.treasure.TreasureTypeManager;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.util.BlockVector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.lang.ref.SoftReference;
@@ -52,9 +57,30 @@ public abstract class RoomType extends DRegistryElement {
         private DoorType.DoorInstanceBuilder entrance;
         private String schematicName;
         private Clipboard clipboard;
+        private BlockVector size;
+        private BlockVector offset;
 
-        protected RoomInstanceBuilder(@NotNull String id) {
+        public @NotNull UUID getPlayerUUID() {
+            return playerUuid;
+        }
+        public @Nullable Player getPlayer() {
+            return Bukkit.getPlayer(playerUuid);
+        }
+
+        private final UUID playerUuid;
+
+        public BlockVector getOffset() {
+            return offset;
+        }
+
+        public void setOffset(BlockVector offset) {
+            this.offset = offset;
+        }
+
+
+        protected RoomInstanceBuilder(@NotNull String id,@NotNull Player player) {
             super(id, RoomType.this);
+            this.playerUuid = player.getUniqueId();
         }
 
         public DoorType.DoorInstanceBuilder getEntrance() {
@@ -99,6 +125,8 @@ public abstract class RoomType extends DRegistryElement {
 
         public void setClipboard(Clipboard clipboard) {
             this.clipboard = clipboard;
+            this.size = new BlockVector(clipboard.getDimensions().getBlockX(),
+                    clipboard.getDimensions().getBlockY(), clipboard.getDimensions().getBlockZ());
         }
 
         public final void write() {
@@ -134,11 +162,19 @@ public abstract class RoomType extends DRegistryElement {
         }
 
         protected abstract void writeToImpl(@NotNull YMLSection section);
+
+        public BlockVector getSize() {
+            return size;
+        }
+
+        public abstract void handleInteract(PlayerInteractEvent event);
+
+        public void setupTools(Player p) {
+        }
     }
 
     public class RoomInstance extends DRInstance<RoomType> {
 
-        //private final YMLSection section;
         private final DoorType.DoorInstance entrance;
         private final List<DoorType.DoorInstance> exits = new ArrayList<>();
         private final List<TreasureType.TreasureInstance> treasures = new ArrayList<>();

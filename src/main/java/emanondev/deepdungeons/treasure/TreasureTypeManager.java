@@ -2,6 +2,7 @@ package emanondev.deepdungeons.treasure;
 
 import emanondev.core.util.DRegistry;
 import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.treasure.impl.LootTableType;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -15,8 +16,9 @@ public class TreasureTypeManager extends DRegistry<TreasureType> {
     public static final String LINE_ONE = "TREASURE BLUEPRINT";
     private static final TreasureTypeManager instance = new TreasureTypeManager();
 
-    public TreasureTypeManager() {
+    private TreasureTypeManager() {
         super(DeepDungeons.get(), "TreasureTypeManager", true);
+        this.register(new LootTableType());
     }
 
     public static TreasureTypeManager getInstance() {

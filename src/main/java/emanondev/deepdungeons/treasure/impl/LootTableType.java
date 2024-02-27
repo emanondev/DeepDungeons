@@ -59,7 +59,7 @@ public class LootTableType extends TreasureType {
 
         @Override
         protected @NotNull List<String> toItemLinesImpl() {
-            return List.of("LootTable: " + table.getKey());
+            return List.of("&9LootTable:&6 " + table.getKey());
         }
 
         @Override
@@ -87,7 +87,9 @@ public class LootTableType extends TreasureType {
         protected void craftGuiButtons(@NotNull PagedMapGui gui) {
             gui.addButton(new ResearchFButton<>(gui, () -> new ItemBuilder(Material.CHEST).setDescription(
                     new DMessage(DeepDungeons.get(), gui.getTargetPlayer())
-                            .append("&6Type:&9 " + table.getKey())).setGuiProperty().build(),
+                            .append("<!i><gold><b>LootTable</b>").newLine()
+                            .append("<gold>Type:<blue> " + (table.getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
+                                    table.getKey().toString().substring(10) : table.getKey().toString()) + "</blue>")).setGuiProperty().build(),
                     (String text, LootTables lootTable) -> {
                         String[] split = text.split(" ");
                         for (String s : split) {
@@ -105,9 +107,14 @@ public class LootTableType extends TreasureType {
                     },
                     (LootTables lootTable) -> new ItemBuilder(Material.CHEST).setDescription(
                             new DMessage(DeepDungeons.get(), gui.getTargetPlayer())
-                                    .append("&6&l " + lootTable.name())
-                                    .append("&6Type:&9 " + lootTable.getKey())).setGuiProperty().build(),
-                    () -> Arrays.asList(LootTables.values())
+                                    .append("<!i><gold><b>" + lootTable.name() + "</b>").newLine()
+                                    .append("<gold>Type:<blue> " + (lootTable.getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
+                                            lootTable.getKey().toString().substring(10) : lootTable.getKey().toString()) + "</blue>")).setGuiProperty().build(),
+                    () -> {
+                        ArrayList<LootTables> list = new ArrayList<>(Arrays.asList(LootTables.values()));
+                        list.sort(Comparator.comparing(l -> l.getKey().getKey()));
+                        return list;
+                    }
             ));
         }
     }
