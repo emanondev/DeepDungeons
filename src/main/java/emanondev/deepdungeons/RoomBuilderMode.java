@@ -1,5 +1,6 @@
 package emanondev.deepdungeons;
 
+import emanondev.core.gui.Gui;
 import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.room.RoomType;
 import net.md_5.bungee.api.ChatMessageType;
@@ -12,9 +13,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityResurrectEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -22,6 +21,7 @@ import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.UUID;
@@ -29,16 +29,18 @@ import java.util.UUID;
 public class RoomBuilderMode implements Listener {
 
     private static final RoomBuilderMode instance = new RoomBuilderMode();
+    private final PauseListener pauseListener;
 
     public static RoomBuilderMode getInstance() {
         return instance;
     }
 
     private RoomBuilderMode() {
-
+        this.pauseListener = new PauseListener();
     }
 
     private final HashMap<Player, RoomType.RoomInstanceBuilder> builderMode = new HashMap<>();
+    private final HashMap<UUID, RoomType.RoomInstanceBuilder> paused = new HashMap<>();
     private final HashMap<Player, ItemStack[]> inventoryBackup = new HashMap<>();
     private final HashMap<Player, ItemStack[]> offhandBackup = new HashMap<>();
     private final HashMap<Player, ItemStack[]> equipmentBackup = new HashMap<>();
@@ -62,9 +64,12 @@ public class RoomBuilderMode implements Listener {
         if (DeepDungeons.get().getConfig().loadBoolean("editor.actionbar_reminder", true))
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new ComponentBuilder().create());
 
-        if (builderMode.isEmpty() && timerTask != null) {
-            timerTask.cancel();
-            timerTask = null;
+        if (builderMode.isEmpty()) {
+            DeepDungeons.get().unregisterListener(this);
+            if (timerTask != null) {
+                timerTask.cancel();
+                timerTask = null;
+            }
         }
 
     }
@@ -77,22 +82,34 @@ public class RoomBuilderMode implements Listener {
         equipmentBackup.put(player, player.getInventory().getArmorContents());
         player.getInventory().clear();
         builderMode.put(player, builder);
-        builder.setupTools(player);
+        builder.getCompletableFuture().whenComplete((value, error) -> {
+            exitBuilderMode(player);
+            if (value != null) {
+                try {
+                    value.write();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        builder.setupTools();
         if (timerTask == null) {
+            DeepDungeons.get().registerListener(this);
             timerTask = new BukkitRunnable() {
                 private long counter = 0;
 
                 @Override
                 public void run() {
                     counter++;
-                    builderMode.keySet().forEach(p -> {
+                    builderMode.forEach((p, b) -> {
                         if (!(p.isValid() && p.isOnline()))
                             return;
                         if (DeepDungeons.get().getConfig().loadBoolean("editor.actionbar_reminder", true) && counter % 5 == 0)
                             new DMessage(DeepDungeons.get(), p).append("<gold>You are on RoomBuilder Mode").sendActionBar();
                         //TODO configurable DeepDungeons.get().getLanguageConfig(p).getMessage("editor.reminder",
                         if (counter % 50 == 0)
-                            getBuilderMode(p).setupTools(p);
+                            b.setupTools();
+                        b.timerTick();
                     });
                 }
             }.runTaskTimer(DeepDungeons.get(), 2L, 2L);
@@ -118,7 +135,8 @@ public class RoomBuilderMode implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void event(InventoryClickEvent event) {
-        if (event.getWhoClicked() instanceof Player && isOnEditorMode((Player) event.getWhoClicked()))
+        if (event.getWhoClicked() instanceof Player && isOnEditorMode((Player) event.getWhoClicked())
+                && !(event.getWhoClicked().getOpenInventory().getTopInventory().getHolder() instanceof Gui))
             event.setCancelled(true);
     }
 
@@ -141,12 +159,12 @@ public class RoomBuilderMode implements Listener {
             event.setCancelled(true);
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void event(PlayerInteractEvent event) {
         if (event.getAction() == Action.PHYSICAL)
             return;
         RoomType.@Nullable RoomInstanceBuilder builder = getBuilderMode(event.getPlayer());
-        if (builder==null)
+        if (builder == null)
             return;
         event.setCancelled(true);
         if (event.getHand() != EquipmentSlot.HAND)
@@ -162,5 +180,31 @@ public class RoomBuilderMode implements Listener {
         builder.handleInteract(event);
     }
 
+    @EventHandler
+    public void event(PlayerQuitEvent event) {
+        RoomType.RoomInstanceBuilder builder = builderMode.get(event.getPlayer());
+        if (builder != null) {
+            exitBuilderMode(event.getPlayer());
+            if (paused.isEmpty())
+                DeepDungeons.get().registerListener(pauseListener);
+            paused.put(event.getPlayer().getUniqueId(), builder);
+        }
+    }
 
+    private class PauseListener implements Listener {
+        @EventHandler
+        public void event(PlayerJoinEvent event) {
+            RoomType.RoomInstanceBuilder builder = paused.remove(event.getPlayer().getUniqueId());
+            if (builder != null) {
+                enterBuilderMode(event.getPlayer(), builder);
+                if (paused.isEmpty())
+                    DeepDungeons.get().unregisterListener(pauseListener);
+            }
+        }
+    }
+
+    public void disable() {
+        for (Player player : new ArrayList<>(builderMode.keySet()))
+            exitBuilderMode(player);
+    }
 }

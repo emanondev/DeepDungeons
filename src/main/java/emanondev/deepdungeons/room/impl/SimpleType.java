@@ -2,6 +2,8 @@ package emanondev.deepdungeons.room.impl;
 
 import emanondev.core.YMLSection;
 import emanondev.deepdungeons.room.RoomType;
+import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class SimpleType extends RoomType {
@@ -10,8 +12,8 @@ public class SimpleType extends RoomType {
     }
 
     @Override
-    public @NotNull RoomInstanceBuilder getBuilder(@NotNull String id) {
-        return new SimpleInstanceBuilder(id);
+    public @NotNull RoomInstanceBuilder getBuilder(@NotNull String id, @NotNull Player player) {
+        return new SimpleInstanceBuilder(id, player);
     }
 
     @Override
@@ -19,16 +21,34 @@ public class SimpleType extends RoomType {
         return new SimpleInstance(id, section);
     }
 
+
     public class SimpleInstanceBuilder extends RoomInstanceBuilder {
-        public SimpleInstanceBuilder(@NotNull String id) {
-            super(id);
+        public SimpleInstanceBuilder(@NotNull String id, @NotNull Player player) {
+            super(id, player);
         }
 
         @Override
         protected void writeToImpl(@NotNull YMLSection section) {
 
         }
+
+        @Override
+        protected void timerTickImpl() {
+
+        }
+
+        @Override
+        public void handleInteractImpl(@NotNull PlayerInteractEvent event) {
+
+
+        }
+
+        @Override
+        public void setupToolsImpl() {
+            this.getCompletableFuture().complete(this);
+        }
     }
+
 
     public class SimpleInstance extends RoomInstance {
         public SimpleInstance(@NotNull String id, @NotNull YMLSection section) {

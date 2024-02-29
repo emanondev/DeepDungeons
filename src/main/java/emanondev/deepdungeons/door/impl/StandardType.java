@@ -3,6 +3,8 @@ package emanondev.deepdungeons.door.impl;
 import emanondev.core.YMLSection;
 import emanondev.deepdungeons.door.DoorType;
 import emanondev.deepdungeons.room.RoomType;
+import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class StandardType extends DoorType {
@@ -17,15 +19,10 @@ public class StandardType extends DoorType {
 
     @Override
     public @NotNull StandardInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
-        return new StandardInstanceBuilder( room);
+        return new StandardInstanceBuilder(room);
     }
 
     public class StandardInstanceBuilder extends DoorInstanceBuilder {
-
-        @Override
-        public void start() {
-
-        }
 
         public StandardInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
             super(room);
@@ -33,6 +30,22 @@ public class StandardType extends DoorType {
 
         @Override
         protected void writeToImpl(@NotNull YMLSection section) {
+
+        }
+
+
+        @Override
+        protected void handleInteractImpl(@NotNull PlayerInteractEvent event) {
+
+        }
+
+        @Override
+        protected void setupToolsImpl() {
+            this.getCompletableFuture().complete(this);
+        }
+
+        @Override
+        protected void tickTimerImpl(Player player) {
 
         }
 
@@ -46,7 +59,11 @@ public class StandardType extends DoorType {
 
         @Override
         public @NotNull DoorHandler getHandler() {
-            return null;
+            return new StandardHandler();
+        }
+
+        public class StandardHandler extends DoorHandler {
+
         }
     }
 }

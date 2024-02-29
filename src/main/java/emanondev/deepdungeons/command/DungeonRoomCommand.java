@@ -1,0 +1,81 @@
+package emanondev.deepdungeons.command;
+
+import emanondev.core.command.CoreCommand;
+import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.Perms;
+import emanondev.deepdungeons.RoomBuilderMode;
+import emanondev.deepdungeons.room.RoomInstanceManager;
+import emanondev.deepdungeons.room.RoomType;
+import emanondev.deepdungeons.room.RoomTypeManager;
+import org.bukkit.Location;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+
+public class DungeonRoomCommand extends CoreCommand {
+    public DungeonRoomCommand() {
+        super("dungeonroom", DeepDungeons.get(), Perms.DUNGEONTREASURE_COMMAND, "create blueprint", List.of("droom"));
+    }
+
+    @Override
+    public void onExecute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args) {
+        if (args.length == 0) {
+            help(sender, label, args);
+            return;
+        }
+        switch (args[0].toLowerCase(Locale.ENGLISH)) {
+            case "create" -> {
+                create(sender, label, args);
+                return;
+            }
+        }
+        help(sender, label, args);
+    }
+
+    private void help(CommandSender sender, String label, String[] args) {
+        sender.sendMessage("Message not implemented yet (command help)");//TODO
+    }
+
+    private void create(CommandSender sender, String label, String[] args) {
+        if (!(sender instanceof Player player)) {
+            this.playerOnlyNotify(sender);
+            return;
+        }
+        if (args.length!=3){
+            sender.sendMessage("Message not implemented yet (wrong arguments /droom create <type> <id>)");//TODO
+            return;
+        }
+
+        // type name
+        RoomType type = RoomTypeManager.getInstance().get(args[1]);
+        if (type==null){
+            sender.sendMessage("Message not implemented yet (selected type do not exist)");//TODO
+            return;
+        }
+        String name = args[2].toLowerCase(Locale.ENGLISH);
+        if (RoomInstanceManager.getInstance().get(name)!=null){
+            sender.sendMessage("Message not implemented yet (id already used)");//TODO
+            return;
+        }
+        RoomType.RoomInstanceBuilder builder = type.getBuilder(name,player);
+        RoomBuilderMode.getInstance().enterBuilderMode(player,builder);
+    }
+
+    @Override
+    public @Nullable List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
+        return switch (args.length) {
+            case 1 -> this.complete(args[0], new String[]{"create"});
+            case 2 -> {
+                if (args[0].equalsIgnoreCase("create"))
+                    yield this.complete(args[1], RoomTypeManager.getInstance().getIds());
+                yield Collections.emptyList();
+            }
+            default -> Collections.emptyList();
+        };
+    }
+}

@@ -10,7 +10,7 @@ public class DoorTypeManager extends DRegistry<DoorType> {
     private static final DoorTypeManager instance = new DoorTypeManager();
 
     private DoorTypeManager() {
-        super(DeepDungeons.get(), "RoomManager", true);
+        super(DeepDungeons.get(), "DoorTypeManager", true);
         this.register(new StandardType());
     }
 
