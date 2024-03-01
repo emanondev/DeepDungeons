@@ -129,7 +129,7 @@ public abstract class DoorType extends DRegistryElement {
 
         protected abstract void setupToolsImpl();
 
-        public void handleInteract(PlayerInteractEvent event) {
+        public void handleInteract(@NotNull PlayerInteractEvent event) {
             if (getArea() == null) {
                 switch (event.getPlayer().getInventory().getHeldItemSlot()) {
                     case 1 -> Bukkit.dispatchCommand(event.getPlayer(),
@@ -177,19 +177,16 @@ public abstract class DoorType extends DRegistryElement {
             this.handleInteractImpl(event);
         }
 
-        private BlockFace guessFace() {
-            if (area.getWidthX() == 1) {
-                Vector v = area.getCenter();
-                if (v.distanceSquared(area.getMin()) > v.distanceSquared(area.getMin().add(new Vector(area.getWidthX(), 0, 0))))
-                    return BlockFace.NORTH;
-                return BlockFace.SOUTH;
-            } else if (area.getWidthZ() == 1) {
-                Vector v = area.getCenter();
+        private @NotNull BlockFace guessFace() {
+            Vector v = roomBuilder.getArea().shift(roomBuilder.getOffset().multiply(-1)).getCenter();
+            if (area.getWidthX() < area.getWidthZ()) {
                 if (v.distanceSquared(area.getMin()) > v.distanceSquared(area.getMin().add(new Vector(area.getWidthX(), 0, 0))))
                     return BlockFace.EAST;
                 return BlockFace.WEST;
             }
-            return null;
+            if (v.distanceSquared(area.getMin()) > v.distanceSquared(area.getMin().add(new Vector(0, 0, area.getWidthZ()))))
+                return BlockFace.SOUTH;
+            return BlockFace.NORTH;
         }
 
         public @Nullable Player getPlayer() {
@@ -217,7 +214,7 @@ public abstract class DoorType extends DRegistryElement {
         }
 
 
-        public void timerTick(Player player, Color color) {
+        public void timerTick(@NotNull Player player, @NotNull Color color) {
 
             if (roomBuilder.getTickCounter() % 2 == 0) { //reduce particle amount = have a tick 5 time per second instead of 10
                 if (area == null) {
@@ -226,7 +223,7 @@ public abstract class DoorType extends DRegistryElement {
                 }
                 ParticleUtility.spawnParticleBoxFaces(player, roomBuilder.getTickCounter() / 6, 3, Particle.REDSTONE,
                         getArea().shift(getRoomOffset()), new Particle.DustOptions(color, 0.6F));
-                showFaceArrow(player,color);
+                showFaceArrow(player, color);
 
                 Vector doorSpawn = getSpawnOffset();
                 if (doorSpawn != null) {
@@ -238,96 +235,39 @@ public abstract class DoorType extends DRegistryElement {
             tickTimerImpl(player);
         }
 
-        private void showFaceArrow(Player player,Color color){
-            if (face != null) {
-                Particle.DustOptions dust = new Particle.DustOptions(color, 0.6F);
-                Vector r = area.getCenter().add(face.getDirection().multiply(new Vector(area.getWidthX(), area.getHeight(),
-                        area.getWidthZ()).multiply(0.5)).add(face.getDirection())).add(getRoomOffset());
+        private void showFaceArrow(@NotNull Player player,@NotNull Color color) {
+            if (face != null && !getCompletableFuture().isDone()) {
+                Particle.DustOptions dust = new Particle.DustOptions(color, 0.3F);
+                Vector r = area.getCenter().add(face.getDirection().multiply(0.5D).multiply(new Vector(area.getWidthX(), area.getHeight(),
+                        area.getWidthZ())).add(face.getDirection().multiply(0.7))).add(getRoomOffset());
                 Vector dir = face.getOppositeFace().getDirection();
-                ParticleUtility.spawnParticleLine(player, Particle.REDSTONE,r.getX(),r.getY(),r.getZ(),dir,
-                        1,0.1,dust);
-                if (face==BlockFace.NORTH||face==BlockFace.SOUTH) {
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(0,0,0.3)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(0,0.3,0)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(0,0,-0.3)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(0,-0.3,0)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(0,0.21,0.21)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(0,-0.21,0.21)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(0,0.21,-0.21)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(0,-0.21,-0.21)),
-                            0.3, 0.1, dust);
-                }else if (face==BlockFace.EAST||face==BlockFace.WEST) {
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(0,0.3,0)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(0.3,0,0)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(0,-0.3,0)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(-0.3,0,0)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(0.21,0.21,0)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(-0.21,0.21,0)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(0.21,-0.21,0)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(-0.21,-0.21,0)),
-                            0.3, 0.1, dust);
-                }else if (face==BlockFace.DOWN||face==BlockFace.UP) {
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(0,0,0.3)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(0.3,0,0)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(0,0,-0.3)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(-0.3,0,0)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(0.21,0,0.21)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(-0.21,0,0.21)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(0.21,0,-0.21)),
-                            0.3, 0.1, dust);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir.clone()
-                                    .add(new Vector(-0.21,0,-0.21)),
-                            0.3, 0.1, dust);
+                ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir,
+                        0.7, 0.1, dust);
+                if (face == BlockFace.NORTH || face == BlockFace.SOUTH) {
+                    dir.add(new Vector(0, 0.4, 0));
+                    for (int i = 0; i < 8; i++) {
+                        dir.rotateAroundZ(Math.PI / 4);
+                        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir, 0.3, 0.1, dust);
+                    }
+                } else if (face == BlockFace.EAST || face == BlockFace.WEST) {
+                    dir.add(new Vector(0, 0.4, 0));
+                    for (int i = 0; i < 8; i++) {
+                        dir.rotateAroundX(Math.PI / 4);
+                        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir, 0.3, 0.1, dust);
+                    }
+                } else {
+                    dir.add(new Vector(0.4, 0, 0));
+                    for (int i = 0; i < 8; i++) {
+                        dir.rotateAroundY(Math.PI / 4);
+                        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir, 0.3, 0.1, dust);
+                    }
                 }
             }
         }
 
-        protected abstract void tickTimerImpl(Player player);
+        protected abstract void tickTimerImpl(@NotNull Player player);
 
-        protected void showWEBound(Player player) {
+        protected void showWEBound(@NotNull Player player) {
             try {
                 ParticleUtility.spawnParticleBoxFaces(player, roomBuilder.getTickCounter() / 6 + 6, 4, Particle.REDSTONE, WorldEditUtility.getSelectionBoxExpanded(player),
                         new Particle.DustOptions(Color.WHITE, 0.3F));

@@ -45,7 +45,7 @@ public class StandardType extends DoorType {
         }
 
         @Override
-        protected void tickTimerImpl(Player player) {
+        protected void tickTimerImpl(@NotNull Player player) {
 
         }
 
