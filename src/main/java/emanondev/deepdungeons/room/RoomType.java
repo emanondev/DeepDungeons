@@ -31,6 +31,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.util.BlockVector;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,7 +63,7 @@ public abstract class RoomType extends DRegistryElement {
         private final List<TreasureType.TreasureInstanceBuilder> treasures = new ArrayList<>();
         private final List<TrapType.TrapInstanceBuilder> traps = new ArrayList<>();
         private final List<MonsterSpawnerType.MonsterSpawnerInstanceBuilder> monsterSpawners = new ArrayList<>();
-        private final LinkedHashSet<Material> breakableBlocks = new LinkedHashSet<>();
+        private final HashSet<Material> breakableBlocks = new HashSet<>();
         private DoorType.DoorInstanceBuilder entrance;
         private String schematicName;
         //private Clipboard clipboard;
@@ -117,7 +118,7 @@ public abstract class RoomType extends DRegistryElement {
             return monsterSpawners;
         }
 
-        public LinkedHashSet<Material> getBreakableBlocks() {
+        public Set<Material> getBreakableBlocks() {
             return breakableBlocks;
         }
 
@@ -161,10 +162,14 @@ public abstract class RoomType extends DRegistryElement {
                 monsterSpawners.get(i).writeTo(sub);
             }
             section.set("schematic", schematicName);
+
             //WorldEditUtility.save(new File(DeepDungeons.get().getDataFolder(), "schematics" + File.separator + schematicName)
             //        , clipboard);//TODO
             section.setEnumsAsStringList("breakableBlocks", breakableBlocks);
             writeToImpl(section);
+            //WorldEditUtility.copy(getPlayer().getWorld(),area,true,true,false);
+            WorldEditUtility.save(new File(DeepDungeons.get().getDataFolder(), "schematics" + File.separator + schematicName)
+                    , WorldEditUtility.copy(getPlayer().getWorld(), area, true, true, false));
         }
 
         protected abstract void writeToImpl(@NotNull YMLSection section);
@@ -188,11 +193,15 @@ public abstract class RoomType extends DRegistryElement {
                                     "/pos1" : "/pos2");
                     case 4 -> {
                         BoundingBox box = WorldEditUtility.getSelectionBoxExpanded(event.getPlayer());
-                        if (box==null){
-                            //TODO must select area
+                        if (box == null) {
+                            event.getPlayer().sendMessage("message not implemented: no area selected, use worldedit wand");
                             return;
                         }
-                        //TODO area size checks
+                        Vector volume = box.getMax().subtract(box.getMin());
+                        if (volume.getX() < 5 || volume.getZ() < 5 || volume.getY() < 4) {
+                            event.getPlayer().sendMessage("message not implemented: selected area is too small");
+                            return;
+                        }
                         setArea(event.getPlayer().getWorld(), box);
                         this.setEntrance(DoorTypeManager.getInstance().getStandard().getBuilder(this));
                         setupTools();
@@ -261,7 +270,6 @@ public abstract class RoomType extends DRegistryElement {
                             hasCompletedExitsCreation = true;
                             setupTools();
                         }
-
                     }
                 }
                 return;
@@ -271,14 +279,14 @@ public abstract class RoomType extends DRegistryElement {
                 switch (heldSlot) {
                     case 0 -> {
                         ArrayList<Material> types = new ArrayList<>(List.of(Material.values()));
-                        types.removeIf((m) -> !m.isBlock()||m.isAir());
+                        types.removeIf((m) -> !m.isBlock() || m.isAir());
                         types.sort(Comparator.comparing(Material::name));
                         new AdvancedResearchFGui<>(
-                                new DMessage(DeepDungeons.get(), event.getPlayer()).append("&8Choose an Exit Door type"),
+                                new DMessage(DeepDungeons.get(), event.getPlayer()).append("&8Choose Breakable blocks"),
                                 event.getPlayer(), null, DeepDungeons.get(),
                                 new ItemBuilder(Material.SPRUCE_DOOR).setDescription(new DMessage(
                                                 DeepDungeons.get(), event.getPlayer()
-                                        ).append(">").newLine().append("<white>Choose door type")//TODO configurable
+                                        ).append(">").newLine().append("<white>Choose Blocks")//TODO configurable
                                 ).build(), (String text, Material type) -> {
                             String[] split = text.split(" ");
                             for (String s : split)
@@ -291,13 +299,14 @@ public abstract class RoomType extends DRegistryElement {
                                         breakableBlocks.remove(type);
                                     else
                                         breakableBlocks.add(type);
-                                    return false;
+                                    return true;
                                 },
-                                (type) -> new ItemBuilder(type.isItem()? type : Material.BARRIER)
+                                (type) -> new ItemBuilder(type.isItem() ? type : Material.BARRIER)
                                         .addEnchantment(Enchantment.DURABILITY, breakableBlocks.contains(type) ? 1 : 0)
                                         .setGuiProperty().setDescription(new DMessage(DeepDungeons.get(), event.getPlayer())
                                                 .append("<gold><bold>" + type.name()) //TODO configurable description
-                                                .newLine().append("Click to choose")).build(),
+                                                .newLine().append("Click to toggle")
+                                                .newLine().append("Enabled? " + breakableBlocks.contains(type))).build(),
                                 types
                         ).open(event.getPlayer());
                     }
@@ -307,6 +316,7 @@ public abstract class RoomType extends DRegistryElement {
                     }
                 }
             }
+            //TODO traps
             handleInteractImpl(event);
         }
 
@@ -376,7 +386,7 @@ public abstract class RoomType extends DRegistryElement {
                 if (area != null)
                     ParticleUtility.spawnParticleBoxFaces(player, (tickCounter) / 6, 8, Particle.REDSTONE, area,
                             new Particle.DustOptions(Color.BLUE, 0.25F));
-                 else
+                else
                     showWEBound(player);
 
                 if (getEntrance() == null)
@@ -444,7 +454,7 @@ public abstract class RoomType extends DRegistryElement {
         private final List<TrapType.TrapInstance> traps = new ArrayList<>();
         private final List<MonsterSpawnerType.MonsterSpawnerInstance> monsterSpawners = new ArrayList<>();
 
-        private final LinkedHashSet<Material> breakableBlocks = new LinkedHashSet<>();
+        private final Set<Material> breakableBlocks = new HashSet<>();
         private final String schematicName;
         private SoftReference<Clipboard> clipboard = null;
         private CompletableFuture<Clipboard> futureClipboard;

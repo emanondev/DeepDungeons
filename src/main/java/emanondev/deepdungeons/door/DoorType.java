@@ -41,7 +41,23 @@ public abstract class DoorType extends DRegistryElement {
         private BoundingBox area;
         private Vector spawnOffset;
         private float spawnYaw;
-        private BlockFace face;
+
+        public BlockFace getDoorFace() {
+            return doorFace;
+        }
+
+        /**
+         *
+         * @param doorFace must be cardinal
+         * @throws IllegalArgumentException if argument is not cardinal
+         */
+        public void setDoorFace(@NotNull BlockFace doorFace) {
+            if (!doorFace.isCartesian())
+                throw new IllegalArgumentException();
+            this.doorFace = doorFace;
+        }
+
+        private BlockFace doorFace = BlockFace.NORTH;
         private float spawnPitch;
         private final CompletableFuture<DoorInstanceBuilder> completableFuture = new CompletableFuture<>();
 
@@ -69,6 +85,7 @@ public abstract class DoorType extends DRegistryElement {
         public final void writeTo(@NotNull YMLSection section) {
             section.set("type", getType().getId());
             section.set("box", Util.toString(area.getMin().toBlockVector()) + " " + Util.toString(area.getMax().toBlockVector()));
+            section.setEnumAsString("doorFace", doorFace);
             section.set("spawnOffset", Util.toString(spawnOffset));
             section.set("spawnYaw", spawnYaw);
             section.set("spawnPitch", spawnPitch);
@@ -116,7 +133,9 @@ public abstract class DoorType extends DRegistryElement {
             }
             if (!hasConfirmedSpawnLocation) {
                 inv.setItem(0, new ItemBuilder(Material.ENDER_PEARL).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .append("Set Door Spawn")).build());
+                        .append("Set Door Spawn ("+(spawnOffset==null?"null":Util.toString(spawnOffset))+")")).build());
+                inv.setItem(1, new ItemBuilder(Material.MAGENTA_GLAZED_TERRACOTTA).setDescription(new DMessage(DeepDungeons.get(), player)
+                        .append("Change door facing ("+ doorFace.name()+")")).build());
                 if (getSpawnOffset() != null)
                     inv.setItem(4, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
                             .append("Confirm Door spawn")).build());
@@ -138,17 +157,20 @@ public abstract class DoorType extends DRegistryElement {
                     case 5 -> {
                         BoundingBox box = WorldEditUtility.getSelectionBoxExpanded(event.getPlayer());
                         if (box == null) {
-                            //TODO select something first msg
+                            event.getPlayer().sendMessage("message not implemented: no area selected, use worldedit wand");
                             return;
                         }
-                        //TODO area size checks && contained inside
+                        if (!roomBuilder.getArea().contains(box)){
+                            event.getPlayer().sendMessage("message not implemented: selected spawn point is outside the room or too close to border");
+                            return;
+                        }
 
                         box.shift(getRoomOffset().multiply(-1));
                         setArea(box);
-                        face = guessFace();
+                        doorFace = guessFace();
                         roomBuilder.setupTools();
                         WorldEditUtility.clearSelection(event.getPlayer());
-                        //TODO adds spawn location default
+                        //TODO adds spawn location default ? guessspawnlocation
 
                     }
                 }
@@ -157,18 +179,29 @@ public abstract class DoorType extends DRegistryElement {
             if (!hasConfirmedSpawnLocation) {
                 switch (event.getPlayer().getInventory().getHeldItemSlot()) {
                     case 0 -> {
-                        //TODO check inside room
+                        if (!roomBuilder.getArea().contains(event.getPlayer().getBoundingBox().shift(getRoomOffset()))){
+                            event.getPlayer().sendMessage("message not implemented: selected spawn point is outside the room or too close to border");
+                            return;
+                        }
                         setSpawn(event.getPlayer().getLocation().toVector().subtract(getRoomOffset()),
                                 event.getPlayer().getLocation().getPitch(),
                                 event.getPlayer().getLocation().getYaw());
+                        roomBuilder.setupTools();
+                    }
+                    case 1 -> {
+                        BlockFace next = doorFace;
+                        next = BlockFace.values()[(BlockFace.values().length)+next.ordinal()
+                                +(event.getAction()==Action.RIGHT_CLICK_AIR||event.getAction()==Action.RIGHT_CLICK_BLOCK?1:-1)%BlockFace.values().length];
+                        while (!next.isCartesian())
+                            next = BlockFace.values()[(BlockFace.values().length)+next.ordinal()
+                                    +(event.getAction()==Action.RIGHT_CLICK_AIR||event.getAction()==Action.RIGHT_CLICK_BLOCK?1:-1)%BlockFace.values().length];
+                        setDoorFace(next);
                         roomBuilder.setupTools();
                     }
                     case 4 -> {
                         if (getSpawnOffset() != null) {
                             hasConfirmedSpawnLocation = true;
                             roomBuilder.setupTools();
-                        } else {
-                            //TODO must set first
                         }
                     }
                 }
@@ -236,20 +269,20 @@ public abstract class DoorType extends DRegistryElement {
         }
 
         private void showFaceArrow(@NotNull Player player,@NotNull Color color) {
-            if (face != null && !getCompletableFuture().isDone()) {
+            if (doorFace != null && !getCompletableFuture().isDone()) {
                 Particle.DustOptions dust = new Particle.DustOptions(color, 0.3F);
-                Vector r = area.getCenter().add(face.getDirection().multiply(0.5D).multiply(new Vector(area.getWidthX(), area.getHeight(),
-                        area.getWidthZ())).add(face.getDirection().multiply(0.7))).add(getRoomOffset());
-                Vector dir = face.getOppositeFace().getDirection();
+                Vector r = area.getCenter().add(doorFace.getDirection().multiply(0.5D).multiply(new Vector(area.getWidthX(), area.getHeight(),
+                        area.getWidthZ())).add(doorFace.getDirection().multiply(0.7))).add(getRoomOffset());
+                Vector dir = doorFace.getOppositeFace().getDirection();
                 ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir,
                         0.7, 0.1, dust);
-                if (face == BlockFace.NORTH || face == BlockFace.SOUTH) {
+                if (doorFace == BlockFace.NORTH || doorFace == BlockFace.SOUTH) {
                     dir.add(new Vector(0, 0.4, 0));
                     for (int i = 0; i < 8; i++) {
                         dir.rotateAroundZ(Math.PI / 4);
                         ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir, 0.3, 0.1, dust);
                     }
-                } else if (face == BlockFace.EAST || face == BlockFace.WEST) {
+                } else if (doorFace == BlockFace.EAST || doorFace == BlockFace.WEST) {
                     dir.add(new Vector(0, 0.4, 0));
                     for (int i = 0; i < 8; i++) {
                         dir.rotateAroundX(Math.PI / 4);
