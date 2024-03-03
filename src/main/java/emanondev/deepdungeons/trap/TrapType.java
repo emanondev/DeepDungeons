@@ -69,7 +69,7 @@ public abstract class TrapType extends DRegistryElement {
 
         private final RoomType.RoomInstance room;
 
-        public TrapInstance(@NotNull RoomType.RoomInstance room) {
+        public TrapInstance(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
             super(TrapType.this);
             this.room = room;
         }

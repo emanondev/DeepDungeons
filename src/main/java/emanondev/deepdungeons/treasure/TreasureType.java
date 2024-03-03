@@ -7,11 +7,13 @@ import emanondev.core.message.DMessage;
 import emanondev.core.util.DRegistryElement;
 import emanondev.deepdungeons.DInstance;
 import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.Util;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +39,12 @@ public abstract class TreasureType extends DRegistryElement {
     }
 
     public abstract class TreasureInstanceBuilder extends DInstance<TreasureType> {
+
+        public Vector getOffset() {
+            return offset;
+        }
+
+        private Vector offset;
 
         protected TreasureInstanceBuilder() {
             super(TreasureType.this);
@@ -66,6 +74,9 @@ public abstract class TreasureType extends DRegistryElement {
 
         public final void writeTo(@NotNull YMLSection section) {
             section.set("type", getType().getId());
+            if (offset==null)
+                throw new IllegalArgumentException("invalid offset");
+            section.set("offset", Util.toString(offset));
             writeToImpl(section);
         }
 
@@ -86,15 +97,27 @@ public abstract class TreasureType extends DRegistryElement {
         }
 
         protected abstract void craftGuiButtons(@NotNull PagedMapGui gui);
+
+        public void setOffset(Vector offset) {
+            this.offset = offset;
+        }
     }
 
     public abstract class TreasureInstance extends DInstance<TreasureType> {
 
         private final RoomType.RoomInstance room;
 
-        public TreasureInstance(@NotNull RoomType.RoomInstance room) {
+        @Contract("-> new")
+        public @NotNull Vector getOffset() {
+            return offset.clone();
+        }
+
+        private final Vector offset;
+
+        public TreasureInstance(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
             super(TreasureType.this);
             this.room = room;
+            this.offset = Util.toVector(section.getString("offset"));
         }
 
         public @NotNull RoomType.RoomInstance getRoomInstance() {

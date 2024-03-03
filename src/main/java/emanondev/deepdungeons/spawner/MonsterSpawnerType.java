@@ -7,11 +7,14 @@ import emanondev.core.message.DMessage;
 import emanondev.core.util.DRegistryElement;
 import emanondev.deepdungeons.DInstance;
 import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.Util;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,8 +66,31 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
             return list;
         }
 
+        public @Nullable Vector getOffset() {
+            return offset;
+        }
+
+        public void setOffset(Vector offset) {
+            this.offset = offset;
+        }
+
+        public @NotNull Vector getDirection() {
+            return direction;
+        }
+
+        public void setDirection(@NotNull Vector direction) {
+            this.direction = direction;
+        }
+
+        private Vector offset;
+        private Vector direction=BlockFace.NORTH.getDirection();
+
         public final void writeTo(@NotNull YMLSection section) {
+            if (offset==null)
+                throw new IllegalArgumentException("invalid offset");
             section.set("type", getType().getId());
+            section.set("offset", Util.toString(offset));
+            section.set("direction", Util.toString(direction));
             writeToImpl(section);
         }
 
@@ -93,9 +119,24 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
 
         private final RoomType.RoomInstance room;
 
-        public MonsterSpawnerInstance(@NotNull RoomType.RoomInstance room) {
+        @Contract("-> new")
+        public @NotNull Vector getOffset() {
+            return offset.clone();
+        }
+
+        @Contract("-> new")
+        public @NotNull Vector getDirection() {
+            return direction.clone();
+        }
+
+        private final Vector offset;
+        private final Vector direction;
+
+        public MonsterSpawnerInstance(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
             super(MonsterSpawnerType.this);
             this.room = room;
+            this.offset = Util.toVector(section.getString("offset"));
+            this.direction = Util.toVector(section.getString("direction"));
         }
 
         public @NotNull RoomType.RoomInstance getRoomInstance() {

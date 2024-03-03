@@ -24,11 +24,20 @@ import emanondev.deepdungeons.trap.TrapTypeManager;
 import emanondev.deepdungeons.treasure.TreasureType;
 import emanondev.deepdungeons.treasure.TreasureTypeManager;
 import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Container;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntitySnapshot;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BlockVector;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -146,30 +155,117 @@ public abstract class RoomType extends DRegistryElement {
                 @NotNull YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
                 exits.get(i).writeTo(sub);
             }
-            tmp = section.loadSection("treasures");
-            for (int i = 0; i < treasures.size(); i++) {
-                @NotNull YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
-                treasures.get(i).writeTo(sub);
-            }
-            tmp = section.loadSection("traps");
-            for (int i = 0; i < traps.size(); i++) {
-                @NotNull YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
-                traps.get(i).writeTo(sub);
-            }
-            tmp = section.loadSection("monsterspawners");
-            for (int i = 0; i < monsterSpawners.size(); i++) {
-                @NotNull YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
-                monsterSpawners.get(i).writeTo(sub);
-            }
-            section.set("schematic", schematicName);
+            //remove itemStack & Drops
 
-            //WorldEditUtility.save(new File(DeepDungeons.get().getDataFolder(), "schematics" + File.separator + schematicName)
-            //        , clipboard);//TODO
-            section.setEnumsAsStringList("breakableBlocks", breakableBlocks);
-            writeToImpl(section);
-            //WorldEditUtility.copy(getPlayer().getWorld(),area,true,true,false);
-            WorldEditUtility.save(new File(DeepDungeons.get().getDataFolder(), "schematics" + File.separator + schematicName)
-                    , WorldEditUtility.copy(getPlayer().getWorld(), area, true, true, false));
+            HashMap<Block, Inventory> snapshotsInventories = new HashMap<>();
+            HashMap<Block, BlockState> snapshotsStates = new HashMap<>();
+            HashMap<Block, BlockData> snapshotsBlockData = new HashMap<>();
+            HashMap<EntitySnapshot, Location> entitiesSnapshots = new HashMap<>();
+            try {
+                Collection<Entity> entities = getPlayer().getWorld().getNearbyEntities(area, (e) -> !(e instanceof Player));
+                BoundingBox smallArea = getArea().resize(0, 0, 0, -1, -1, -1);
+                BlockVector min = smallArea.getMin().toBlockVector();
+                BlockVector max = smallArea.getMax().toBlockVector();
+                for (int y = min.getBlockY(); y <= max.getBlockY(); y++)
+                    for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++)
+                        for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
+                            Block b = getPlayer().getWorld().getBlockAt(x, y, z);
+                            if (!(b.getState() instanceof Container container))
+                                continue;
+
+                            snapshotsInventories.put(b, container.getSnapshotInventory());
+                            snapshotsStates.put(b, b.getState());
+                            snapshotsBlockData.put(b, b.getBlockData());
+                            ItemStack[] inv = container.getInventory().getContents(); //TODO test if original is edited
+                            boolean hasTreasures = false;
+                            boolean hasMonsters = false;
+                            for (int i = 0; i < inv.length; i++) {
+                                TreasureType.@Nullable TreasureInstanceBuilder treasure = TreasureTypeManager.getInstance().getTreasureInstance(inv[i]);
+                                if (treasure != null) {
+                                    hasTreasures = true;
+                                    treasure.setOffset(new Vector(x, y, z).subtract(getOffset()).add(new Vector(0.5, 0, 0.5)));
+                                    treasures.add(treasure);
+                                    inv[i] = null; //TODO test if original is edited
+                                } else {
+                                    MonsterSpawnerType.MonsterSpawnerInstanceBuilder monster = MonsterSpawnerTypeManager.getInstance().getMonsterSpawnerInstance(inv[i]);
+                                    if (monster != null) {
+                                        hasMonsters = true;
+                                        monster.setOffset(new Vector(x, y, z).subtract(getOffset()).add(new Vector(0.5, 0, 0.5)));
+                                        if (b.getBlockData() instanceof Directional directional)
+                                            monster.setDirection(directional.getFacing().getDirection());
+                                        monsterSpawners.add(monster);
+                                        inv[i] = null; //TODO test if original is edited
+                                    }
+                                }
+                            }
+                            if (hasMonsters && !hasTreasures) {
+                                container.getInventory().clear();
+                                b.setType(Material.AIR);
+                            }
+                            if (!hasMonsters && !hasTreasures) {
+                                snapshotsBlockData.remove(b);
+                                snapshotsStates.remove(b);
+                                snapshotsInventories.remove(b);
+                            }
+                        }
+                for (Entity entity : entities) {
+                    if (entity instanceof Item item) {
+                        TreasureType.@Nullable TreasureInstanceBuilder treasure =
+                                TreasureTypeManager.getInstance().getTreasureInstance(item.getItemStack());
+                        if (treasure != null) {
+                            treasure.setOffset(item.getLocation().toVector().subtract(getOffset()));
+                            treasures.add(treasure);
+                            entitiesSnapshots.put(item.createSnapshot(), item.getLocation());
+                            item.remove();
+                        } else {
+                            MonsterSpawnerType.MonsterSpawnerInstanceBuilder monster =
+                                    MonsterSpawnerTypeManager.getInstance().getMonsterSpawnerInstance(item.getItemStack());
+                            if (monster != null) {
+                                monster.setOffset(item.getLocation().toVector().subtract(getOffset()));
+                                monster.setDirection(item.getLocation().getDirection());
+                                monsterSpawners.add(monster);
+                                entitiesSnapshots.put(item.createSnapshot(), item.getLocation());
+                                item.remove();
+                            }
+                        }
+                    }
+                }
+
+
+                tmp = section.loadSection("treasures");
+                for (int i = 0; i < treasures.size(); i++) {
+                    @NotNull YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
+                    treasures.get(i).writeTo(sub);
+                }
+                tmp = section.loadSection("traps");
+                for (int i = 0; i < traps.size(); i++) {
+                    @NotNull YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
+                    traps.get(i).writeTo(sub);
+                }
+                tmp = section.loadSection("monsterspawners");
+                for (int i = 0; i < monsterSpawners.size(); i++) {
+                    @NotNull YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
+                    monsterSpawners.get(i).writeTo(sub);
+                }
+                section.set("schematic", schematicName);
+
+                //WorldEditUtility.save(new File(DeepDungeons.get().getDataFolder(), "schematics" + File.separator + schematicName)
+                //        , clipboard);//TODO
+                section.setEnumsAsStringList("breakableBlocks", breakableBlocks);
+                writeToImpl(section);
+                //WorldEditUtility.copy(getPlayer().getWorld(),area,true,true,false);
+                WorldEditUtility.save(new File(DeepDungeons.get().getDataFolder(), "schematics" + File.separator + schematicName)
+                        , WorldEditUtility.copy(getPlayer().getWorld(), smallArea, true, true, false));
+
+            } finally {
+                entitiesSnapshots.forEach(EntitySnapshot::createEntity);
+                snapshotsStates.forEach(((block, blockState) -> {
+                    blockState.update(true,false);
+                    blockState.setBlockData(snapshotsBlockData.get(block));
+                    if (blockState instanceof Container container)
+                        container.getInventory().setContents(snapshotsInventories.get(block).getContents());
+                }));
+            }
         }
 
         protected abstract void writeToImpl(@NotNull YMLSection section);
