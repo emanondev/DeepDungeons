@@ -31,7 +31,7 @@ public class RoomBuilderMode implements Listener {
     private static final RoomBuilderMode instance = new RoomBuilderMode();
     private final PauseListener pauseListener;
 
-    public static RoomBuilderMode getInstance() {
+    public static @NotNull RoomBuilderMode getInstance() {
         return instance;
     }
 
@@ -74,9 +74,11 @@ public class RoomBuilderMode implements Listener {
 
     }
 
-    public void enterBuilderMode(@NotNull Player player, @NotNull RoomType.RoomInstanceBuilder builder) {
-        if (builderMode.containsKey(player))
-            throw new IllegalArgumentException("already building");
+    public boolean enterBuilderMode(@NotNull Player player, @NotNull RoomType.RoomInstanceBuilder builder) {
+        if (builderMode.containsKey(player) || paused.containsKey(player.getUniqueId()))
+            return false;
+        if (builder.getCompletableFuture().isDone())
+            return false;
         inventoryBackup.put(player, player.getInventory().getStorageContents());
         offhandBackup.put(player, player.getInventory().getExtraContents());
         equipmentBackup.put(player, player.getInventory().getArmorContents());
@@ -114,18 +116,19 @@ public class RoomBuilderMode implements Listener {
                 }
             }.runTaskTimer(DeepDungeons.get(), 2L, 2L);
         }
+        return true;
     }
 
     private final HashMap<UUID, Long> lastPlayerInteraction = new HashMap<>();
 
     @EventHandler
-    public void event(EntityPickupItemEvent event) {
+    public void event(@NotNull EntityPickupItemEvent event) {
         if (event.getEntity() instanceof Player && isOnEditorMode((Player) event.getEntity()))
             event.setCancelled(true);
     }
 
     @EventHandler
-    public void event(PlayerTeleportEvent event) {//if change world
+    public void event(@NotNull PlayerTeleportEvent event) {//if change world
         if (!isOnEditorMode(event.getPlayer()))
             return;
         if (event.getTo() == null || Objects.equals(event.getFrom().getWorld(), event.getTo().getWorld())) {
@@ -134,33 +137,33 @@ public class RoomBuilderMode implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void event(InventoryClickEvent event) {
+    public void event(@NotNull InventoryClickEvent event) {
         if (event.getWhoClicked() instanceof Player && isOnEditorMode((Player) event.getWhoClicked())
                 && !(event.getWhoClicked().getOpenInventory().getTopInventory().getHolder() instanceof Gui))
             event.setCancelled(true);
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void event(EntityDamageEvent event) {
+    public void event(@NotNull EntityDamageEvent event) {
         if (event.getEntity() instanceof Player p && isOnEditorMode(p))
             event.setCancelled(true);
         //TODO if EntityDamageByEntity && player notify him
     }
 
     @EventHandler
-    public void event(EntityResurrectEvent event) {
+    public void event(@NotNull EntityResurrectEvent event) {
         if (event.isCancelled() && event.getEntity() instanceof Player p && isOnEditorMode(p))
             exitBuilderMode(p);
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void event(PlayerDropItemEvent event) {
+    public void event(@NotNull PlayerDropItemEvent event) {
         if (isOnEditorMode(event.getPlayer()))
             event.setCancelled(true);
     }
 
     @EventHandler
-    public void event(PlayerInteractEvent event) {
+    public void event(@NotNull PlayerInteractEvent event) {
         if (event.getAction() == Action.PHYSICAL)
             return;
         RoomType.@Nullable RoomInstanceBuilder builder = getBuilderMode(event.getPlayer());
@@ -181,25 +184,39 @@ public class RoomBuilderMode implements Listener {
     }
 
     @EventHandler
-    public void event(PlayerQuitEvent event) {
-        RoomType.RoomInstanceBuilder builder = builderMode.get(event.getPlayer());
-        if (builder != null) {
-            exitBuilderMode(event.getPlayer());
-            if (paused.isEmpty())
-                DeepDungeons.get().registerListener(pauseListener);
-            paused.put(event.getPlayer().getUniqueId(), builder);
-        }
+    public void event(@NotNull PlayerQuitEvent event) {
+        pauseBuilder(event.getPlayer());
+    }
+
+    public boolean isOnPausedEditorMode(@NotNull Player player) {
+        return paused.containsKey(player.getUniqueId());
+    }
+
+    public boolean pauseBuilder(@NotNull Player player) {
+        RoomType.RoomInstanceBuilder builder = builderMode.get(player);
+        if (builder == null)
+            return false;
+        exitBuilderMode(player);
+        if (paused.isEmpty())
+            DeepDungeons.get().registerListener(pauseListener);
+        paused.put(player.getUniqueId(), builder);
+        return true;
+    }
+
+    public boolean unpauseBuilder(@NotNull Player player) {
+        RoomType.RoomInstanceBuilder builder = paused.remove(player.getUniqueId());
+        if (builder == null)
+            return false;
+        enterBuilderMode(player, builder);
+        if (paused.isEmpty())
+            DeepDungeons.get().unregisterListener(pauseListener);
+        return true;
     }
 
     private class PauseListener implements Listener {
         @EventHandler
         public void event(PlayerJoinEvent event) {
-            RoomType.RoomInstanceBuilder builder = paused.remove(event.getPlayer().getUniqueId());
-            if (builder != null) {
-                enterBuilderMode(event.getPlayer(), builder);
-                if (paused.isEmpty())
-                    DeepDungeons.get().unregisterListener(pauseListener);
-            }
+            unpauseBuilder(event.getPlayer());
         }
     }
 

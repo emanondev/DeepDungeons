@@ -44,14 +44,15 @@ public class DeepDungeons extends CorePlugin {
     @Override
     public void enable() {
 
-        TreasureTypeManager.getInstance();
-        TrapTypeManager.getInstance();
-        MonsterSpawnerTypeManager.getInstance();
-        DoorTypeManager.getInstance();
-        RoomTypeManager.getInstance();
-        RoomInstanceManager.getInstance();
-        DungeonTypeManager.getInstance();
-        DungeonInstanceManager.getInstance();
+        TreasureTypeManager.getInstance().load();
+        TrapTypeManager.getInstance().load();
+        MonsterSpawnerTypeManager.getInstance().load();
+        DoorTypeManager.getInstance().load();
+        RoomTypeManager.getInstance().load();
+        RoomInstanceManager.getInstance().load();
+        DungeonTypeManager.getInstance().load();
+        DungeonInstanceManager.getInstance().load();
+        RoomBuilderMode.getInstance();
         this.registerCommand(new DungeonTreasureCommand());
         this.registerCommand(new DungeonMonsterSpawnerCommand());
         this.registerCommand(new DungeonRoomCommand());

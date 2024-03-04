@@ -33,8 +33,35 @@ public class DungeonRoomCommand extends CoreCommand {
                 create(sender, label, args);
                 return;
             }
+            case "pause" -> {
+                pause(sender, label, args);
+                return;
+            }
+            case "continue" -> {
+                continueCreate(sender, label, args);
+                return;
+            }
         }
         help(sender, label, args);
+    }
+
+    private void continueCreate(CommandSender sender, String label, String[] args) {
+        if (!(sender instanceof Player player)) {
+            this.playerOnlyNotify(sender);
+            return;
+        }
+        if (!RoomBuilderMode.getInstance().unpauseBuilder(player))
+            sender.sendMessage("Message not implemented yet (not on paused mode)");//TODO//TODO check
+    }
+
+    private void pause(CommandSender sender, String label, String[] args) {
+        if (!(sender instanceof Player player)) {
+            this.playerOnlyNotify(sender);
+            return;
+        }
+        if (!RoomBuilderMode.getInstance().pauseBuilder(player))
+            sender.sendMessage("Message not implemented yet (not on builder mode)");//TODO
+            //TODO check
     }
 
     private void help(CommandSender sender, String label, String[] args) {
@@ -63,13 +90,25 @@ public class DungeonRoomCommand extends CoreCommand {
             return;
         }
         RoomType.RoomInstanceBuilder builder = type.getBuilder(name,player);
-        RoomBuilderMode.getInstance().enterBuilderMode(player,builder);
+        if (!RoomBuilderMode.getInstance().enterBuilderMode(player,builder)){
+            sender.sendMessage("Message not implemented yet (can't start, already on builder mode or on pause (do /droom continue)?)");//TODO
+            return;
+        }
     }
 
     @Override
     public @Nullable List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
+        if (!(sender instanceof Player player))return Collections.emptyList();
+
+
         return switch (args.length) {
-            case 1 -> this.complete(args[0], new String[]{"create"});
+            case 1 -> {
+                if (RoomBuilderMode.getInstance().isOnEditorMode(player))
+                    yield this.complete(args[0], new String[]{"pause"});
+                if (RoomBuilderMode.getInstance().isOnPausedEditorMode(player))
+                    yield this.complete(args[0], new String[]{"continue"});
+                yield this.complete(args[0], new String[]{"create"});
+            }
             case 2 -> {
                 if (args[0].equalsIgnoreCase("create"))
                     yield this.complete(args[1], RoomTypeManager.getInstance().getIds());

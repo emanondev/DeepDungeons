@@ -15,7 +15,7 @@ public class Util {
 
     @NotNull
     public static BlockVector toBlockVector(@NotNull String vector) {
-        String[] split = vector.split(";");
+        String[] split = vector.replace(",", ".").split(";");
         return new BlockVector(Integer.parseInt(split[0]), Integer.parseInt(split[1]), Integer.parseInt(split[2]));
     }
 
@@ -27,7 +27,7 @@ public class Util {
 
     @NotNull
     public static Vector toVector(@NotNull String vector) {
-        String[] split = vector.split(";");
+        String[] split = vector.replace(",", ".").split(";");
         return new Vector(Double.parseDouble(split[0]), Double.parseDouble(split[1]), Double.parseDouble(split[2]));
     }
 
