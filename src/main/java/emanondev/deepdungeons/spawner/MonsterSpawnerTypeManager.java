@@ -6,6 +6,7 @@ import emanondev.deepdungeons.spawner.impl.VanillaMobsType;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,13 +26,19 @@ public class MonsterSpawnerTypeManager extends DRegistry<MonsterSpawnerType> {
         return instance;
     }
 
-    public @Nullable MonsterSpawnerType getMonsterSpawnerType(@NotNull ItemStack itemStack) {
+    @Contract("null -> null")
+    public @Nullable MonsterSpawnerType getMonsterSpawnerType(@Nullable ItemStack itemStack) {
+        if (itemStack==null)
+            return null;
         if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
             return null;
         return getMonsterSpawnerType(itemStack.getItemMeta());
     }
 
-    public @Nullable MonsterSpawnerType getMonsterSpawnerType(@NotNull ItemMeta meta) {
+    @Contract("null -> null")
+    public @Nullable MonsterSpawnerType getMonsterSpawnerType(@Nullable ItemMeta meta) {
+        if (meta==null)
+            return null;
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))
             return null;
         List<String> lore = meta.getLore();
@@ -40,13 +47,19 @@ public class MonsterSpawnerTypeManager extends DRegistry<MonsterSpawnerType> {
         return get(lore.get(0).split(" ")[1]);
     }
 
-    public MonsterSpawnerType.MonsterSpawnerInstanceBuilder getMonsterSpawnerInstance(@NotNull ItemStack itemStack) {
+    @Contract("null -> null")
+    public MonsterSpawnerType.MonsterSpawnerInstanceBuilder getMonsterSpawnerInstance(@Nullable ItemStack itemStack) {
+        if (itemStack==null)
+            return null;
         if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
             return null;
         return getMonsterSpawnerInstance(itemStack.getItemMeta());
     }
 
-    public MonsterSpawnerType.MonsterSpawnerInstanceBuilder getMonsterSpawnerInstance(@NotNull ItemMeta meta) {
+    @Contract("null -> null")
+    public MonsterSpawnerType.MonsterSpawnerInstanceBuilder getMonsterSpawnerInstance(@Nullable ItemMeta meta) {
+        if (meta==null)
+            return null;
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))
             return null;
         List<String> lore = meta.getLore();

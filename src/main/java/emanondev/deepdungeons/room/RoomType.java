@@ -56,9 +56,7 @@ public abstract class RoomType extends DRegistryElement {
     }
 
     public final @NotNull RoomInstance read(@NotNull String id, @NotNull YMLSection section) {
-        RoomInstance room = readImpl(id, section);
-        RoomInstanceManager.getInstance().register(room);
-        return room;
+        return readImpl(id, section);
     }
 
     public abstract @NotNull RoomInstanceBuilder getBuilder(@NotNull String id, @NotNull Player player);
@@ -163,7 +161,7 @@ public abstract class RoomType extends DRegistryElement {
             HashMap<EntitySnapshot, Location> entitiesSnapshots = new HashMap<>();
             try {
                 Collection<Entity> entities = getPlayer().getWorld().getNearbyEntities(area, (e) -> !(e instanceof Player));
-                BoundingBox smallArea = getArea().resize(0, 0, 0, -1, -1, -1);
+                BoundingBox smallArea = getArea().expand(0, 0, 0, -1, -1, -1);
                 BlockVector min = smallArea.getMin().toBlockVector();
                 BlockVector max = smallArea.getMax().toBlockVector();
                 for (int y = min.getBlockY(); y <= max.getBlockY(); y++)
@@ -172,7 +170,6 @@ public abstract class RoomType extends DRegistryElement {
                             Block b = getPlayer().getWorld().getBlockAt(x, y, z);
                             if (!(b.getState() instanceof Container container))
                                 continue;
-
                             snapshotsInventories.put(b, container.getSnapshotInventory());
                             snapshotsStates.put(b, b.getState());
                             snapshotsBlockData.put(b, b.getBlockData());

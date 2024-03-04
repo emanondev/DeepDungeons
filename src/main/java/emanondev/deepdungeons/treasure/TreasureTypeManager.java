@@ -6,7 +6,7 @@ import emanondev.deepdungeons.treasure.impl.LootTableType;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -25,13 +25,19 @@ public class TreasureTypeManager extends DRegistry<TreasureType> {
         return instance;
     }
 
-    public @Nullable TreasureType getTreasureType(@NotNull ItemStack itemStack) {
+    @Contract("null -> null")
+    public @Nullable TreasureType getTreasureType(@Nullable ItemStack itemStack) {
+        if (itemStack==null)
+            return null;
         if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
             return null;
         return getTreasureType(itemStack.getItemMeta());
     }
 
-    public @Nullable TreasureType getTreasureType(@NotNull ItemMeta meta) {
+    @Contract("null -> null")
+    public @Nullable TreasureType getTreasureType(@Nullable ItemMeta meta) {
+        if (meta==null)
+            return null;
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))
             return null;
         List<String> lore = meta.getLore();
@@ -40,13 +46,19 @@ public class TreasureTypeManager extends DRegistry<TreasureType> {
         return get(lore.get(0).split(" ")[1]);
     }
 
-    public @Nullable TreasureType.TreasureInstanceBuilder getTreasureInstance(@NotNull ItemStack itemStack) {
+    @Contract("null -> null")
+    public @Nullable TreasureType.TreasureInstanceBuilder getTreasureInstance(@Nullable ItemStack itemStack) {
+        if (itemStack==null)
+            return null;
         if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
             return null;
         return getTreasureInstance(itemStack.getItemMeta());
     }
 
-    public @Nullable TreasureType.TreasureInstanceBuilder getTreasureInstance(@NotNull ItemMeta meta) {
+    @Contract("null -> null")
+    public @Nullable TreasureType.TreasureInstanceBuilder getTreasureInstance(@Nullable ItemMeta meta) {
+        if (meta==null)
+            return null;
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))
             return null;
         List<String> lore = meta.getLore();

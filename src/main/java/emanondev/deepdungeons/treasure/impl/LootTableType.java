@@ -64,7 +64,7 @@ public class LootTableType extends TreasureType {
 
         @Override
         protected void writeToImpl(@NotNull YMLSection section) {
-            section.set("table", table.getKey());
+            section.set("table", table.getKey().toString());
         }
 
         /**
@@ -123,9 +123,9 @@ public class LootTableType extends TreasureType {
 
         private final LootTable table;
 
-        private LootTableInstance(@NotNull RoomType.RoomInstance room, @NotNull YMLSection sub) {
-            super(room);
-            String[] args = sub.getString("table").split(":");
+        private LootTableInstance(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
+            super(room,section);
+            String[] args = section.getString("table").split(":");
             table = Bukkit.getLootTable(new NamespacedKey(args[0], args[1]));
             if (table == null) {
                 //TODO

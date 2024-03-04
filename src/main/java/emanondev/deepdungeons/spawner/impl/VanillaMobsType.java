@@ -195,7 +195,7 @@ public class VanillaMobsType extends MonsterSpawnerType {
         private final double chance;
 
         public VanillaMobsInstance(RoomType.RoomInstance room, @NotNull YMLSection section) {
-            super(room);
+            super(room,section);
             entityType = section.getEntityType("mobtype", EntityType.ZOMBIE);
             min = section.getInt("min");
             max = section.getInt("max");

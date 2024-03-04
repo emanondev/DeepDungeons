@@ -179,7 +179,7 @@ public abstract class DoorType extends DRegistryElement {
             if (!hasConfirmedSpawnLocation) {
                 switch (event.getPlayer().getInventory().getHeldItemSlot()) {
                     case 0 -> {
-                        if (!roomBuilder.getArea().contains(event.getPlayer().getBoundingBox().shift(getRoomOffset()))){
+                        if (!roomBuilder.getArea().contains(event.getPlayer().getBoundingBox())){
                             event.getPlayer().sendMessage("message not implemented: selected spawn point is outside the room or too close to border");
                             return;
                         }
@@ -190,11 +190,11 @@ public abstract class DoorType extends DRegistryElement {
                     }
                     case 1 -> {
                         BlockFace next = doorFace;
-                        next = BlockFace.values()[(BlockFace.values().length)+next.ordinal()
-                                +(event.getAction()==Action.RIGHT_CLICK_AIR||event.getAction()==Action.RIGHT_CLICK_BLOCK?1:-1)%BlockFace.values().length];
+                        next = BlockFace.values()[((BlockFace.values().length)+next.ordinal()
+                                +(event.getAction()==Action.RIGHT_CLICK_AIR||event.getAction()==Action.RIGHT_CLICK_BLOCK?1:-1))%BlockFace.values().length];
                         while (!next.isCartesian())
-                            next = BlockFace.values()[(BlockFace.values().length)+next.ordinal()
-                                    +(event.getAction()==Action.RIGHT_CLICK_AIR||event.getAction()==Action.RIGHT_CLICK_BLOCK?1:-1)%BlockFace.values().length];
+                            next = BlockFace.values()[((BlockFace.values().length)+next.ordinal()
+                                    +(event.getAction()==Action.RIGHT_CLICK_AIR||event.getAction()==Action.RIGHT_CLICK_BLOCK?1:-1))%BlockFace.values().length];
                         setDoorFace(next);
                         roomBuilder.setupTools();
                     }
