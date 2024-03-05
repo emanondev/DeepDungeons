@@ -70,10 +70,11 @@ public class RoomsGroupsSequence extends DungeonType {
                             if (resetButtons[0]) {
                                 resetButtons[0] = false;
                                 this.clearButtons();
+                                HashMap<Integer,GuiButton> buttons = new HashMap<>();
                                 for (int i = 0; i < groups.size(); i++) {
                                     RoomsGroupBuilder group = groups.get(i);
                                     int finalI = i;
-                                    this.addButton(new FButton(this, () -> new ItemBuilder(Material.LEATHER_CHESTPLATE).setGuiProperty().setColor(group.color)
+                                    buttons.put(finalI,new FButton(this, () -> new ItemBuilder(Material.LEATHER_CHESTPLATE).setGuiProperty().setColor(group.color)
                                             .setAmount(Math.max(Math.min(100, group.getRooms().size()), 1))
                                             .setDescription(new DMessage(DeepDungeons.get(), event.getPlayer()).append("<gold>Group #<yellow>" + (finalI + 1))
                                                     .newLine().append("<blue>Selected rooms: <yellow>" + group.getRooms().size())
@@ -117,7 +118,7 @@ public class RoomsGroupsSequence extends DungeonType {
                                                 default -> false;
                                             }));
                                 }
-                                this.addButton(new FButton(this, () -> new ItemBuilder(Material.LIGHT_BLUE_DYE)
+                                buttons.put(groups.size(),new FButton(this, () -> new ItemBuilder(Material.LIGHT_BLUE_DYE)
                                         .setDescription(new DMessage(DeepDungeons.get(), getPlayer()).append("<gold>Add a new Group"))
                                         .setGuiProperty().build(),
                                         (event) -> {
@@ -125,11 +126,11 @@ public class RoomsGroupsSequence extends DungeonType {
                                             resetButtons[0] = true;
                                             return true;
                                         }));
+                                setButtons(buttons);
                             }
                             super.updateInventory();
                         }
                     };
-
                     gui.open(getPlayer());
                 }
                 case 4 -> {
