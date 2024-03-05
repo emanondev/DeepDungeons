@@ -11,12 +11,13 @@ import emanondev.core.message.DMessage;
 import emanondev.core.util.DRegistryElement;
 import emanondev.core.util.ParticleUtility;
 import emanondev.core.util.WorldEditUtility;
+import emanondev.deepdungeons.ActiveBuilder;
 import emanondev.deepdungeons.DRInstance;
 import emanondev.deepdungeons.DeepDungeons;
-import emanondev.deepdungeons.RoomBuilderMode;
+import emanondev.deepdungeons.BuilderMode;
 import emanondev.deepdungeons.door.DoorType;
 import emanondev.deepdungeons.door.DoorTypeManager;
-import emanondev.deepdungeons.dungeon.DungeonHandler;
+import emanondev.deepdungeons.dungeon.DungeonType;
 import emanondev.deepdungeons.spawner.MonsterSpawnerType;
 import emanondev.deepdungeons.spawner.MonsterSpawnerTypeManager;
 import emanondev.deepdungeons.trap.TrapType;
@@ -64,24 +65,31 @@ public abstract class RoomType extends DRegistryElement {
     protected abstract @NotNull RoomInstance readImpl(@NotNull String id, @NotNull YMLSection section);
 
 
-    public abstract class RoomInstanceBuilder extends DRInstance<RoomType> {
+    public abstract class RoomInstanceBuilder extends DRInstance<RoomType> implements ActiveBuilder {
 
         private final List<DoorType.DoorInstanceBuilder> exits = new ArrayList<>();
         private final List<TreasureType.TreasureInstanceBuilder> treasures = new ArrayList<>();
         private final List<TrapType.TrapInstanceBuilder> traps = new ArrayList<>();
         private final List<MonsterSpawnerType.MonsterSpawnerInstanceBuilder> monsterSpawners = new ArrayList<>();
         private final HashSet<Material> breakableBlocks = new HashSet<>();
+        private final CompletableFuture<RoomType.RoomInstanceBuilder> completableFuture = new CompletableFuture<>();
+        private final UUID playerUuid;
         private DoorType.DoorInstanceBuilder entrance;
         private String schematicName;
         //private Clipboard clipboard;
         private World world;
         private BoundingBox area;
-
-        private final CompletableFuture<RoomType.RoomInstanceBuilder> completableFuture = new CompletableFuture<>();
         private boolean hasCompletedBreakableMaterials = false;
+        private boolean hasCompletedExitsCreation = false;
+        private int tickCounter = 0;
 
+        protected RoomInstanceBuilder(@NotNull String id, @NotNull Player player) {
+            super(id, RoomType.this);
+            this.playerUuid = player.getUniqueId();
+            schematicName = this.getId() + ".schem";
+        }
 
-        public CompletableFuture<RoomInstanceBuilder> getCompletableFuture() {
+        public @NotNull CompletableFuture<RoomInstanceBuilder> getCompletableFuture() {
             return completableFuture;
         }
 
@@ -91,14 +99,6 @@ public abstract class RoomType extends DRegistryElement {
 
         public @Nullable Player getPlayer() {
             return Bukkit.getPlayer(playerUuid);
-        }
-
-        private final UUID playerUuid;
-
-        protected RoomInstanceBuilder(@NotNull String id, @NotNull Player player) {
-            super(id, RoomType.this);
-            this.playerUuid = player.getUniqueId();
-            schematicName = this.getId() + ".schem";
         }
 
         public DoorType.DoorInstanceBuilder getEntrance() {
@@ -136,7 +136,6 @@ public abstract class RoomType extends DRegistryElement {
         public void setSchematicName(String schematicName) {
             this.schematicName = schematicName;
         }
-
 
         public final void write() throws Exception {
             if (!getCompletableFuture().isDone() || getCompletableFuture().isCompletedExceptionally())
@@ -257,7 +256,7 @@ public abstract class RoomType extends DRegistryElement {
             } finally {
                 entitiesSnapshots.forEach(EntitySnapshot::createEntity);
                 snapshotsStates.forEach(((block, blockState) -> {
-                    blockState.update(true,false);
+                    blockState.update(true, false);
                     blockState.setBlockData(snapshotsBlockData.get(block));
                     if (blockState instanceof Container container)
                         container.getInventory().setContents(snapshotsInventories.get(block).getContents());
@@ -275,7 +274,7 @@ public abstract class RoomType extends DRegistryElement {
             int heldSlot = event.getPlayer().getInventory().getHeldItemSlot();
 
             if (heldSlot == 8) {
-                RoomBuilderMode.getInstance().exitBuilderMode(event.getPlayer());
+                BuilderMode.getInstance().exitBuilderMode(event.getPlayer());
                 return;
             }
 
@@ -413,8 +412,6 @@ public abstract class RoomType extends DRegistryElement {
             handleInteractImpl(event);
         }
 
-        private boolean hasCompletedExitsCreation = false;
-
         public final void setupTools() {
             Player player = getPlayer();
             if (player == null || !player.isValid())
@@ -463,8 +460,6 @@ public abstract class RoomType extends DRegistryElement {
 
             setupToolsImpl();
         }
-
-        private int tickCounter = 0;
 
         public int getTickCounter() {
             return tickCounter;
@@ -639,9 +634,9 @@ public abstract class RoomType extends DRegistryElement {
         public class RoomHandler {
 
             private final Location location;
-            private final DungeonHandler dungeonHandler;
+            private final DungeonType.DungeonInstance.DungeonHandler dungeonHandler;
 
-            public RoomHandler(@NotNull DungeonHandler dungeonHandler, @NotNull Location location) {
+            public RoomHandler(@NotNull DungeonType.DungeonInstance.DungeonHandler dungeonHandler, @NotNull Location location) {
                 this.location = location;
                 this.dungeonHandler = dungeonHandler;
             }
@@ -650,7 +645,7 @@ public abstract class RoomType extends DRegistryElement {
                 return RoomInstance.this.paste(this, async);
             }
 
-            public @NotNull DungeonHandler getDungeonHandler() {
+            public @NotNull DungeonType.DungeonInstance.DungeonHandler getDungeonHandler() {
                 return dungeonHandler;
             }
 

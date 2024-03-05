@@ -1,6 +1,7 @@
 package emanondev.deepdungeons;
 
 import emanondev.core.CorePlugin;
+import emanondev.deepdungeons.command.DungeonDungeonCommand;
 import emanondev.deepdungeons.command.DungeonMonsterSpawnerCommand;
 import emanondev.deepdungeons.command.DungeonRoomCommand;
 import emanondev.deepdungeons.command.DungeonTreasureCommand;
@@ -33,7 +34,7 @@ public class DeepDungeons extends CorePlugin {
 
     @Override
     public void disable() {
-        RoomBuilderMode.getInstance().disable();
+        BuilderMode.getInstance().disable();
     }
 
     @Override
@@ -52,10 +53,11 @@ public class DeepDungeons extends CorePlugin {
         RoomInstanceManager.getInstance().load();
         DungeonTypeManager.getInstance().load();
         DungeonInstanceManager.getInstance().load();
-        RoomBuilderMode.getInstance();
+        BuilderMode.getInstance();
         this.registerCommand(new DungeonTreasureCommand());
         this.registerCommand(new DungeonMonsterSpawnerCommand());
         this.registerCommand(new DungeonRoomCommand());
+        this.registerCommand(new DungeonDungeonCommand());
     }
 
     @Override

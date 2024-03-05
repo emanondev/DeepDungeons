@@ -40,6 +40,9 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
 
     public abstract class MonsterSpawnerInstanceBuilder extends DInstance<MonsterSpawnerType> {
 
+        private Vector offset;
+        private Vector direction = BlockFace.NORTH.getDirection();
+
         protected MonsterSpawnerInstanceBuilder() {
             super(MonsterSpawnerType.this);
         }
@@ -82,11 +85,8 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
             this.direction = direction;
         }
 
-        private Vector offset;
-        private Vector direction=BlockFace.NORTH.getDirection();
-
         public final void writeTo(@NotNull YMLSection section) {
-            if (offset==null)
+            if (offset == null)
                 throw new IllegalArgumentException("invalid offset");
             section.set("type", getType().getId());
             section.set("offset", Util.toString(offset));
@@ -118,6 +118,15 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
 
 
         private final RoomType.RoomInstance room;
+        private final Vector offset;
+        private final Vector direction;
+
+        public MonsterSpawnerInstance(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
+            super(MonsterSpawnerType.this);
+            this.room = room;
+            this.offset = Util.toVector(section.getString("offset"));
+            this.direction = Util.toVector(section.getString("direction"));
+        }
 
         @Contract("-> new")
         public @NotNull Vector getOffset() {
@@ -127,16 +136,6 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
         @Contract("-> new")
         public @NotNull Vector getDirection() {
             return direction.clone();
-        }
-
-        private final Vector offset;
-        private final Vector direction;
-
-        public MonsterSpawnerInstance(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
-            super(MonsterSpawnerType.this);
-            this.room = room;
-            this.offset = Util.toVector(section.getString("offset"));
-            this.direction = Util.toVector(section.getString("direction"));
         }
 
         public @NotNull RoomType.RoomInstance getRoomInstance() {

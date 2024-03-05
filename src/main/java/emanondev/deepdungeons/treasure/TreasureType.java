@@ -40,14 +40,14 @@ public abstract class TreasureType extends DRegistryElement {
 
     public abstract class TreasureInstanceBuilder extends DInstance<TreasureType> {
 
-        public Vector getOffset() {
-            return offset;
-        }
-
         private Vector offset;
 
         protected TreasureInstanceBuilder() {
             super(TreasureType.this);
+        }
+
+        public Vector getOffset() {
+            return offset;
         }
 
         public @NotNull ItemStack toItem() {
@@ -74,7 +74,7 @@ public abstract class TreasureType extends DRegistryElement {
 
         public final void writeTo(@NotNull YMLSection section) {
             section.set("type", getType().getId());
-            if (offset==null)
+            if (offset == null)
                 throw new IllegalArgumentException("invalid offset");
             section.set("offset", Util.toString(offset));
             writeToImpl(section);
@@ -106,18 +106,17 @@ public abstract class TreasureType extends DRegistryElement {
     public abstract class TreasureInstance extends DInstance<TreasureType> {
 
         private final RoomType.RoomInstance room;
-
-        @Contract("-> new")
-        public @NotNull Vector getOffset() {
-            return offset.clone();
-        }
-
         private final Vector offset;
 
         public TreasureInstance(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
             super(TreasureType.this);
             this.room = room;
             this.offset = Util.toVector(section.getString("offset"));
+        }
+
+        @Contract("-> new")
+        public @NotNull Vector getOffset() {
+            return offset.clone();
         }
 
         public @NotNull RoomType.RoomInstance getRoomInstance() {

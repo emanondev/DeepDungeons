@@ -124,7 +124,7 @@ public class LootTableType extends TreasureType {
         private final LootTable table;
 
         private LootTableInstance(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
-            super(room,section);
+            super(room, section);
             String[] args = section.getString("table").split(":");
             table = Bukkit.getLootTable(new NamespacedKey(args[0], args[1]));
             if (table == null) {

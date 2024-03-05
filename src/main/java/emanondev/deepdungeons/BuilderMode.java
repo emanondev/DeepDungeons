@@ -2,7 +2,6 @@ package emanondev.deepdungeons;
 
 import emanondev.core.gui.Gui;
 import emanondev.core.message.DMessage;
-import emanondev.deepdungeons.room.RoomType;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.entity.Player;
@@ -26,31 +25,30 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.UUID;
 
-public class RoomBuilderMode implements Listener {
+public class BuilderMode implements Listener {
 
-    private static final RoomBuilderMode instance = new RoomBuilderMode();
+    private static final BuilderMode instance = new BuilderMode();
     private final PauseListener pauseListener;
-
-    public static @NotNull RoomBuilderMode getInstance() {
-        return instance;
-    }
-
-    private RoomBuilderMode() {
-        this.pauseListener = new PauseListener();
-    }
-
-    private final HashMap<Player, RoomType.RoomInstanceBuilder> builderMode = new HashMap<>();
-    private final HashMap<UUID, RoomType.RoomInstanceBuilder> paused = new HashMap<>();
+    private final HashMap<Player, ActiveBuilder> builderMode = new HashMap<>();
+    private final HashMap<UUID, ActiveBuilder> paused = new HashMap<>();
     private final HashMap<Player, ItemStack[]> inventoryBackup = new HashMap<>();
     private final HashMap<Player, ItemStack[]> offhandBackup = new HashMap<>();
     private final HashMap<Player, ItemStack[]> equipmentBackup = new HashMap<>();
+    private final HashMap<UUID, Long> lastPlayerInteraction = new HashMap<>();
     private BukkitTask timerTask;
+    private BuilderMode() {
+        this.pauseListener = new PauseListener();
+    }
+
+    public static @NotNull BuilderMode getInstance() {
+        return instance;
+    }
 
     public boolean isOnEditorMode(@NotNull Player player) {
         return builderMode.containsKey(player);
     }
 
-    public @Nullable RoomType.RoomInstanceBuilder getBuilderMode(@NotNull Player player) {
+    public @Nullable ActiveBuilder getBuilderMode(@NotNull Player player) {
         return builderMode.get(player);
     }
 
@@ -74,7 +72,7 @@ public class RoomBuilderMode implements Listener {
 
     }
 
-    public boolean enterBuilderMode(@NotNull Player player, @NotNull RoomType.RoomInstanceBuilder builder) {
+    public boolean enterBuilderMode(@NotNull Player player, @NotNull ActiveBuilder builder) {
         if (builderMode.containsKey(player) || paused.containsKey(player.getUniqueId()))
             return false;
         if (builder.getCompletableFuture().isDone())
@@ -118,8 +116,6 @@ public class RoomBuilderMode implements Listener {
         }
         return true;
     }
-
-    private final HashMap<UUID, Long> lastPlayerInteraction = new HashMap<>();
 
     @EventHandler
     public void event(@NotNull EntityPickupItemEvent event) {
@@ -166,7 +162,7 @@ public class RoomBuilderMode implements Listener {
     public void event(@NotNull PlayerInteractEvent event) {
         if (event.getAction() == Action.PHYSICAL)
             return;
-        RoomType.@Nullable RoomInstanceBuilder builder = getBuilderMode(event.getPlayer());
+        ActiveBuilder builder = getBuilderMode(event.getPlayer());
         if (builder == null)
             return;
         event.setCancelled(true);
@@ -193,7 +189,7 @@ public class RoomBuilderMode implements Listener {
     }
 
     public boolean pauseBuilder(@NotNull Player player) {
-        RoomType.RoomInstanceBuilder builder = builderMode.get(player);
+        ActiveBuilder builder = builderMode.get(player);
         if (builder == null)
             return false;
         exitBuilderMode(player);
@@ -204,7 +200,7 @@ public class RoomBuilderMode implements Listener {
     }
 
     public boolean unpauseBuilder(@NotNull Player player) {
-        RoomType.RoomInstanceBuilder builder = paused.remove(player.getUniqueId());
+        ActiveBuilder builder = paused.remove(player.getUniqueId());
         if (builder == null)
             return false;
         enterBuilderMode(player, builder);
@@ -213,15 +209,15 @@ public class RoomBuilderMode implements Listener {
         return true;
     }
 
+    public void disable() {
+        for (Player player : new ArrayList<>(builderMode.keySet()))
+            exitBuilderMode(player);
+    }
+
     private class PauseListener implements Listener {
         @EventHandler
         public void event(PlayerJoinEvent event) {
             unpauseBuilder(event.getPlayer());
         }
-    }
-
-    public void disable() {
-        for (Player player : new ArrayList<>(builderMode.keySet()))
-            exitBuilderMode(player);
     }
 }

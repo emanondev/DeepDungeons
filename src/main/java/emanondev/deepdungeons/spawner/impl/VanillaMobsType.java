@@ -77,7 +77,7 @@ public class VanillaMobsType extends MonsterSpawnerType {
                     new DMessage(DeepDungeons.get(), gui.getTargetPlayer())
                             .append("<!i><gold><b>EntityType</b>").newLine()
                             .append("<gold><blue>Type:</blue> " + (type.getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
-                                    type.getKey().toString().substring(10) : type.getKey().toString()) )).setGuiProperty().build(),
+                                    type.getKey().toString().substring(10) : type.getKey().toString()))).setGuiProperty().build(),
                     (String text, EntityType type) -> {
                         String[] split = text.split(" ");
                         for (String s : split) {
@@ -100,7 +100,7 @@ public class VanillaMobsType extends MonsterSpawnerType {
                                             type.getKey().toString().substring(10) : type.getKey().toString()))).setGuiProperty().build(),
                     () -> {
                         ArrayList<EntityType> list = new ArrayList<>(Arrays.asList(EntityType.values()));
-                        list.removeIf((type) -> !type.isSpawnable()||!type.isAlive());
+                        list.removeIf((type) -> !type.isSpawnable() || !type.isAlive());
                         list.sort(Comparator.comparing(Enum::name));
                         return list;
                     }
@@ -112,8 +112,8 @@ public class VanillaMobsType extends MonsterSpawnerType {
             }, () ->
                     new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, min))
                             .setDescription(new DMessage(DeepDungeons.get(), gui.getTargetPlayer()).append("<gold>Minimum spawned Mobs").newLine()
-                            .append("<gold><blue>Max: </blue>" + max).newLine()
-                            .append("<gold><blue>Min: </blue>" + min)).setGuiProperty().build(), true
+                                    .append("<gold><blue>Max: </blue>" + max).newLine()
+                                    .append("<gold><blue>Min: </blue>" + min)).setGuiProperty().build(), true
             ));
             gui.addButton(new NumberEditorFButton<>(
                     gui, 1, 1, 100, this::getMax, (val) -> {
@@ -195,7 +195,7 @@ public class VanillaMobsType extends MonsterSpawnerType {
         private final double chance;
 
         public VanillaMobsInstance(RoomType.RoomInstance room, @NotNull YMLSection section) {
-            super(room,section);
+            super(room, section);
             entityType = section.getEntityType("mobtype", EntityType.ZOMBIE);
             min = section.getInt("min");
             max = section.getInt("max");

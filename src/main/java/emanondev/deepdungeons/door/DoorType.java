@@ -38,16 +38,23 @@ public abstract class DoorType extends DRegistryElement {
     public abstract class DoorInstanceBuilder extends DInstance<DoorType> {
 
         private final RoomType.RoomInstanceBuilder roomBuilder;
+        private final CompletableFuture<DoorInstanceBuilder> completableFuture = new CompletableFuture<>();
         private BoundingBox area;
         private Vector spawnOffset;
         private float spawnYaw;
+        private BlockFace doorFace = BlockFace.NORTH;
+        private float spawnPitch;
+        private boolean hasConfirmedSpawnLocation = false;
+        public DoorInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+            super(DoorType.this);
+            this.roomBuilder = room;
+        }
 
         public BlockFace getDoorFace() {
             return doorFace;
         }
 
         /**
-         *
          * @param doorFace must be cardinal
          * @throws IllegalArgumentException if argument is not cardinal
          */
@@ -56,10 +63,6 @@ public abstract class DoorType extends DRegistryElement {
                 throw new IllegalArgumentException();
             this.doorFace = doorFace;
         }
-
-        private BlockFace doorFace = BlockFace.NORTH;
-        private float spawnPitch;
-        private final CompletableFuture<DoorInstanceBuilder> completableFuture = new CompletableFuture<>();
 
         public @NotNull CompletableFuture<DoorInstanceBuilder> getCompletableFuture() {
             return completableFuture;
@@ -75,11 +78,6 @@ public abstract class DoorType extends DRegistryElement {
 
         public @NotNull RoomType.RoomInstanceBuilder getRoomBuilder() {
             return roomBuilder;
-        }
-
-        public DoorInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
-            super(DoorType.this);
-            this.roomBuilder = room;
         }
 
         public final void writeTo(@NotNull YMLSection section) {
@@ -112,9 +110,6 @@ public abstract class DoorType extends DRegistryElement {
 
         protected abstract void writeToImpl(@NotNull YMLSection section);
 
-
-        private boolean hasConfirmedSpawnLocation = false;
-
         public void setupTools() {
             Player player = getPlayer();
             /*if (player == null || !player.isValid())
@@ -133,9 +128,9 @@ public abstract class DoorType extends DRegistryElement {
             }
             if (!hasConfirmedSpawnLocation) {
                 inv.setItem(0, new ItemBuilder(Material.ENDER_PEARL).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .append("Set Door Spawn ("+(spawnOffset==null?"null":Util.toString(spawnOffset))+")")).build());
+                        .append("Set Door Spawn (" + (spawnOffset == null ? "null" : Util.toString(spawnOffset)) + ")")).build());
                 inv.setItem(1, new ItemBuilder(Material.MAGENTA_GLAZED_TERRACOTTA).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .append("Change door facing ("+ doorFace.name()+")")).build());
+                        .append("Change door facing (" + doorFace.name() + ")")).build());
                 if (getSpawnOffset() != null)
                     inv.setItem(4, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
                             .append("Confirm Door spawn")).build());
@@ -160,7 +155,7 @@ public abstract class DoorType extends DRegistryElement {
                             event.getPlayer().sendMessage("message not implemented: no area selected, use worldedit wand");
                             return;
                         }
-                        if (!roomBuilder.getArea().contains(box)){
+                        if (!roomBuilder.getArea().contains(box)) {
                             event.getPlayer().sendMessage("message not implemented: selected spawn point is outside the room or too close to border");
                             return;
                         }
@@ -179,7 +174,7 @@ public abstract class DoorType extends DRegistryElement {
             if (!hasConfirmedSpawnLocation) {
                 switch (event.getPlayer().getInventory().getHeldItemSlot()) {
                     case 0 -> {
-                        if (!roomBuilder.getArea().contains(event.getPlayer().getBoundingBox())){
+                        if (!roomBuilder.getArea().contains(event.getPlayer().getBoundingBox())) {
                             event.getPlayer().sendMessage("message not implemented: selected spawn point is outside the room or too close to border");
                             return;
                         }
@@ -190,11 +185,11 @@ public abstract class DoorType extends DRegistryElement {
                     }
                     case 1 -> {
                         BlockFace next = doorFace;
-                        next = BlockFace.values()[((BlockFace.values().length)+next.ordinal()
-                                +(event.getAction()==Action.RIGHT_CLICK_AIR||event.getAction()==Action.RIGHT_CLICK_BLOCK?1:-1))%BlockFace.values().length];
+                        next = BlockFace.values()[((BlockFace.values().length) + next.ordinal()
+                                + (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK ? 1 : -1)) % BlockFace.values().length];
                         while (!next.isCartesian())
-                            next = BlockFace.values()[((BlockFace.values().length)+next.ordinal()
-                                    +(event.getAction()==Action.RIGHT_CLICK_AIR||event.getAction()==Action.RIGHT_CLICK_BLOCK?1:-1))%BlockFace.values().length];
+                            next = BlockFace.values()[((BlockFace.values().length) + next.ordinal()
+                                    + (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK ? 1 : -1)) % BlockFace.values().length];
                         setDoorFace(next);
                         roomBuilder.setupTools();
                     }
@@ -268,7 +263,7 @@ public abstract class DoorType extends DRegistryElement {
             tickTimerImpl(player);
         }
 
-        private void showFaceArrow(@NotNull Player player,@NotNull Color color) {
+        private void showFaceArrow(@NotNull Player player, @NotNull Color color) {
             if (doorFace != null && !getCompletableFuture().isDone()) {
                 Particle.DustOptions dust = new Particle.DustOptions(color, 0.3F);
                 Vector r = area.getCenter().add(doorFace.getDirection().multiply(0.5D).multiply(new Vector(area.getWidthX(), area.getHeight(),

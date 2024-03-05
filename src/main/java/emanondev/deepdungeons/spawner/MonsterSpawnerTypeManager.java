@@ -28,7 +28,7 @@ public class MonsterSpawnerTypeManager extends DRegistry<MonsterSpawnerType> {
 
     @Contract("null -> null")
     public @Nullable MonsterSpawnerType getMonsterSpawnerType(@Nullable ItemStack itemStack) {
-        if (itemStack==null)
+        if (itemStack == null)
             return null;
         if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
             return null;
@@ -37,7 +37,7 @@ public class MonsterSpawnerTypeManager extends DRegistry<MonsterSpawnerType> {
 
     @Contract("null -> null")
     public @Nullable MonsterSpawnerType getMonsterSpawnerType(@Nullable ItemMeta meta) {
-        if (meta==null)
+        if (meta == null)
             return null;
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))
             return null;
@@ -49,7 +49,7 @@ public class MonsterSpawnerTypeManager extends DRegistry<MonsterSpawnerType> {
 
     @Contract("null -> null")
     public MonsterSpawnerType.MonsterSpawnerInstanceBuilder getMonsterSpawnerInstance(@Nullable ItemStack itemStack) {
-        if (itemStack==null)
+        if (itemStack == null)
             return null;
         if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
             return null;
@@ -58,7 +58,7 @@ public class MonsterSpawnerTypeManager extends DRegistry<MonsterSpawnerType> {
 
     @Contract("null -> null")
     public MonsterSpawnerType.MonsterSpawnerInstanceBuilder getMonsterSpawnerInstance(@Nullable ItemMeta meta) {
-        if (meta==null)
+        if (meta == null)
             return null;
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))
             return null;
