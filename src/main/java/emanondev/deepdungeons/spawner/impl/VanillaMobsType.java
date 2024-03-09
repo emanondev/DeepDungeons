@@ -219,7 +219,8 @@ public class VanillaMobsType extends MonsterSpawnerType {
 
         @Override
         public void spawnMobs(@NotNull Random random, @NotNull Location location, @Nullable Player who) {
-            //TODO register mobs for handler
+            if (Math.random() < chance)
+                location.getWorld().spawnEntity(location, entityType);
         }
 
         public @NotNull EntityType getEntityType() {

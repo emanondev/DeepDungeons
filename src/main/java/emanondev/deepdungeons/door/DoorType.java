@@ -11,10 +11,14 @@ import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Util;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.util.BlockVector;
 import org.bukkit.util.BoundingBox;
@@ -45,6 +49,7 @@ public abstract class DoorType extends DRegistryElement {
         private BlockFace doorFace = BlockFace.NORTH;
         private float spawnPitch;
         private boolean hasConfirmedSpawnLocation = false;
+
         public DoorInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
             super(DoorType.this);
             this.roomBuilder = room;
@@ -179,8 +184,8 @@ public abstract class DoorType extends DRegistryElement {
                             return;
                         }
                         setSpawn(event.getPlayer().getLocation().toVector().subtract(getRoomOffset()),
-                                event.getPlayer().getLocation().getPitch(),
-                                event.getPlayer().getLocation().getYaw());
+                                event.getPlayer().getLocation().getYaw(),
+                                event.getPlayer().getLocation().getPitch());
                         roomBuilder.setupTools();
                     }
                     case 1 -> {
@@ -344,6 +349,7 @@ public abstract class DoorType extends DRegistryElement {
             //TODO
         }
 
+        @Contract(pure = true)
         public @NotNull RoomType.RoomInstance getRoomInstance() {
             return this.roomInstance;
         }
@@ -373,29 +379,99 @@ public abstract class DoorType extends DRegistryElement {
          */
         @Contract("-> new")
         public @NotNull Vector getSpawnOffset() {
-            return spawnOffset.clone();
+            return this.spawnOffset.clone();
         }
 
         public float getSpawnYaw() {
-            return spawnYaw;
+            return this.spawnYaw;
         }
 
         public float getSpawnPitch() {
-            return spawnPitch;
+            return this.spawnPitch;
         }
 
-        public abstract @NotNull DoorHandler getHandler();
+        public abstract @NotNull DoorHandler createDoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler);
 
         public @NotNull BlockFace getDoorFace() {
-            return doorFace;
+            return this.doorFace;
         }
 
         public abstract class DoorHandler {
 
-            public final DoorInstance getInstance() {
+            private final RoomType.RoomInstance.RoomHandler roomHandler;
+            private DoorHandler link;
+            private BoundingBox boundingBox;
+            private Location spawn;
+
+
+
+            public DoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
+                this.roomHandler = roomHandler;
+            }
+
+            public void teleportTo(@NotNull Player player){
+                player.teleport(this.getSpawn());
+            }
+
+            @NotNull
+            @Contract(pure = true,value = "-> new")
+            public Location getSpawn() {
+                return this.spawn.clone();
+            }
+
+            @Contract(pure = true)
+            public final @NotNull DoorInstance getInstance() {
                 return DoorInstance.this;
             }
 
+            @Contract(pure = true)
+            public @NotNull RoomType.RoomInstance.RoomHandler getRoom() {
+                return this.roomHandler;
+            }
+
+            public void link(@Nullable DoorHandler entrance) {
+                this.link = entrance;
+            }
+
+            @Contract(pure = true)
+            public @Nullable DoorHandler getLink() {
+                return this.link;
+            }
+
+            public void setupOffset() {
+                if (boundingBox != null)
+                    throw new IllegalStateException();
+                this.boundingBox = getInstance().getBoundingBox().shift(this.getRoom().getLocation().toVector());
+                this.spawn = getInstance().getSpawnLocation(getRoom().getLocation());
+                this.spawn.setPitch(getSpawnPitch());
+                this.spawn.setYaw(getSpawnYaw());
+            }
+
+            public abstract void onPlayerMove(PlayerMoveEvent event);
+
+            public boolean isInside(@NotNull Block block) {
+                return isInside(block.getLocation());
+            }
+
+            public boolean isInside(@NotNull BlockState block) {
+                return isInside(block.getLocation());
+            }
+
+            public boolean isInside(@NotNull Location loc) {
+                return getRoom().getDungeonHandler().getWorld().equals(loc.getWorld()) && isInside(loc.toVector());
+            }
+
+            public boolean isInside(@NotNull Vector vector) {
+                return this.boundingBox.contains(vector);
+            }
+
+            public boolean overlaps(@NotNull BoundingBox box) {
+                return this.boundingBox.overlaps(box);
+            }
+
+            public boolean overlaps(@NotNull Entity box) {
+                return overlaps(box.getBoundingBox());
+            }
         }
 
     }

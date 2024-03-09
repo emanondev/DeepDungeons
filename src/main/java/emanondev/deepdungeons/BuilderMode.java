@@ -2,6 +2,10 @@ package emanondev.deepdungeons;
 
 import emanondev.core.gui.Gui;
 import emanondev.core.message.DMessage;
+import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
+import emanondev.deepdungeons.dungeon.DungeonType;
+import emanondev.deepdungeons.room.RoomInstanceManager;
+import emanondev.deepdungeons.room.RoomType;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.entity.Player;
@@ -20,6 +24,7 @@ import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
@@ -36,6 +41,7 @@ public class BuilderMode implements Listener {
     private final HashMap<Player, ItemStack[]> equipmentBackup = new HashMap<>();
     private final HashMap<UUID, Long> lastPlayerInteraction = new HashMap<>();
     private BukkitTask timerTask;
+
     private BuilderMode() {
         this.pauseListener = new PauseListener();
     }
@@ -87,6 +93,13 @@ public class BuilderMode implements Listener {
             if (value != null) {
                 try {
                     value.write();
+                    if (builder instanceof RoomType.RoomInstanceBuilder) {
+                        RoomInstanceManager.getInstance().register(RoomInstanceManager.getInstance().readInstance(
+                                new File(RoomInstanceManager.getInstance().getFolder(), builder.getId() + ".yml")));
+                    } else if (builder instanceof DungeonType.DungeonInstanceBuilder) {
+                        DungeonInstanceManager.getInstance().register(DungeonInstanceManager.getInstance().readInstance(
+                                new File(DungeonInstanceManager.getInstance().getFolder(), builder.getId() + ".yml")));
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

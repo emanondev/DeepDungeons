@@ -1,6 +1,7 @@
 package emanondev.deepdungeons.room.impl;
 
 import emanondev.core.YMLSection;
+import emanondev.deepdungeons.dungeon.DungeonType;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -53,6 +54,11 @@ public class SimpleType extends RoomType {
     public class SimpleInstance extends RoomInstance {
         public SimpleInstance(@NotNull String id, @NotNull YMLSection section) {
             super(id, section);
+        }
+
+        @Override
+        public @NotNull RoomHandler createRoomHandler(DungeonType.DungeonInstance.DungeonHandler dungeonHandler) {
+            return new RoomHandler(dungeonHandler);
         }
     }
 

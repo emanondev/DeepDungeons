@@ -15,4 +15,6 @@ public interface ActiveBuilder {
     void write() throws Exception;
 
     void handleInteract(@NotNull PlayerInteractEvent event);
+
+    String getId();
 }

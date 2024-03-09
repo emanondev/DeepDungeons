@@ -1,10 +1,7 @@
 package emanondev.deepdungeons;
 
 import emanondev.core.CorePlugin;
-import emanondev.deepdungeons.command.DungeonDungeonCommand;
-import emanondev.deepdungeons.command.DungeonMonsterSpawnerCommand;
-import emanondev.deepdungeons.command.DungeonRoomCommand;
-import emanondev.deepdungeons.command.DungeonTreasureCommand;
+import emanondev.deepdungeons.command.*;
 import emanondev.deepdungeons.door.DoorTypeManager;
 import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
 import emanondev.deepdungeons.dungeon.DungeonTypeManager;
@@ -56,8 +53,9 @@ public class DeepDungeons extends CorePlugin {
         BuilderMode.getInstance();
         this.registerCommand(new DungeonTreasureCommand());
         this.registerCommand(new DungeonMonsterSpawnerCommand());
-        this.registerCommand(new DungeonRoomCommand());
-        this.registerCommand(new DungeonDungeonCommand());
+        this.registerCommand(new DungeonRoomBuilderCommand());
+        this.registerCommand(new DungeonDungeonBuilderCommand());
+        this.registerCommand(new DungeonCreatorCommand());
     }
 
     @Override

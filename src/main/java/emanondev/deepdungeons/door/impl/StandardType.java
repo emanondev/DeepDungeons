@@ -5,6 +5,7 @@ import emanondev.deepdungeons.door.DoorType;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class StandardType extends DoorType {
@@ -58,12 +59,31 @@ public class StandardType extends DoorType {
         }
 
         @Override
-        public @NotNull DoorHandler getHandler() {
-            return new StandardHandler();
+        public @NotNull DoorHandler createDoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
+            return new StandardHandler(roomHandler);
         }
 
         public class StandardHandler extends DoorHandler {
 
+            public StandardHandler(RoomType.RoomInstance.@NotNull RoomHandler roomHandler) {
+                super(roomHandler);
+            }
+
+            @Override
+            public void onPlayerMove(@NotNull PlayerMoveEvent event) {
+                DoorHandler link = this.getLink();
+                if (link==null){
+                    if (this.equals(this.getRoom().getDungeonHandler().getEntrance()))
+                        return;
+                    if (this.equals(this.getRoom().getEntrance())){
+                        //TODO going back
+                        return;
+                    }
+                    //TODO dungeon completed by this player ?
+                    return;
+                }
+                link.teleportTo(event.getPlayer());
+            }
         }
     }
 }

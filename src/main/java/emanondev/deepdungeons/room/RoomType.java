@@ -2,6 +2,7 @@ package emanondev.deepdungeons.room;
 
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.math.BlockVector3;
 import emanondev.core.ItemBuilder;
 import emanondev.core.YMLConfig;
 import emanondev.core.YMLSection;
@@ -12,9 +13,9 @@ import emanondev.core.util.DRegistryElement;
 import emanondev.core.util.ParticleUtility;
 import emanondev.core.util.WorldEditUtility;
 import emanondev.deepdungeons.ActiveBuilder;
+import emanondev.deepdungeons.BuilderMode;
 import emanondev.deepdungeons.DRInstance;
 import emanondev.deepdungeons.DeepDungeons;
-import emanondev.deepdungeons.BuilderMode;
 import emanondev.deepdungeons.door.DoorType;
 import emanondev.deepdungeons.door.DoorTypeManager;
 import emanondev.deepdungeons.dungeon.DungeonType;
@@ -36,12 +37,17 @@ import org.bukkit.entity.EntitySnapshot;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BlockVector;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -251,16 +257,21 @@ public abstract class RoomType extends DRegistryElement {
                 writeToImpl(section);
                 //WorldEditUtility.copy(getPlayer().getWorld(),area,true,true,false);
                 WorldEditUtility.save(new File(DeepDungeons.get().getDataFolder(), "schematics" + File.separator + schematicName)
-                        , WorldEditUtility.copy(getPlayer().getWorld(), smallArea, true, true, false));
+                        , WorldEditUtility.copy(getPlayer().getWorld(), smallArea, true, true, true));
 
             } finally {
-                entitiesSnapshots.forEach(EntitySnapshot::createEntity);
-                snapshotsStates.forEach(((block, blockState) -> {
-                    blockState.update(true, false);
-                    blockState.setBlockData(snapshotsBlockData.get(block));
-                    if (blockState instanceof Container container)
-                        container.getInventory().setContents(snapshotsInventories.get(block).getContents());
-                }));
+                new BukkitRunnable() { //TODO this is a very wrong way to do this
+                    @Override
+                    public void run() {
+                        entitiesSnapshots.forEach(EntitySnapshot::createEntity);
+                        snapshotsStates.forEach(((block, blockState) -> {
+                            blockState.update(true, false);
+                            blockState.setBlockData(snapshotsBlockData.get(block));
+                            if (blockState instanceof Container container)
+                                container.getInventory().setContents(snapshotsInventories.get(block).getContents());
+                        }));
+                    }
+                }.runTaskLater(DeepDungeons.get(), 20L);
             }
         }
 
@@ -534,7 +545,7 @@ public abstract class RoomType extends DRegistryElement {
     }
 
 
-    public class RoomInstance extends DRInstance<RoomType> {
+    public abstract class RoomInstance extends DRInstance<RoomType> {
 
         private final DoorType.DoorInstance entrance;
         private final List<DoorType.DoorInstance> exits = new ArrayList<>();
@@ -544,10 +555,11 @@ public abstract class RoomType extends DRegistryElement {
 
         private final Set<Material> breakableBlocks = new HashSet<>();
         private final String schematicName;
+        private final BlockVector size;
         private SoftReference<Clipboard> clipboard = null;
         private CompletableFuture<Clipboard> futureClipboard;
 
-        public RoomInstance(@NotNull String id, YMLSection section) {
+        public RoomInstance(@NotNull String id, @NotNull YMLSection section) {
             super(id, RoomType.this);
             //this.section = section;
             @NotNull YMLSection tmp = section.loadSection("entrance");
@@ -574,6 +586,18 @@ public abstract class RoomType extends DRegistryElement {
             }
             this.schematicName = section.getString("schematic");
             this.breakableBlocks.addAll(section.getMaterialList("breakableBlocks", Collections.emptyList()));
+            BlockVector3 dim;
+            try {
+                dim = getClipboard(false).join().getDimensions();
+            } catch (Throwable e) {
+                e.printStackTrace();
+                throw new IllegalStateException();
+            }
+            this.size = new BlockVector(dim.getBlockX(), dim.getBlockY(), dim.getBlockZ());
+        }
+
+        public @NotNull BlockVector getSize() {
+            return size.clone();
         }
 
         public Set<Material> getBreakableBlocks() {
@@ -613,8 +637,8 @@ public abstract class RoomType extends DRegistryElement {
             if (clip != null)
                 return CompletableFuture.completedFuture(clip);
             if (futureClipboard != null)
-                return futureClipboard;
-            CompletableFuture<Clipboard> result = WorldEditUtility.load(getSchematic(), DeepDungeons.get(), async);
+                return futureClipboard; //TODO what a mess
+            CompletableFuture<Clipboard> result = CompletableFuture.completedFuture(WorldEditUtility.load(getSchematic(), DeepDungeons.get()));//.load(getSchematic(), DeepDungeons.get(), async);
             result.thenAccept(value -> this.clipboard = new SoftReference<>(value));
             this.futureClipboard = result;
             result.whenComplete((value, e) -> this.futureClipboard = null);
@@ -630,31 +654,159 @@ public abstract class RoomType extends DRegistryElement {
                     DeepDungeons.get(), false, true, true, false));
         }
 
+        @Contract("_->new")
+        public abstract @NotNull RoomHandler createRoomHandler(DungeonType.DungeonInstance.DungeonHandler dungeonHandler);
+
 
         public class RoomHandler {
 
-            private final Location location;
             private final DungeonType.DungeonInstance.DungeonHandler dungeonHandler;
+            private final DoorType.DoorInstance.DoorHandler entranceHandler;
+            private final List<DoorType.DoorInstance.DoorHandler> exits = new ArrayList<>();
+            private Location location = null;
+            private BoundingBox boundingBox = null;
 
-            public RoomHandler(@NotNull DungeonType.DungeonInstance.DungeonHandler dungeonHandler, @NotNull Location location) {
-                this.location = location;
+            public RoomHandler(@NotNull DungeonType.DungeonInstance.DungeonHandler dungeonHandler) {
                 this.dungeonHandler = dungeonHandler;
+                this.entranceHandler = getRoomInstance().getEntrance().createDoorHandler(this);
+                for (DoorType.DoorInstance exit : getRoomInstance().getExits())
+                    exits.add(exit.createDoorHandler(this));
             }
 
+            @Contract(pure = true)
+            public DoorType.DoorInstance.DoorHandler getEntrance() {
+                return entranceHandler;
+            }
+
+            @Contract(pure = true)
+            public List<DoorType.DoorInstance.DoorHandler> getExits() {
+                return Collections.unmodifiableList(exits);
+            }
+
+            @Contract(pure = true)
             public @NotNull CompletableFuture<EditSession> paste(boolean async) {
                 return RoomInstance.this.paste(this, async);
             }
 
+            @Contract(pure = true)
             public @NotNull DungeonType.DungeonInstance.DungeonHandler getDungeonHandler() {
                 return dungeonHandler;
             }
 
+            @Contract(pure = true, value = "-> new")
             public @NotNull Location getLocation() {
-                return location;
+                return location.clone();
             }
 
+            @Contract(pure = true, value = "-> new")
+            public @NotNull BoundingBox getBoundingBox() {
+                return boundingBox.clone();
+            }
+
+            @Contract(pure = true)
             public @NotNull RoomType.RoomInstance getRoomInstance() {
                 return RoomInstance.this;
+            }
+
+            @Contract(pure = true)
+            public @NotNull BlockVector getSize() {
+                return getRoomInstance().getSize();
+            }
+
+            public void setupOffset(@NotNull Vector roomOffset) {
+                if (this.location != null)
+                    throw new IllegalStateException();
+                this.location = getDungeonHandler().getLocation().add(roomOffset);
+                this.boundingBox = BoundingBox.of(location.toVector(), location.toVector().add(getSize()));
+                getEntrance().setupOffset();
+                exits.forEach(DoorType.DoorInstance.DoorHandler::setupOffset);
+            }
+
+            public void onPlayerMove(PlayerMoveEvent event) {
+                if (this.getEntrance().isInside(event.getTo()))
+                    this.getEntrance().onPlayerMove(event);
+                else
+                    for (DoorType.DoorInstance.DoorHandler exit : this.getExits())
+                        if (exit.isInside(event.getTo())) {
+                            exit.onPlayerMove(event);
+                            return;
+                        }
+            }
+
+            public boolean isInside(@NotNull Block block) {
+                return isInside(block.getLocation());
+            }
+
+            public boolean isInside(@NotNull BlockState block) {
+                return isInside(block.getLocation());
+            }
+
+            public boolean isInside(@NotNull Location loc) {
+                return getDungeonHandler().getWorld().equals(loc.getWorld()) && isInside(loc.toVector());
+            }
+
+            public boolean isInside(@NotNull Vector vector) {
+                return this.boundingBox.contains(vector);
+            }
+
+            public boolean overlaps(@NotNull BoundingBox box) {
+                return this.boundingBox.overlaps(box);
+            }
+
+            public boolean overlaps(@NotNull Entity box) {
+                return overlaps(box.getBoundingBox());
+            }
+
+            public void onCreatureSpawn(CreatureSpawnEvent event) {
+
+            }
+
+            private boolean firstEnter = false;
+
+            public void onPlayerTeleport(PlayerTeleportEvent event) {
+                if (!firstEnter) {
+                    firstEnter = true;
+                    onFirstPlayerEnter(event.getPlayer());
+                }
+
+
+            }
+
+            protected void onFirstPlayerEnter(Player player) {
+                //TODO may generate treasures on chest opens instead
+                this.getRoomInstance().getTreasures().forEach((treasure -> {
+                    Location to = getLocation().add(treasure.getOffset());
+                    if (to.getBlock().getState() instanceof Container container) {
+                        Inventory inv = container.getInventory();
+                        inv.addItem(treasure.getTreasure(new Random(), to, player).toArray(new ItemStack[0]));
+                        ItemStack[] stacks = inv.getContents();
+                        List<ItemStack> contained = Arrays.asList(stacks);
+                        Collections.shuffle(contained);
+                        inv.setContents(contained.toArray(stacks));
+                    } else
+                        treasure.getTreasure(new Random(), to, player).forEach(itemStack -> to.getWorld().dropItem(to, itemStack));
+                }));
+                this.getRoomInstance().getMonsterSpawners().forEach((monsterSpawner) -> {
+                    Location to = getLocation().add(monsterSpawner.getOffset());
+                    monsterSpawner.spawnMobs(new Random(), to, player);
+                });
+            }
+
+            public void onBlockPlace(BlockPlaceEvent event) {
+                event.setCancelled(true);
+            }
+
+            public void onBlockBreak(BlockBreakEvent event) {
+                if (!getRoomInstance().getBreakableBlocks().contains(event.getBlock().getType()))
+                    event.setCancelled(true);
+            }
+
+            public void onPlayerBucketFill(PlayerBucketFillEvent event) {
+                event.setCancelled(true);
+            }
+
+            public void onPlayerBucketEmpty(PlayerBucketEmptyEvent event) {
+                event.setCancelled(true);
             }
         }
 

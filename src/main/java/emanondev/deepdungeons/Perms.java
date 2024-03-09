@@ -15,11 +15,15 @@ public class Perms {
     public static final Permission DUNGEONROOM_COMMAND = PermissionBuilder.ofCommand(DeepDungeons.get(),
             "dungeonroom").buildAndRegister(DeepDungeons.get());
 
+    public static final Permission DUNGEONCREATOR_COMMAND = PermissionBuilder.ofCommand(DeepDungeons.get(),
+            "dungeoncreator").buildAndRegister(DeepDungeons.get());
+    ;
 
     public static final Permission DUNGEONTREASURE_ADMIN = PermissionBuilder.ofPlugin(DeepDungeons.get(), "admin")
             .addChild(DUNGEONROOM_COMMAND, true)
             .addChild(DUNGEONDUNGEON_COMMAND, true)
             .addChild(DUNGEONTREASURE_COMMAND, true)
+            .addChild(DUNGEONCREATOR_COMMAND, true)
             .addChild(DUNGEONMONSTERSPAWNER_COMMAND, true).buildAndRegister(DeepDungeons.get());
 
 }

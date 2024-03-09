@@ -1,22 +1,37 @@
 package emanondev.deepdungeons.dungeon.impl;
 
+import com.sk89q.worldedit.EditSession;
 import emanondev.core.ItemBuilder;
+import emanondev.core.RandomItemContainer;
 import emanondev.core.YMLSection;
 import emanondev.core.gui.*;
 import emanondev.core.message.DMessage;
+import emanondev.core.util.WorldEditUtility;
 import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.area.AreaManager;
+import emanondev.deepdungeons.door.DoorType;
 import emanondev.deepdungeons.dungeon.DungeonType;
+import emanondev.deepdungeons.party.Party;
 import emanondev.deepdungeons.room.RoomInstanceManager;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.Color;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.util.BlockVector;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class RoomsGroupsSequence extends DungeonType {
     public RoomsGroupsSequence() {
@@ -36,6 +51,7 @@ public class RoomsGroupsSequence extends DungeonType {
     public class RoomsGroupsSequenceBuilder extends DungeonInstanceBuilder {
 
         private final List<RoomsGroupBuilder> groups = new ArrayList<>();
+        boolean[] resetButtons = new boolean[1];
 
         public RoomsGroupsSequenceBuilder(@NotNull String id, @NotNull Player player) {
             super(id, player);
@@ -54,8 +70,6 @@ public class RoomsGroupsSequence extends DungeonType {
                     .append("<green>Confirm Setup")).build());
         }
 
-        boolean[] resetButtons = new boolean[1];
-
         @Override
         protected void handleInteractImpl(@NotNull PlayerInteractEvent event) {
             int heldSlot = event.getPlayer().getInventory().getHeldItemSlot();
@@ -70,11 +84,11 @@ public class RoomsGroupsSequence extends DungeonType {
                             if (resetButtons[0]) {
                                 resetButtons[0] = false;
                                 this.clearButtons();
-                                HashMap<Integer,GuiButton> buttons = new HashMap<>();
+                                HashMap<Integer, GuiButton> buttons = new HashMap<>();
                                 for (int i = 0; i < groups.size(); i++) {
                                     RoomsGroupBuilder group = groups.get(i);
                                     int finalI = i;
-                                    buttons.put(finalI,new FButton(this, () -> new ItemBuilder(Material.LEATHER_CHESTPLATE).setGuiProperty().setColor(group.color)
+                                    buttons.put(finalI, new FButton(this, () -> new ItemBuilder(Material.LEATHER_CHESTPLATE).setGuiProperty().setColor(group.color)
                                             .setAmount(Math.max(Math.min(100, group.getRooms().size()), 1))
                                             .setDescription(new DMessage(DeepDungeons.get(), event.getPlayer()).append("<gold>Group #<yellow>" + (finalI + 1))
                                                     .newLine().append("<blue>Selected rooms: <yellow>" + group.getRooms().size())
@@ -118,7 +132,7 @@ public class RoomsGroupsSequence extends DungeonType {
                                                 default -> false;
                                             }));
                                 }
-                                buttons.put(groups.size(),new FButton(this, () -> new ItemBuilder(Material.LIGHT_BLUE_DYE)
+                                buttons.put(groups.size(), new FButton(this, () -> new ItemBuilder(Material.LIGHT_BLUE_DYE)
                                         .setDescription(new DMessage(DeepDungeons.get(), getPlayer()).append("<gold>Add a new Group"))
                                         .setGuiProperty().build(),
                                         (event) -> {
@@ -149,18 +163,18 @@ public class RoomsGroupsSequence extends DungeonType {
             int i = 0;
             for (RoomsGroupBuilder group : groups) {
                 i++;
-                group.write(section.loadSection("roomgroups." + i));
+                group.write(section.loadSection("groups." + i));
             }
         }
 
         public class RoomsGroupBuilder {
             private final HashMap<String, Integer> rooms = new HashMap<>();
-            private int minLength = 1;
-            private int maxLength = 1;
             private final int MIN_LEN;
             private final int MAX_LEN;
             private final Color color = Color.fromRGB((int) (Math.random() * 256), (int) (Math.random() * 256), (int) (Math.random() * 256));
-            private int slot;
+            private int minLength = 1;
+            private int maxLength = 1;
+            //private int slot;
 
             public RoomsGroupBuilder() {
                 this(0, Integer.MAX_VALUE);
@@ -180,15 +194,13 @@ public class RoomsGroupsSequence extends DungeonType {
             }
 
             public void setMaxLength(int value) {
-                maxLength = Math.max(MIN_LEN, Math.min(MAX_LEN, value));
+                maxLength = Math.max(1, Math.min(MAX_LEN, value));
                 if (minLength > maxLength)
                     minLength = maxLength;
             }
 
             /**
              * add room with a weight of 100
-             *
-             * @param roomId
              */
             public void setRoom(@NotNull String roomId) {
                 rooms.put(roomId, 100);
@@ -196,9 +208,6 @@ public class RoomsGroupsSequence extends DungeonType {
 
             /**
              * setting a zero or negative weight remove the item
-             *
-             * @param roomId
-             * @param weight
              */
             public void setRoom(@NotNull String roomId, int weight) {
                 if (weight <= 0)
@@ -220,7 +229,7 @@ public class RoomsGroupsSequence extends DungeonType {
 
             public Gui createGui(int slot, @NotNull Gui parent) {
                 Player p = RoomsGroupsSequence.RoomsGroupsSequenceBuilder.this.getPlayer();
-                this.slot = slot;
+                //this.slot = slot;
                 PagedMapGui mapGui = new PagedMapGui(new DMessage(DeepDungeons.get(), getPlayer()).append("Group #" + slot),
                         6, getPlayer(), parent, DeepDungeons.get());
                 mapGui.addButton(new ResearchFButton<>(mapGui,
@@ -278,8 +287,8 @@ public class RoomsGroupsSequence extends DungeonType {
                 return Collections.unmodifiableSet(rooms.keySet());
             }
 
-            public void write(YMLSection section) {
-                rooms.forEach((id, value) -> section.set("room_weights.id", value));
+            public void write(@NotNull YMLSection section) {
+                rooms.forEach((id, value) -> section.set("room_weights." + id, value));
                 section.set("min_length", minLength);
                 section.set("max_length", maxLength);
             }
@@ -288,9 +297,205 @@ public class RoomsGroupsSequence extends DungeonType {
 
     public class RoomsGroupsSequenceInstance extends DungeonInstance {
 
+        private final List<RoomGroup> groups = new ArrayList<>();
+
         public RoomsGroupsSequenceInstance(@NotNull String id, @NotNull YMLSection section) {
             super(id, section);
+            section.getKeys("groups").forEach((key) -> groups.add(new RoomGroup(section.loadSection("groups." + key))));
         }
+
+        @Override
+        @Contract(value = "_ -> new", pure = true)
+        public @NotNull DungeonHandler createHandler(@Nullable World world) {
+            return new Handler(world);
+        }
+
+        private static class RoomGroup {
+
+            private final int min;
+            private final int max;
+            private final RandomItemContainer<String> rooms = new RandomItemContainer<>();
+
+
+            public RoomGroup(@NotNull YMLSection section) {
+                min = section.loadInteger("min_length", 1);
+                max = section.loadInteger("max_length", 1);
+                section.getKeys("room_weights").forEach((key) -> rooms.addItem(key, section.loadInteger("room_weights." + key, 100)));
+            }
+        }
+
+        private class Handler extends DungeonHandler {
+            private final static int ROOM_MARGIN = 5;
+            private final static int DUNGEON_MARGIN = 2;
+
+            private final Location location;
+            private final DoorType.DoorInstance.DoorHandler start;
+            private final List<RoomType.RoomInstance.RoomHandler> rooms = new ArrayList<>();
+            private final BoundingBox boundingBox;
+            private State state = State.LOADING;
+
+            @Override
+            @NotNull
+            public List<RoomType.RoomInstance.RoomHandler> getRooms() {
+                return Collections.unmodifiableList(rooms);
+            }
+
+            public Handler(@Nullable World world) {
+                super();
+                RoomType.RoomInstance.@NotNull RoomHandler startRoom = RoomInstanceManager.getInstance().get(groups.get(0).rooms.getItem()).createRoomHandler(this);
+                rooms.add(startRoom);
+                this.start = startRoom.getEntrance();
+                //rooms.add(start.getRoom());
+                List<DoorType.DoorInstance.DoorHandler> deathEnds = new ArrayList<>(startRoom.getExits());
+                for (int i = 1; i < groups.size(); i++) {
+                    RoomGroup group = groups.get(i);
+                    if (group.min <= 0 && Math.random() > 1D / group.max)
+                        continue;
+                    RoomType.RoomInstance.RoomHandler groupStart = RoomInstanceManager.getInstance().get(group.rooms.getItem()).createRoomHandler(this);
+                    deathEnds.forEach((door) -> door.link(groupStart.getEntrance()));
+                    deathEnds.clear();
+                    rooms.add(groupStart);
+                    generate(group, groupStart, deathEnds, 1);
+                }
+                //List<BlockVector> offsets = new ArrayList<>();
+                List<BoundingBox> boxes = new ArrayList<>();
+                for (RoomType.RoomInstance.RoomHandler room : rooms) {
+                    BlockVector size = room.getSize();
+                    BoundingBox roomBox = new BoundingBox(0D, 0D, 0D, size.getX() + 1, size.getY() + 1, size.getZ() + 1);
+                    roomBox.expand(ROOM_MARGIN);
+                    boolean added = false;
+                    for (int i = 0; i < 10000; i++) {
+                        for (int x = 0; x < i; x++) {
+                            BoundingBox tmp = roomBox.clone().shift(x * 5, 0, i * 5);
+                            boolean fine = true;
+                            for (BoundingBox box : boxes) {
+                                if (box.overlaps(tmp)) {
+                                    fine = false;
+                                    break;
+                                }
+                            }
+                            if (fine) {
+                                boxes.add(tmp.expand(-ROOM_MARGIN));
+                                added = true;
+                                break;
+                            }
+                        }
+                        if (added)
+                            break;
+                        for (int z = 0; z <= i; z++) {
+                            BoundingBox tmp = roomBox.clone().shift(i * 5, 0, z * 5);
+                            boolean fine = true;
+                            for (BoundingBox box : boxes) {
+                                if (box.overlaps(tmp)) {
+                                    fine = false;
+                                    break;
+                                }
+                            }
+                            if (fine) {
+                                boxes.add(tmp.expand(-ROOM_MARGIN));
+                                added = true;
+                                break;
+                            }
+                        }
+                        if (added)
+                            break;
+                    }
+                    if (!added) {
+                        throw new IllegalStateException();
+                    }
+                }
+                BoundingBox boxArea = new BoundingBox();
+                for (BoundingBox box : boxes) {
+                    boxArea.union(box);
+                    box.shift(DUNGEON_MARGIN, DUNGEON_MARGIN, DUNGEON_MARGIN);
+                    box.expand(0, 0, 0, -0.0001, -0.0001, -0.0001);
+                }
+                boxArea.expand(DUNGEON_MARGIN);
+                boxArea.shift(DUNGEON_MARGIN, DUNGEON_MARGIN, DUNGEON_MARGIN).expand(0, 0, 0, -0.0001, -0.0001, -0.0001);
+                this.location = AreaManager.getInstance().findLocation(world, boxArea.clone(), this);
+                for (int i = 0; i < rooms.size(); i++) {
+                    rooms.get(i).setupOffset(boxes.get(i).getMin());
+                }
+                this.boundingBox = boxArea.shift(location);
+                paste();
+            }
+
+            private void paste() {
+                getLocation().getWorld().getNearbyEntities(getBoundingBox(), (e) -> !(e instanceof Player)).forEach(Entity::remove);
+                CompletableFuture<EditSession> future = WorldEditUtility.pasteAir(getBoundingBox(), getLocation().getWorld(), true, DeepDungeons.get());
+                List<CompletableFuture<EditSession>> pasting = new ArrayList<>();
+                pasting.add(future);
+                for (RoomType.RoomInstance.RoomHandler room : rooms) {
+                    pasting.get(pasting.size() - 1).whenComplete((session, t) -> pasting.add(room.paste(true)));
+                }
+                pasting.get(pasting.size() - 1).thenAccept((session) -> {
+                    this.state = State.READY;
+                    AreaManager.getInstance().flagReady(this);
+                });
+            }
+
+            @Override
+            @Contract(pure = true)
+            public @NotNull DoorType.DoorInstance.DoorHandler getEntrance() {
+                return start;
+            }
+
+            @Override
+            @Contract(value = "-> new", pure = true)
+            public @NotNull Location getLocation() {
+                return location.clone();
+            }
+
+            @Override
+            @Contract(value = "-> new", pure = true)
+            public @NotNull BoundingBox getBoundingBox() {
+                return boundingBox;
+            }
+
+            @Override
+            public @NotNull State getState() {
+                return this.state;
+            }
+
+            @Override
+            public @NotNull World getWorld() {
+                return location.getWorld();
+            }
+
+            @Override
+            public boolean isInside(@NotNull Vector vector) {
+                return boundingBox.contains(vector);
+            }
+
+            @Override
+            public boolean overlaps(@NotNull BoundingBox box) {
+                return boundingBox.overlaps(box);
+            }
+
+            @Override
+            protected void startImpl(@NotNull Party party) {
+                //TODO
+            }
+
+            private void generate(RoomGroup group, RoomType.RoomInstance.RoomHandler groupStart, List<DoorType.DoorInstance.DoorHandler> deathEnds, int depth) {
+                if (depth >= group.max) {
+                    deathEnds.addAll(groupStart.getExits());
+                    return;
+                }
+                for (DoorType.DoorInstance.DoorHandler exit : groupStart.getExits()) {
+                    if ((group.min <= depth && Math.random() <= 1D / (group.max - depth))) {
+                        deathEnds.add(exit);
+                        continue;
+                    }
+                    RoomType.RoomInstance.RoomHandler next = RoomInstanceManager.getInstance().get(group.rooms.getItem()).createRoomHandler(this);
+                    rooms.add(next);
+                    exit.link(next.getEntrance());
+                    generate(group, next, deathEnds, depth + 1);
+                }
+            }
+
+        }
+
     }
 
 

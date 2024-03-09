@@ -11,11 +11,14 @@ public class RoomTypeManager extends DRegistry<RoomType> {
 
     private RoomTypeManager() {
         super(DeepDungeons.get(), "RoomTypeManager", true);
-        register(new SimpleType());
     }
 
     public static @NotNull RoomTypeManager getInstance() {
         return instance;
     }
 
+    @Override
+    public void load() {
+        register(new SimpleType());
+    }
 }
