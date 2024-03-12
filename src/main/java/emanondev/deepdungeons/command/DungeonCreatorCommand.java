@@ -7,7 +7,7 @@ import emanondev.deepdungeons.Perms;
 import emanondev.deepdungeons.area.AreaManager;
 import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
 import emanondev.deepdungeons.dungeon.DungeonType;
-import emanondev.deepdungeons.party.Party;
+import emanondev.deepdungeons.party.PartyManager;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -15,7 +15,6 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -56,15 +55,9 @@ public class DungeonCreatorCommand extends CoreCommand {
         String id = args[1];
         DungeonType.@Nullable DungeonInstance dungeon = DungeonInstanceManager.getInstance().get(id);
         DungeonType.DungeonInstance.@Nullable DungeonHandler handler = AreaManager.getInstance().getReady(dungeon);
-        handler.start(new Party() {
-            @Override
-            public Collection<Player> getPlayers() {
-                return Collections.singleton(player);
-            }
-        });
-        AreaManager.getInstance().flagStart(handler);
-        AreaManager.getInstance().flagPlayerJoinDungeon(handler,player);
-        player.teleport(handler.getEntrance().getSpawn());
+        PartyManager.getInstance().startDungeon(PartyManager.getInstance().createParty(player),handler);
+        //handler.start(PartyManager.getInstance().createParty(player));
+        //player.teleport(handler.getEntrance().getSpawn());
     }
 
     private void create(CommandSender sender, String label, String[] args) {

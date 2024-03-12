@@ -2,6 +2,7 @@ package emanondev.deepdungeons.door.impl;
 
 import emanondev.core.YMLSection;
 import emanondev.deepdungeons.door.DoorType;
+import emanondev.deepdungeons.party.PartyManager;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -82,7 +83,8 @@ public class StandardType extends DoorType {
                     //TODO dungeon completed by this player ?
                     return;
                 }
-                link.teleportTo(event.getPlayer());
+                link.teleportIn(event.getPlayer());
+                PartyManager.getInstance().getDungeonPlayer(event.getPlayer()).addDoorHistory(this,link);
             }
         }
     }

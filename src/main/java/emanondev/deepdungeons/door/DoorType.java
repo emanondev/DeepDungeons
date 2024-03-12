@@ -409,8 +409,8 @@ public abstract class DoorType extends DRegistryElement {
                 this.roomHandler = roomHandler;
             }
 
-            public void teleportTo(@NotNull Player player){
-                player.teleport(this.getSpawn());
+            public boolean teleportIn(@NotNull Player player){
+                return player.teleport(this.getSpawn());
             }
 
             @NotNull
@@ -449,19 +449,19 @@ public abstract class DoorType extends DRegistryElement {
 
             public abstract void onPlayerMove(PlayerMoveEvent event);
 
-            public boolean isInside(@NotNull Block block) {
-                return isInside(block.getLocation());
+            public boolean contains(@NotNull Block block) {
+                return contains(block.getLocation());
             }
 
-            public boolean isInside(@NotNull BlockState block) {
-                return isInside(block.getLocation());
+            public boolean contains(@NotNull BlockState block) {
+                return contains(block.getLocation());
             }
 
-            public boolean isInside(@NotNull Location loc) {
-                return getRoom().getDungeonHandler().getWorld().equals(loc.getWorld()) && isInside(loc.toVector());
+            public boolean contains(@NotNull Location loc) {
+                return getRoom().getDungeonHandler().getWorld().equals(loc.getWorld()) && contains(loc.toVector());
             }
 
-            public boolean isInside(@NotNull Vector vector) {
+            public boolean contains(@NotNull Vector vector) {
                 return this.boundingBox.contains(vector);
             }
 

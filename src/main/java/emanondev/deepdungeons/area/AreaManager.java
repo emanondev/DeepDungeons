@@ -2,12 +2,12 @@ package emanondev.deepdungeons.area;
 
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.dungeon.DungeonType;
+import emanondev.deepdungeons.party.PartyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -107,26 +107,17 @@ public class AreaManager implements Listener {
         this.ready.get(handler.getInstance()).add(handler);
     }
 
-    public void flagStart(@NotNull DungeonType.DungeonInstance.DungeonHandler handler) {
+    public boolean flagStarted(@NotNull DungeonType.DungeonInstance.DungeonHandler handler) {
         this.ready.get(handler.getInstance()).remove(handler);
         this.started.putIfAbsent(handler.getWorld(), new ArrayList<>());
         this.started.get(handler.getWorld()).add(handler);
+        return true;
         //TODO generate cache?
     }
 
     public void flagComplete(@NotNull DungeonType.DungeonInstance.DungeonHandler handler) {
         this.started.get(handler.getWorld()).remove(handler);
     }
-
-    public void flagPlayerJoinDungeon(@NotNull DungeonType.DungeonInstance.DungeonHandler handler, @NotNull Player player) {
-        this.players.put(player, handler);
-    }
-
-    public void flagPlayerQuitDungeon(@NotNull Player player) {
-        this.players.remove(player);
-    }
-
-    private final HashMap<Player, DungeonType.DungeonInstance.DungeonHandler> players = new HashMap<>();
 
     @Contract(pure = true)
     public @Nullable DungeonType.DungeonInstance.DungeonHandler getReady(DungeonType.DungeonInstance instance) {
@@ -136,139 +127,130 @@ public class AreaManager implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void event(BlockBreakEvent event) {
-        DungeonType.DungeonInstance.DungeonHandler handler = players.get(event.getPlayer());
-        if (handler == null)
+        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        if (party==null || !party.isInsideDungeon(event.getPlayer()))
             return;
-        handler.onBlockBreak(event);
+        party.getDungeon().onBlockBreak(event);
     }
 
     @EventHandler(ignoreCancelled = true)
     private void event(BlockPlaceEvent event) {
-        DungeonType.DungeonInstance.DungeonHandler handler = players.get(event.getPlayer());
-        if (handler == null)
+        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        if (party==null || !party.isInsideDungeon(event.getPlayer()))
             return;
-        handler.onBlockPlace(event);
+        party.getDungeon().onBlockPlace(event);
     }
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerTeleportEvent event) {
-        DungeonType.DungeonInstance.DungeonHandler handler = players.get(event.getPlayer());
-        if (handler == null)
+        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        if (party==null || !party.isInsideDungeon(event.getPlayer()))
             return;
-        handler.onPlayerTeleport(event);
+        party.getDungeon().onPlayerTeleport(event);
     }
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerMoveEvent event) {
-        DungeonType.DungeonInstance.DungeonHandler handler = players.get(event.getPlayer());
-        if (handler == null)
+        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        if (party==null || !party.isInsideDungeon(event.getPlayer()))
             return;
-        handler.onPlayerMove(event);
+        party.getDungeon().onPlayerMove(event);
     }
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerInteractEvent event) {
-        DungeonType.DungeonInstance.DungeonHandler handler = players.get(event.getPlayer());
-        if (handler == null)
+        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        if (party==null || !party.isInsideDungeon(event.getPlayer()))
             return;
-        handler.onPlayerInteract(event);
+        party.getDungeon().onPlayerInteract(event);
     }
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerInteractEntityEvent event) {
-        DungeonType.DungeonInstance.DungeonHandler handler = players.get(event.getPlayer());
-        if (handler == null)
+        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        if (party==null || !party.isInsideDungeon(event.getPlayer()))
             return;
-        handler.onPlayerInteractEntity(event);
+        party.getDungeon().onPlayerInteractEntity(event);
     }
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerHarvestBlockEvent event) {
-        DungeonType.DungeonInstance.DungeonHandler handler = players.get(event.getPlayer());
-        if (handler == null)
+        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        if (party==null || !party.isInsideDungeon(event.getPlayer()))
             return;
-        handler.onPlayerHarvestBlock(event);
+        party.getDungeon().onPlayerHarvestBlock(event);
     }
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerFishEvent event) {
-        DungeonType.DungeonInstance.DungeonHandler handler = players.get(event.getPlayer());
-        if (handler == null)
+        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        if (party==null || !party.isInsideDungeon(event.getPlayer()))
             return;
-        handler.onPlayerFish(event);
+        party.getDungeon().onPlayerFish(event);
     }
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerCommandSendEvent event) {
-        DungeonType.DungeonInstance.DungeonHandler handler = players.get(event.getPlayer());
-        if (handler == null)
+        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        if (party==null || !party.isInsideDungeon(event.getPlayer()))
             return;
-        handler.onPlayerCommandSend(event);
+        party.getDungeon().onPlayerCommandSend(event);
     }
-
-    /*
-    @EventHandler(ignoreCancelled = true)
-    private void event(PlayerChangedWorldEvent event) {
-        DungeonType.DungeonInstance.DungeonHandler handler = players.get(event.getPlayer());
-        if (handler == null)
-            return;
-        handler.onPlayerChangedWorld(event);
-    }*/
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerBucketEmptyEvent event) {
-        DungeonType.DungeonInstance.DungeonHandler handler = players.get(event.getPlayer());
-        if (handler == null)
+        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        if (party==null || !party.isInsideDungeon(event.getPlayer()))
             return;
-        handler.onPlayerBucketEmpty(event);
+        party.getDungeon().onPlayerBucketEmpty(event);
     }
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerBucketFillEvent event) {
-        DungeonType.DungeonInstance.DungeonHandler handler = players.get(event.getPlayer());
-        if (handler == null)
+        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        if (party==null || !party.isInsideDungeon(event.getPlayer()))
             return;
-        handler.onPlayerBucketFill(event);
+        party.getDungeon().onPlayerBucketFill(event);
     }
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerBucketEntityEvent event) {
-        DungeonType.DungeonInstance.DungeonHandler handler = players.get(event.getPlayer());
-        if (handler == null)
+        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        if (party==null || !party.isInsideDungeon(event.getPlayer()))
             return;
-        handler.onPlayerBucketEntity(event);
+        party.getDungeon().onPlayerBucketEntity(event);
     }
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerBedLeaveEvent event) {
-        DungeonType.DungeonInstance.DungeonHandler handler = players.get(event.getPlayer());
-        if (handler == null)
+        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        if (party==null || !party.isInsideDungeon(event.getPlayer()))
             return;
-        handler.onPlayerBedLeave(event);
+        party.getDungeon().onPlayerBedLeave(event);
     }
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerBedEnterEvent event) {
-        DungeonType.DungeonInstance.DungeonHandler handler = players.get(event.getPlayer());
-        if (handler == null)
+        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        if (party==null || !party.isInsideDungeon(event.getPlayer()))
             return;
-        handler.onPlayerBedEnter(event);
+        party.getDungeon().onPlayerBedEnter(event);
     }
 
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerShearEntityEvent event) {
-        DungeonType.DungeonInstance.DungeonHandler handler = players.get(event.getPlayer());
-        if (handler == null)
+        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        if (party==null || !party.isInsideDungeon(event.getPlayer()))
             return;
-        handler.onPlayerShearEntity(event);
+        party.getDungeon().onPlayerShearEntity(event);
     }
 
     @EventHandler(ignoreCancelled = true)
     private void event(BlockBurnEvent event) {
         List<DungeonType.DungeonInstance.DungeonHandler> list = started.get(event.getBlock().getWorld());
         if (list != null) for (DungeonType.DungeonInstance.DungeonHandler handler : list) {
-            if (handler.isInside(event.getBlock())) {
+            if (handler.contains(event.getBlock())) {
                 handler.onBlockBurn(event);
                 return;
             }
@@ -301,7 +283,7 @@ public class AreaManager implements Listener {
     private void event(BlockExplodeEvent event) {
         List<DungeonType.DungeonInstance.DungeonHandler> list = started.get(event.getBlock().getWorld());
         if (list != null) for (DungeonType.DungeonInstance.DungeonHandler handler : list) {
-            if (handler.isInside(event.getBlock())) {
+            if (handler.contains(event.getBlock())) {
                 handler.onBlockExplode(event);
                 return;
             }
@@ -313,7 +295,7 @@ public class AreaManager implements Listener {
         BlockState block = event.getBlocks().get(0);
         List<DungeonType.DungeonInstance.DungeonHandler> list = started.get(block.getWorld());
         if (list != null) for (DungeonType.DungeonInstance.DungeonHandler handler : list) {
-            if (handler.isInside(block)) {
+            if (handler.contains(block)) {
                 handler.onPortalCreate(event);
                 return;
             }
@@ -336,7 +318,7 @@ public class AreaManager implements Listener {
         Block block = event.getBlock();
         List<DungeonType.DungeonInstance.DungeonHandler> list = started.get(block.getWorld());
         if (list != null) for (DungeonType.DungeonInstance.DungeonHandler handler : list) {
-            if (handler.isInside(block)) {
+            if (handler.contains(block)) {
                 handler.onEntityEnterBlock(event);
                 return;
             }
@@ -370,7 +352,7 @@ public class AreaManager implements Listener {
         Block block = event.getBlock();
         List<DungeonType.DungeonInstance.DungeonHandler> list = started.get(block.getWorld());
         if (list != null) for (DungeonType.DungeonInstance.DungeonHandler handler : list) {
-            if (handler.isInside(block)) {
+            if (handler.contains(block)) {
                 handler.onEntityPlace(event);
                 return;
             }
@@ -393,7 +375,7 @@ public class AreaManager implements Listener {
     private void event(SpawnerSpawnEvent event) {
         List<DungeonType.DungeonInstance.DungeonHandler> list = started.get(event.getSpawner().getWorld());
         if (list != null) for (DungeonType.DungeonInstance.DungeonHandler handler : list) {
-            if (handler.isInside(event.getSpawner())) {
+            if (handler.contains(event.getSpawner())) {
                 handler.onSpawnerSpawn(event);
                 return;
             }
@@ -405,7 +387,7 @@ public class AreaManager implements Listener {
         Block block = event.getBlock();
         List<DungeonType.DungeonInstance.DungeonHandler> list = started.get(block.getWorld());
         if (list != null) for (DungeonType.DungeonInstance.DungeonHandler handler : list) {
-            if (handler.isInside(block)) {
+            if (handler.contains(block)) {
                 handler.onEntityBreakDoor(event);
                 return;
             }
@@ -429,8 +411,8 @@ public class AreaManager implements Listener {
         Location to = event.getTo();
         List<DungeonType.DungeonInstance.DungeonHandler> list = started.get(from.getWorld());
         if (list != null) for (DungeonType.DungeonInstance.DungeonHandler handler : list) {
-            if (handler.isInside(from)) {
-                if (to != null && handler.isInside(to))
+            if (handler.contains(from)) {
+                if (to != null && handler.contains(to))
                     handler.onEntityTeleport(event);
                 else
                     handler.onEntityTeleportFrom(event);
@@ -440,7 +422,7 @@ public class AreaManager implements Listener {
         if (to != null) {
             list = started.get(to.getWorld());
             if (list != null) for (DungeonType.DungeonInstance.DungeonHandler handler : list) {
-                if (handler.isInside(to)) {
+                if (handler.contains(to)) {
                     handler.onEntityTeleportTo(event);
                     return;
                 }

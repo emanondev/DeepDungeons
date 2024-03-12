@@ -11,7 +11,7 @@ import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.area.AreaManager;
 import emanondev.deepdungeons.door.DoorType;
 import emanondev.deepdungeons.dungeon.DungeonType;
-import emanondev.deepdungeons.party.Party;
+import emanondev.deepdungeons.party.PartyManager;
 import emanondev.deepdungeons.room.RoomInstanceManager;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.Color;
@@ -463,7 +463,7 @@ public class RoomsGroupsSequence extends DungeonType {
             }
 
             @Override
-            public boolean isInside(@NotNull Vector vector) {
+            public boolean contains(@NotNull Vector vector) {
                 return boundingBox.contains(vector);
             }
 
@@ -473,8 +473,9 @@ public class RoomsGroupsSequence extends DungeonType {
             }
 
             @Override
-            protected void startImpl(@NotNull Party party) {
+            protected void startImpl(@NotNull PartyManager.Party party) {
                 //TODO
+                state = State.STARTED;
             }
 
             private void generate(RoomGroup group, RoomType.RoomInstance.RoomHandler groupStart, List<DoorType.DoorInstance.DoorHandler> deathEnds, int depth) {

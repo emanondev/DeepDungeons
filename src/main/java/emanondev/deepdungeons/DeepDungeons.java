@@ -5,6 +5,7 @@ import emanondev.deepdungeons.command.*;
 import emanondev.deepdungeons.door.DoorTypeManager;
 import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
 import emanondev.deepdungeons.dungeon.DungeonTypeManager;
+import emanondev.deepdungeons.party.PartyManager;
 import emanondev.deepdungeons.room.RoomInstanceManager;
 import emanondev.deepdungeons.room.RoomTypeManager;
 import emanondev.deepdungeons.spawner.MonsterSpawnerTypeManager;
@@ -50,6 +51,7 @@ public class DeepDungeons extends CorePlugin {
         RoomInstanceManager.getInstance().load();
         DungeonTypeManager.getInstance().load();
         DungeonInstanceManager.getInstance().load();
+        PartyManager.getInstance().load();
         BuilderMode.getInstance();
         this.registerCommand(new DungeonTreasureCommand());
         this.registerCommand(new DungeonMonsterSpawnerCommand());

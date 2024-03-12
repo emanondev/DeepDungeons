@@ -219,8 +219,18 @@ public class VanillaMobsType extends MonsterSpawnerType {
 
         @Override
         public void spawnMobs(@NotNull Random random, @NotNull Location location, @Nullable Player who) {
-            if (Math.random() < chance)
-                location.getWorld().spawnEntity(location, entityType);
+            if (Math.random() < chance) {
+                int rand = new Random().nextInt() % (max - min + 1) + min;
+                boolean failed = false;
+                for (int i = 0; i < rand; i++) {
+                    failed |= !location.getWorld().spawnEntity(location, entityType,true).isValid();
+                }
+                if (failed) {
+                    DeepDungeons.get().logIssue("Failed to spawn monsters at &e" + location.getWorld() + " "
+                            + location.getBlockX() + " " + location.getBlockY() + " " + location.getBlockZ());
+                    //TODO more info
+                }
+            }
         }
 
         public @NotNull EntityType getEntityType() {

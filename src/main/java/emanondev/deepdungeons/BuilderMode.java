@@ -105,6 +105,7 @@ public class BuilderMode implements Listener {
                 }
             }
         });
+
         builder.setupTools();
         if (timerTask == null) {
             DeepDungeons.get().registerListener(this);
@@ -188,7 +189,10 @@ public class BuilderMode implements Listener {
         if (lastMs + 100 >= nowMs) //2 tick
             return;
         this.lastPlayerInteraction.put(event.getPlayer().getUniqueId(), nowMs);
-
+        if (event.getPlayer().getInventory().getHeldItemSlot() == 8) {
+            BuilderMode.getInstance().exitBuilderMode(event.getPlayer());
+            return;
+        }
         builder.handleInteract(event);
     }
 

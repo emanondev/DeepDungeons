@@ -13,11 +13,11 @@ import emanondev.core.util.DRegistryElement;
 import emanondev.core.util.ParticleUtility;
 import emanondev.core.util.WorldEditUtility;
 import emanondev.deepdungeons.ActiveBuilder;
-import emanondev.deepdungeons.BuilderMode;
 import emanondev.deepdungeons.DRInstance;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.door.DoorType;
 import emanondev.deepdungeons.door.DoorTypeManager;
+import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
 import emanondev.deepdungeons.dungeon.DungeonType;
 import emanondev.deepdungeons.spawner.MonsterSpawnerType;
 import emanondev.deepdungeons.spawner.MonsterSpawnerTypeManager;
@@ -43,7 +43,6 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BlockVector;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -115,23 +114,23 @@ public abstract class RoomType extends DRegistryElement {
             this.entrance = entrance;
         }
 
-        public List<DoorType.DoorInstanceBuilder> getExits() {
+        public @NotNull List<DoorType.DoorInstanceBuilder> getExits() {
             return exits;
         }
 
-        public List<TreasureType.TreasureInstanceBuilder> getTreasures() {
+        public @NotNull List<TreasureType.TreasureInstanceBuilder> getTreasures() {
             return treasures;
         }
 
-        public List<TrapType.TrapInstanceBuilder> getTraps() {
+        public @NotNull List<TrapType.TrapInstanceBuilder> getTraps() {
             return traps;
         }
 
-        public List<MonsterSpawnerType.MonsterSpawnerInstanceBuilder> getMonsterSpawners() {
+        public @NotNull List<MonsterSpawnerType.MonsterSpawnerInstanceBuilder> getMonsterSpawners() {
             return monsterSpawners;
         }
 
-        public Set<Material> getBreakableBlocks() {
+        public @NotNull Set<Material> getBreakableBlocks() {
             return breakableBlocks;
         }
 
@@ -164,130 +163,131 @@ public abstract class RoomType extends DRegistryElement {
             HashMap<Block, BlockState> snapshotsStates = new HashMap<>();
             HashMap<Block, BlockData> snapshotsBlockData = new HashMap<>();
             HashMap<EntitySnapshot, Location> entitiesSnapshots = new HashMap<>();
-            try {
-                Collection<Entity> entities = getPlayer().getWorld().getNearbyEntities(area, (e) -> !(e instanceof Player));
-                BoundingBox smallArea = getArea().expand(0, 0, 0, -1, -1, -1);
-                BlockVector min = smallArea.getMin().toBlockVector();
-                BlockVector max = smallArea.getMax().toBlockVector();
-                for (int y = min.getBlockY(); y <= max.getBlockY(); y++)
-                    for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++)
-                        for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
-                            Block b = getPlayer().getWorld().getBlockAt(x, y, z);
-                            if (!(b.getState() instanceof Container container))
-                                continue;
-                            snapshotsInventories.put(b, container.getSnapshotInventory());
-                            snapshotsStates.put(b, b.getState());
-                            snapshotsBlockData.put(b, b.getBlockData());
-                            ItemStack[] inv = container.getInventory().getContents(); //TODO test if original is edited
-                            boolean hasTreasures = false;
-                            boolean hasMonsters = false;
-                            for (int i = 0; i < inv.length; i++) {
-                                TreasureType.@Nullable TreasureInstanceBuilder treasure = TreasureTypeManager.getInstance().getTreasureInstance(inv[i]);
-                                if (treasure != null) {
-                                    hasTreasures = true;
-                                    treasure.setOffset(new Vector(x, y, z).subtract(getOffset()).add(new Vector(0.5, 0, 0.5)));
-                                    treasures.add(treasure);
+            Collection<Entity> entities = getPlayer().getWorld().getNearbyEntities(area, (e) -> !(e instanceof Player));
+            BoundingBox smallArea = getArea().expand(0, 0, 0, -1, -1, -1);
+            BlockVector min = smallArea.getMin().toBlockVector();
+            BlockVector max = smallArea.getMax().toBlockVector();
+            for (int y = min.getBlockY(); y <= max.getBlockY(); y++)
+                for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++)
+                    for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
+                        Block b = getPlayer().getWorld().getBlockAt(x, y, z);
+                        if (!(b.getState() instanceof Container container))
+                            continue;
+                        snapshotsInventories.put(b, container.getSnapshotInventory());
+                        snapshotsStates.put(b, b.getState());
+                        snapshotsBlockData.put(b, b.getBlockData());
+                        ItemStack[] inv = container.getInventory().getContents(); //TODO test if original is edited
+                        boolean hasTreasures = false;
+                        boolean hasMonsters = false;
+                        for (int i = 0; i < inv.length; i++) {
+                            TreasureType.@Nullable TreasureInstanceBuilder treasure = TreasureTypeManager.getInstance().getTreasureInstance(inv[i]);
+                            if (treasure != null) {
+                                hasTreasures = true;
+                                treasure.setOffset(new Vector(x, y, z).subtract(getOffset()).add(new Vector(0.5, 0, 0.5)));
+                                treasures.add(treasure);
+                                inv[i] = null; //TODO test if original is edited
+                            } else {
+                                MonsterSpawnerType.MonsterSpawnerInstanceBuilder monster = MonsterSpawnerTypeManager.getInstance().getMonsterSpawnerInstance(inv[i]);
+                                if (monster != null) {
+                                    hasMonsters = true;
+                                    monster.setOffset(new Vector(x, y, z).subtract(getOffset()).add(new Vector(0.5, 0, 0.5)));
+                                    if (b.getBlockData() instanceof Directional directional)
+                                        monster.setDirection(directional.getFacing().getDirection());
+                                    monsterSpawners.add(monster);
                                     inv[i] = null; //TODO test if original is edited
-                                } else {
-                                    MonsterSpawnerType.MonsterSpawnerInstanceBuilder monster = MonsterSpawnerTypeManager.getInstance().getMonsterSpawnerInstance(inv[i]);
-                                    if (monster != null) {
-                                        hasMonsters = true;
-                                        monster.setOffset(new Vector(x, y, z).subtract(getOffset()).add(new Vector(0.5, 0, 0.5)));
-                                        if (b.getBlockData() instanceof Directional directional)
-                                            monster.setDirection(directional.getFacing().getDirection());
-                                        monsterSpawners.add(monster);
-                                        inv[i] = null; //TODO test if original is edited
-                                    }
                                 }
                             }
-                            if (hasMonsters && !hasTreasures) {
-                                container.getInventory().clear();
-                                b.setType(Material.AIR);
-                            }
-                            if (!hasMonsters && !hasTreasures) {
-                                snapshotsBlockData.remove(b);
-                                snapshotsStates.remove(b);
-                                snapshotsInventories.remove(b);
-                            }
                         }
-                for (Entity entity : entities) {
-                    if (entity instanceof Item item) {
-                        TreasureType.@Nullable TreasureInstanceBuilder treasure =
-                                TreasureTypeManager.getInstance().getTreasureInstance(item.getItemStack());
-                        if (treasure != null) {
-                            treasure.setOffset(item.getLocation().toVector().subtract(getOffset()));
-                            treasures.add(treasure);
-                            entitiesSnapshots.put(item.createSnapshot(), item.getLocation());
-                            item.remove();
-                        } else {
-                            MonsterSpawnerType.MonsterSpawnerInstanceBuilder monster =
-                                    MonsterSpawnerTypeManager.getInstance().getMonsterSpawnerInstance(item.getItemStack());
-                            if (monster != null) {
-                                monster.setOffset(item.getLocation().toVector().subtract(getOffset()));
-                                monster.setDirection(item.getLocation().getDirection());
-                                monsterSpawners.add(monster);
-                                entitiesSnapshots.put(item.createSnapshot(), item.getLocation());
-                                item.remove();
-                            }
+                        if (hasMonsters && !hasTreasures) {
+                            container.getInventory().clear();
+                            b.setType(Material.AIR);
+                        }
+                        if (!hasMonsters && !hasTreasures) {
+                            snapshotsBlockData.remove(b);
+                            snapshotsStates.remove(b);
+                            snapshotsInventories.remove(b);
                         }
                     }
+            for (Entity entity : entities) {
+                if (!(entity instanceof Item item))
+                    continue;
+                TreasureType.TreasureInstanceBuilder treasure = TreasureTypeManager.getInstance()
+                        .getTreasureInstance(item.getItemStack());
+                if (treasure != null) {
+                    treasure.setOffset(item.getLocation().toVector().subtract(getOffset()));
+                    treasures.add(treasure);
+                    entitiesSnapshots.put(item.createSnapshot(), item.getLocation());
+                    item.remove();
+                    continue;
                 }
 
-
-                tmp = section.loadSection("treasures");
-                for (int i = 0; i < treasures.size(); i++) {
-                    @NotNull YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
-                    treasures.get(i).writeTo(sub);
+                MonsterSpawnerType.MonsterSpawnerInstanceBuilder monster = MonsterSpawnerTypeManager.getInstance()
+                        .getMonsterSpawnerInstance(item.getItemStack());
+                if (monster != null) {
+                    monster.setOffset(item.getLocation().toVector().subtract(getOffset()));
+                    monster.setDirection(item.getLocation().getDirection());
+                    monsterSpawners.add(monster);
+                    entitiesSnapshots.put(item.createSnapshot(), item.getLocation());
+                    item.remove();
                 }
-                tmp = section.loadSection("traps");
-                for (int i = 0; i < traps.size(); i++) {
-                    @NotNull YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
-                    traps.get(i).writeTo(sub);
-                }
-                tmp = section.loadSection("monsterspawners");
-                for (int i = 0; i < monsterSpawners.size(); i++) {
-                    @NotNull YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
-                    monsterSpawners.get(i).writeTo(sub);
-                }
-                section.set("schematic", schematicName);
-
-                //WorldEditUtility.save(new File(DeepDungeons.get().getDataFolder(), "schematics" + File.separator + schematicName)
-                //        , clipboard);//TODO
-                section.setEnumsAsStringList("breakableBlocks", breakableBlocks);
-                writeToImpl(section);
-                //WorldEditUtility.copy(getPlayer().getWorld(),area,true,true,false);
-                WorldEditUtility.save(new File(DeepDungeons.get().getDataFolder(), "schematics" + File.separator + schematicName)
-                        , WorldEditUtility.copy(getPlayer().getWorld(), smallArea, true, true, true));
-
-            } finally {
-                new BukkitRunnable() { //TODO this is a very wrong way to do this
-                    @Override
-                    public void run() {
-                        entitiesSnapshots.forEach(EntitySnapshot::createEntity);
-                        snapshotsStates.forEach(((block, blockState) -> {
-                            blockState.update(true, false);
-                            blockState.setBlockData(snapshotsBlockData.get(block));
-                            if (blockState instanceof Container container)
-                                container.getInventory().setContents(snapshotsInventories.get(block).getContents());
-                        }));
-                    }
-                }.runTaskLater(DeepDungeons.get(), 20L);
             }
+
+
+            tmp = section.loadSection("treasures");
+            for (
+                    int i = 0; i < treasures.size(); i++) {
+                @NotNull YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
+                treasures.get(i).writeTo(sub);
+            }
+
+            tmp = section.loadSection("traps");
+            for (
+                    int i = 0; i < traps.size(); i++) {
+                @NotNull YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
+                traps.get(i).writeTo(sub);
+            }
+
+            tmp = section.loadSection("monsterspawners");
+            for (
+                    int i = 0; i < monsterSpawners.size(); i++) {
+                @NotNull YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
+                monsterSpawners.get(i).writeTo(sub);
+            }
+            section.set("schematic", schematicName);
+
+            //WorldEditUtility.save(new File(DeepDungeons.get().getDataFolder(), "schematics" + File.separator + schematicName)
+            //        , clipboard);//TODO
+            section.setEnumsAsStringList("breakableBlocks", breakableBlocks);
+
+            writeToImpl(section);
+            WorldEditUtility.copy(smallArea, getPlayer().getWorld(), true, true, true,
+                    DeepDungeons.get()).whenComplete((c, e) ->
+            {
+                if (e != null) {
+                    e.printStackTrace();
+                    return;
+                }
+                WorldEditUtility.save(new File(DeepDungeons.get().getDataFolder(), "schematics" + File.separator + schematicName), c);
+                RoomInstanceManager.getInstance().readInstance(section.getFile());
+                entitiesSnapshots.forEach(EntitySnapshot::createEntity);
+                snapshotsStates.forEach(((block, blockState) -> {
+                    blockState.update(true, false);
+                    blockState.setBlockData(snapshotsBlockData.get(block));
+                    if (blockState instanceof Container container)
+                        container.getInventory().setContents(snapshotsInventories.get(block).getContents());
+                }
+                ));
+            });
         }
 
         protected abstract void writeToImpl(@NotNull YMLSection section);
 
-        public @Nullable BlockVector getSize() {
+        public final @Nullable BlockVector getSize() {
             return area == null ? null : new BlockVector(area.getWidthX(), area.getHeight(), area.getWidthZ());
         }
 
         public final void handleInteract(@NotNull PlayerInteractEvent event) {
             int heldSlot = event.getPlayer().getInventory().getHeldItemSlot();
-
-            if (heldSlot == 8) {
-                BuilderMode.getInstance().exitBuilderMode(event.getPlayer());
-                return;
-            }
 
             if (getArea() == null) {
                 switch (heldSlot) {
@@ -313,9 +313,11 @@ public abstract class RoomType extends DRegistryElement {
                                 this.getCompletableFuture().completeExceptionally(t);
                             } else {
                                 this.setupTools();
+                                getPlayer().getInventory().setHeldItemSlot(0);
                             }
                         });
                         WorldEditUtility.clearSelection(event.getPlayer());
+                        getPlayer().getInventory().setHeldItemSlot(0);
                     }
                 }
                 return;
@@ -520,7 +522,7 @@ public abstract class RoomType extends DRegistryElement {
 
         protected abstract void setupToolsImpl();
 
-        public boolean isInside(@NotNull Location loc) {
+        public boolean contains(@NotNull Location loc) {
             return Objects.equals(loc.getWorld(), world) && area.contains(loc.toVector());
         }
 
@@ -600,7 +602,7 @@ public abstract class RoomType extends DRegistryElement {
             return size.clone();
         }
 
-        public Set<Material> getBreakableBlocks() {
+        public @NotNull Set<Material> getBreakableBlocks() {
             return Collections.unmodifiableSet(breakableBlocks);
         }
 
@@ -723,29 +725,29 @@ public abstract class RoomType extends DRegistryElement {
             }
 
             public void onPlayerMove(PlayerMoveEvent event) {
-                if (this.getEntrance().isInside(event.getTo()))
+                if (this.getEntrance().contains(event.getTo()))
                     this.getEntrance().onPlayerMove(event);
                 else
                     for (DoorType.DoorInstance.DoorHandler exit : this.getExits())
-                        if (exit.isInside(event.getTo())) {
+                        if (exit.contains(event.getTo())) {
                             exit.onPlayerMove(event);
                             return;
                         }
             }
 
-            public boolean isInside(@NotNull Block block) {
-                return isInside(block.getLocation());
+            public boolean contains(@NotNull Block block) {
+                return contains(block.getLocation());
             }
 
-            public boolean isInside(@NotNull BlockState block) {
-                return isInside(block.getLocation());
+            public boolean contains(@NotNull BlockState block) {
+                return contains(block.getLocation());
             }
 
-            public boolean isInside(@NotNull Location loc) {
-                return getDungeonHandler().getWorld().equals(loc.getWorld()) && isInside(loc.toVector());
+            public boolean contains(@NotNull Location loc) {
+                return getDungeonHandler().getWorld().equals(loc.getWorld()) && contains(loc.toVector());
             }
 
-            public boolean isInside(@NotNull Vector vector) {
+            public boolean contains(@NotNull Vector vector) {
                 return this.boundingBox.contains(vector);
             }
 

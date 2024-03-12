@@ -7,12 +7,11 @@ import emanondev.core.gui.Gui;
 import emanondev.core.message.DMessage;
 import emanondev.core.util.DRegistryElement;
 import emanondev.deepdungeons.ActiveBuilder;
-import emanondev.deepdungeons.BuilderMode;
 import emanondev.deepdungeons.DRInstance;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.area.AreaManager;
 import emanondev.deepdungeons.door.DoorType;
-import emanondev.deepdungeons.party.Party;
+import emanondev.deepdungeons.party.PartyManager;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -120,19 +119,14 @@ public abstract class DungeonType extends DRegistryElement {
             YMLSection section = new YMLConfig(DeepDungeons.get(), "dungeons" + File.separator + getId());
             section.set("type", getType().getId());
             writeToImpl(section);
+            DungeonInstanceManager.getInstance().readInstance(section.getFile());
         }
 
         protected abstract void writeToImpl(@NotNull YMLSection section);
 
         @Override
         public void handleInteract(@NotNull PlayerInteractEvent event) {
-            int heldSlot = event.getPlayer().getInventory().getHeldItemSlot();
-
-            if (heldSlot == 8) {
-                BuilderMode.getInstance().exitBuilderMode(event.getPlayer());
-                return;
-            }
-
+            //int heldSlot = event.getPlayer().getInventory().getHeldItemSlot();
             handleInteractImpl(event);
         }
 
@@ -170,19 +164,19 @@ public abstract class DungeonType extends DRegistryElement {
 
             public abstract @NotNull World getWorld();
 
-            public boolean isInside(@NotNull Block block) {
-                return isInside(block.getLocation());
+            public boolean contains(@NotNull Block block) {
+                return contains(block.getLocation());
             }
 
-            public boolean isInside(@NotNull BlockState block) {
-                return isInside(block.getLocation());
+            public boolean contains(@NotNull BlockState block) {
+                return contains(block.getLocation());
             }
 
-            public boolean isInside(@NotNull Location loc) {
-                return getWorld().equals(loc.getWorld()) && isInside(loc.toVector());
+            public boolean contains(@NotNull Location loc) {
+                return getWorld().equals(loc.getWorld()) && contains(loc.toVector());
             }
 
-            public abstract boolean isInside(@NotNull Vector vector);
+            public abstract boolean contains(@NotNull Vector vector);
 
             public abstract boolean overlaps(@NotNull BoundingBox box);
 
@@ -213,7 +207,7 @@ public abstract class DungeonType extends DRegistryElement {
                     case NETHER_PORTAL, TRAP, RAID, VILLAGE_DEFENSE, VILLAGE_INVASION, REINFORCEMENTS, PATROL, NATURAL -> event.setCancelled(true);
                     default -> {
                         for (RoomType.RoomInstance.RoomHandler room : getRooms())
-                            if (room.isInside(event.getLocation())) {
+                            if (room.contains(event.getLocation())) {
                                 room.onCreatureSpawn(event);
                                 return;
                             }
@@ -266,7 +260,7 @@ public abstract class DungeonType extends DRegistryElement {
 
             public void onPlayerBucketEmpty(@NotNull PlayerBucketEmptyEvent event) {
                 for (RoomType.RoomInstance.RoomHandler room : this.getRooms()) {
-                    if (room.isInside(event.getBlock())) {
+                    if (room.contains(event.getBlock())) {
                         room.onPlayerBucketEmpty(event);
                         return;
                     }
@@ -276,7 +270,7 @@ public abstract class DungeonType extends DRegistryElement {
 
             public void onPlayerBucketFill(@NotNull PlayerBucketFillEvent event) {
                 for (RoomType.RoomInstance.RoomHandler room : this.getRooms()) {
-                    if (room.isInside(event.getBlock())) {
+                    if (room.contains(event.getBlock())) {
                         room.onPlayerBucketFill(event);
                         return;
                     }
@@ -306,7 +300,7 @@ public abstract class DungeonType extends DRegistryElement {
                     return;
                 }
                 for (RoomType.RoomInstance.RoomHandler room : this.getRooms()) {
-                    if (room.isInside(to)) {
+                    if (room.contains(to)) {
                         room.onPlayerMove(event);
                         return;
                     }
@@ -321,7 +315,7 @@ public abstract class DungeonType extends DRegistryElement {
                     return;
                 }
                 for (RoomType.RoomInstance.RoomHandler room : this.getRooms()) {
-                    if (room.isInside(to)) {
+                    if (room.contains(to)) {
                         room.onPlayerTeleport(event);
                         return;
                     }
@@ -332,7 +326,7 @@ public abstract class DungeonType extends DRegistryElement {
 
             public void onBlockPlace(@NotNull BlockPlaceEvent event) {
                 for (RoomType.RoomInstance.RoomHandler room : this.getRooms()) {
-                    if (room.isInside(event.getBlock())) {
+                    if (room.contains(event.getBlock())) {
                         room.onBlockPlace(event);
                         return;
                     }
@@ -342,7 +336,7 @@ public abstract class DungeonType extends DRegistryElement {
 
             public void onBlockBreak(@NotNull BlockBreakEvent event) {
                 for (RoomType.RoomInstance.RoomHandler room : this.getRooms()) {
-                    if (room.isInside(event.getBlock())) {
+                    if (room.contains(event.getBlock())) {
                         room.onBlockBreak(event);
                         return;
                     }
@@ -357,16 +351,19 @@ public abstract class DungeonType extends DRegistryElement {
                 COMPLETED
             }
 
-            public void start(@NotNull Party party) {
-                try {
-                    startImpl(party);
-                    AreaManager.getInstance().flagStart(this);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            public void start(@NotNull PartyManager.Party party) {
+                startImpl(party);
+                if (this.getState() != State.STARTED)
+                    throw new IllegalStateException("startImpl should flag this as started");
+                AreaManager.getInstance().flagStarted(this);
             }
 
-            protected abstract void startImpl(@NotNull Party party);
+            /**
+             * at the end of this call getState() should return STARTED
+             *
+             * @param party
+             */
+            protected abstract void startImpl(@NotNull PartyManager.Party party);
         }
 
     }
