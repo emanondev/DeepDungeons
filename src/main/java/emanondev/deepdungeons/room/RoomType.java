@@ -444,14 +444,14 @@ public abstract class RoomType extends DRegistryElement {
             inv.setItem(8, new ItemBuilder(Material.BARRIER).setDescription(new DMessage(DeepDungeons.get(), player)
                     .append("Click to exit/abort building")).build());//TODO configurable
             if (getArea() == null) {
-                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(List.of("Set room area",
-                        "Use worldedit to set corners", "then confirm it clicking lime dye")).build());
+                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
+                        .appendLang("roombuilder.base_area_info")).build());
                 inv.setItem(1, new ItemBuilder(Material.WOODEN_AXE).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .append("WorldEdit Wand")).build());
+                        .appendLang("roombuilder.base_area_axe")).build());
                 inv.setItem(2, new ItemBuilder(Material.BROWN_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .append("//pos1 & //pos2")).build());
+                        .appendLang("roombuilder.base_area_pos")).build());
                 inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .append("Confirm Room Area")).build());
+                        .appendLang("roombuilder.base_area_confirm")).build());
                 return;
             }
             if (!getEntrance().getCompletableFuture().isDone()) {
@@ -460,9 +460,9 @@ public abstract class RoomType extends DRegistryElement {
             }
             if (!hasCompletedExitsCreation) {
                 if (exits.isEmpty() || exits.get(exits.size() - 1).getCompletableFuture().isDone()) {
-                    inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(List.of("Add exit or confirm if satisfied",
-                            "Click the door item to select exit type", "click the light blue dye to confirm", "when you already added desired exits")).build());
-                    inv.setItem(1, new ItemBuilder(Material.SPRUCE_DOOR).setDescription(new DMessage(DeepDungeons.get(), player)
+                    inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
+                            .appendLang("roombuilder.base_exits_info")).build());
+                    inv.setItem(1, new ItemBuilder(Material.SPRUCE_DOOR).setDescription(new DMessage(DeepDungeons.get(), player)//TODO
                             .append("Select Exit Type")).build());
                     if (!exits.isEmpty())
                         inv.setItem(6, new ItemBuilder(Material.LIGHT_BLUE_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
@@ -521,7 +521,6 @@ public abstract class RoomType extends DRegistryElement {
                 }
             }
             timerTickImpl();
-
         }
 
         protected abstract void timerTickImpl();

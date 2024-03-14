@@ -2,6 +2,7 @@ package emanondev.deepdungeons.door.impl;
 
 import emanondev.core.ItemBuilder;
 import emanondev.core.YMLSection;
+import emanondev.core.message.DMessage;
 import emanondev.core.util.ParticleUtility;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Util;
@@ -83,12 +84,15 @@ public class PressureType extends DoorType {
         @Override
         protected void setupToolsImpl() {
             if (!completedPressurePlates) {
-                PlayerInventory inv = getPlayer().getInventory();
-                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(List.of("Set PressurePlates",
-                        "Click with the stick the pressureplates to press")).build());
-                inv.setItem(1, new ItemBuilder(Material.STICK).setDescription(List.of("Add/remove PressurePlate")).build());
+                Player player = getPlayer();
+                PlayerInventory inv = player.getInventory();
+                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
+                        .appendLang("doorbuilder.pressure_plates_info")).build());
+                inv.setItem(1, new ItemBuilder(Material.STICK).setDescription(new DMessage(DeepDungeons.get(), player)
+                        .appendLang("doorbuilder.pressure_plates_selector", "%value%", String.valueOf(blocks.size()))).build());
                 if (blocks.size() > 0)
-                    inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(List.of("Confirm selected PressurePlates")).build());
+                    inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
+                            .appendLang("doorbuilder.pressure_plates_confirm")).build());
                 return;
             }
             this.getCompletableFuture().complete(this);
@@ -163,6 +167,8 @@ public class PressureType extends DoorType {
                     @Override
                     public void run() {
                         if (getRoom().getDungeonHandler().getState() != DungeonType.DungeonInstance.DungeonHandler.State.STARTED) {
+                            text.remove();
+                            item.remove();
                             this.cancel();
                             return;
                         }
@@ -178,7 +184,9 @@ public class PressureType extends DoorType {
                             this.cancel();
                             return;
                         }
-                        text.setText(counter[0] + "/" + pressurePlates.size() + " Left");
+                        //TODO it's not player language specific
+                        text.setText(new DMessage(DeepDungeons.get(), null).appendLang("door.pressure_info",
+                                "%current%", String.valueOf(counter[0]), "%max%", String.valueOf(pressurePlates.size())).toLegacy());
                     }
                 }.runTaskTimer(DeepDungeons.get(), 10L, 10L);
             }

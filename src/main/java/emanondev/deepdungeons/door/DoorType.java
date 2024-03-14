@@ -9,6 +9,7 @@ import emanondev.core.util.WorldEditUtility;
 import emanondev.deepdungeons.DInstance;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Util;
+import emanondev.deepdungeons.dungeon.DungeonType;
 import emanondev.deepdungeons.party.PartyManager;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.*;
@@ -32,7 +33,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -130,26 +130,27 @@ public abstract class DoorType extends DRegistryElement {
                 inv.setItem(i, null);*/ //should be already done on RoomTypeBuilder
             Inventory inv = player.getInventory();
             if (getArea() == null) {
-                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(List.of("Set door Area",
-                        "Select the area with worldedit", "then confirm it clicking green dye")).build());
+                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
+                        .appendLang("doorbuilder.base_area_info")).build());
                 inv.setItem(1, new ItemBuilder(Material.WOODEN_AXE).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .append("WorldEdit Wand")).build());
+                        .appendLang("doorbuilder.base_area_axe")).build());
                 inv.setItem(2, new ItemBuilder(Material.BROWN_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .append("//pos1 & //pos2")).build());
+                        .appendLang("doorbuilder.base_area_pos")).build());
                 inv.setItem(6, new ItemBuilder(Material.GREEN_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .append("Confirm Door Area")).build());
+                        .appendLang("doorbuilder.base_area_confirm")).build());
                 return;
             }
             if (!hasConfirmedSpawnLocation) {
-                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(List.of("Set door spawn point & door facing direction",
-                        "Look on the right position when", "setting the spawn location", "then confirm it clicking lime dye")).build());
+                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
+                        .appendLang("doorbuilder.base_commondata_info")).build());
                 inv.setItem(1, new ItemBuilder(Material.ENDER_PEARL).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .append("Set Door Spawn (" + (spawnOffset == null ? "null" : Util.toString(spawnOffset)) + ")")).build());
+                        .appendLang("doorbuilder.base_commondata_spawn", "%value%",
+                                spawnOffset == null ? "<red>null</red>" : Util.toString(spawnOffset))).build());
                 inv.setItem(2, new ItemBuilder(Material.MAGENTA_GLAZED_TERRACOTTA).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .append("Change door facing (" + doorFace.name() + ")")).build());
+                        .appendLang("doorbuilder.base_commondata_facing", "%value%", doorFace.name())).build());
                 if (getSpawnOffset() != null)
                     inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                            .append("Confirm Door spawn")).build());
+                            .appendLang("doorbuilder.base_commondata_confirm")).build());
                 return;
             }
             this.setupToolsImpl();
@@ -172,7 +173,7 @@ public abstract class DoorType extends DRegistryElement {
                             return;
                         }
                         if (!roomBuilder.getArea().contains(box)) {
-                            event.getPlayer().sendMessage("message not implemented: selected spawn point is outside the room or too close to border");
+                            event.getPlayer().sendMessage("message not implemented: selected area is outside the room or too close to border");
                             return;
                         }
 
@@ -433,8 +434,11 @@ public abstract class DoorType extends DRegistryElement {
                 return player.teleport(this.getSpawn());
             }
 
-            private void setCooldown(Player player, int i) {
-                cooldowns.put(player.getUniqueId(), i * 1000L + System.currentTimeMillis());
+            private void setCooldown(Player player, int cooldownSeconds) { //TODO make cooldownSeconds specific to door
+                if (cooldownSeconds == 0)
+                    return;
+                if (cooldownSeconds > 0)
+                    cooldowns.put(player.getUniqueId(), cooldownSeconds * 1000L + System.currentTimeMillis());
                 @NotNull World world = getRoom().getDungeonHandler().getWorld();
                 Vector center = this.getBoundingBox().getCenter();
                 ItemDisplay item = (ItemDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() + 0.25, center.getZ())
@@ -451,30 +455,45 @@ public abstract class DoorType extends DRegistryElement {
                                 player1.hideEntity(DeepDungeons.get(), text);
                             }
                         });
-                if (this.cooldownTask == null || cooldownTask.isCancelled()) {
-                    cooldownTask = new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            long now = System.currentTimeMillis();
-                            for (UUID uuid : new ArrayList<>(cooldowns.keySet()))
-                                if (cooldowns.get(uuid) < now) {
-                                    cooldowns.remove(uuid);
-                                    cooldownItems.remove(uuid).remove();
-                                    cooldownText.remove(uuid).remove();
-                                }
-                            if (cooldowns.isEmpty()) {
-                                this.cancel();
-                                return;
-                            }
+                if (cooldownSeconds < 0)
+                    text.setText(new DMessage(DeepDungeons.get(), player).appendLang("door.cooldown_info",
+                            "%left%", "∞").toLegacy()); //TODO doesn't update if player change language
 
-                            cooldowns.keySet().forEach((uuid) -> cooldownText.get(uuid).setText("Cooldown " + ((cooldowns.get(uuid) - now) / 1000 + 1) + " s"));
-
-                        }
-                    }.runTaskTimer(DeepDungeons.get(), 10L, 10L);
-                }
                 cooldownItems.put(player.getUniqueId(), item);
                 cooldownText.put(player.getUniqueId(), text);
-                //Spawn message
+
+                if (!(cooldownSeconds > 0 && (this.cooldownTask == null || cooldownTask.isCancelled())))
+                    return;
+
+                cooldownTask = new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (getRoom().getDungeonHandler().getState() != DungeonType.DungeonInstance.DungeonHandler.State.STARTED) {
+                            cooldownItems.values().forEach(Entity::remove);
+                            cooldownText.values().forEach(Entity::remove);
+                            this.cancel();
+                            return;
+                        }
+                        long now = System.currentTimeMillis();
+                        for (UUID uuid : new ArrayList<>(cooldowns.keySet()))
+                            if (cooldowns.get(uuid) < now) {
+                                cooldowns.remove(uuid);
+                                cooldownItems.remove(uuid).remove();
+                                cooldownText.remove(uuid).remove();
+                            }
+                        if (cooldowns.isEmpty()) {
+                            this.cancel();
+                            return;
+                        }
+
+                        cooldowns.keySet().forEach((uuid) -> {
+                            Player player = Bukkit.getPlayer(uuid);
+                            if (player != null)
+                                cooldownText.get(uuid).setText(new DMessage(DeepDungeons.get(), player).appendLang("door.cooldown_info",
+                                        "%left%", String.valueOf((cooldowns.get(uuid) - now) / 1000 + 1)).toLegacy());
+                        });
+                    }
+                }.runTaskTimer(DeepDungeons.get(), 10L, 10L);
             }
 
             @NotNull

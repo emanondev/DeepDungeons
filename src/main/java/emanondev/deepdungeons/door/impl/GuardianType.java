@@ -1,6 +1,7 @@
 package emanondev.deepdungeons.door.impl;
 
 import emanondev.core.YMLSection;
+import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.door.DoorType;
 import emanondev.deepdungeons.dungeon.DungeonType;
@@ -114,15 +115,22 @@ public class GuardianType extends DoorType {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if (getRoom().getDungeonHandler().getState() != DungeonType.DungeonInstance.DungeonHandler.State.STARTED)
+                        if (getRoom().getDungeonHandler().getState() != DungeonType.DungeonInstance.DungeonHandler.State.STARTED) {
+                            text.remove();
+                            item.remove();
                             this.cancel();
+                            return;
+                        }
                         entities.removeIf(entity -> !entity.isValid() || !getRoom().overlaps(entity));
                         if (entities.isEmpty()) {
                             text.remove();
                             item.remove();
                             this.cancel();
+                            return;
                         }
-                        text.setText(entities.size() + " Left");
+                        //TODO it's not player language specific
+                        text.setText(new DMessage(DeepDungeons.get(), null).appendLang("door.guardian_info",
+                                "%value%", String.valueOf(entities.size())).toLegacy());
                     }
                 }.runTaskTimer(DeepDungeons.get(), 10L, 10L);
             }

@@ -1,3 +1,7 @@
+door:
+  pressure_info: "%current%/%max% left"
+  cooldown_info: "Cooldown %left% s"
+  guardian_info: "%value% left"
 party:
   has_no_party: "<blue>[</blue>Party<blue>]</blue><red> You don't have a party</red>"
   has_party: "<blue>[</blue>Party<blue>]</blue><red> You already have a party</red>"
@@ -62,5 +66,85 @@ party:
   list_postfix: "<blue><click:run_command:'/%label% list %prev_page%'><hover:show_text:'<gold>Go to previous page</gold>'>[<aqua><b><<<</b></aqua>]</hover></click> Party List Page <yellow>%page%</yellow> <click:run_command:'/%label% list %next_page%'><hover:show_text:'<gold>Go to next page</gold>'>[<aqua><b>>>></b></aqua>]</hover></click></blue>"
   list_line: "<hover:show_text:'<gold>Click to see detailed info</gold>'><click:run_command:'/%label% info %leader%'><#7897ff><aqua><b>%index%</b></aqua>. <aqua>%leader%</aqua>'s party <green>%online%</green>/<aqua>%members%</aqua></#7897ff></click></hover>"
   list_no_parties: "<blue>[</blue>Party<blue>]</blue><red> There are no parties with online members right now</red>"
-
-
+buildermode:
+  actionbar: "<gold>You are on Builder Mode"
+doorbuilder:
+  base_area_info:
+    - "<gold>Info: Set door Area"
+    - "<#7897ff>Select the area with worldedit"
+    - "<#7897ff>Confirm it when satisfied"
+    - ""
+    - "<#7897ff>In a dungeon entering inside door area"
+    - "<#7897ff>will teleport to linked door"
+  base_area_axe:
+    - "<gold>WorldEdit axe"
+    - "<#7897ff>Right/Left click on blocks"
+    - "<#7897ff>to select area region"
+  base_area_pos:
+    - "<gold>//pos1 & //pos2"
+    - "<#7897ff>Right/Left click to execute"
+    - "<#7897ff>//pos1 or //pos2"
+  base_area_confirm:
+    - "<gold>Confirm Area"
+    - "<#7897ff>Confirm selected worldedit"
+    - "<#7897ff>region as door area"
+  base_commondata_info:
+    - "<gold>Info: Set data"
+    - "<#7897ff>Set additional info for the door"
+    - ""
+    - "<#7897ff>Spawn point is where you are spawned"
+    - "<#7897ff>after traveling from a linked door"
+    - "<#7897ff>N.B.: <u>facing direction is important"
+    - ""
+    - "<#7897ff>Facing direction is used for additional"
+    - "<#7897ff>uses, redirect it toward the players"
+  base_commondata_spawn:
+    - "<gold>Set door spawn (current: %value%)"
+    - "<#7897ff>Set door spawn to your current position"
+    - "<#7897ff>N.B.: <u>facing direction is important"
+  base_commondata_facing:
+    - "<gold>Choose door facing (current: %value%)"
+    - "<#7897ff>Redirect it toward the players"
+  base_commondata_confirm:
+    - "<gold>Confirm Data</gold>"
+    - "<#7897ff>Confirm current setting"
+  pressure_plates_info:
+    - "<gold>Info: Set pressure plates"
+    - "<#7897ff>Set which pressure plates unlock the door"
+    - "<#7897ff>To unlock it all the pressure plates should"
+    - "<#7897ff>be pressed at the same time"
+    - ""
+    - "<#7897ff>In a dungeon breaking a pressure plate"
+    - "<#7897ff>and being unable to place it back will"
+    - "<#7897ff>lock the door forever"
+  pressure_plates_selector:
+    - "<gold>Add/remove PressurePlate (count: %value%)</gold>"
+    - "<#7897ff>Click on pressure plates blocks"
+  pressure_plates_confirm:
+    - "<gold>Confirm Selected Pressure Plates"
+    - "<#7897ff>Confirm current setting"
+roombuilder:
+  base_area_info:
+    - "<gold>Info: Set Room Area"
+    - "<#7897ff>Select the area with worldedit"
+    - "<#7897ff>Confirm it when satisfied"
+    - ""
+    - "<#7897ff>Room corners are the schematic corners"
+  base_area_axe:
+    - "<gold>WorldEdit axe"
+    - "<#7897ff>Right/Left click on blocks"
+    - "<#7897ff>to select area region"
+  base_area_pos:
+    - "<gold>//pos1 & //pos2"
+    - "<#7897ff>Right/Left click to execute"
+    - "<#7897ff>//pos1 or //pos2"
+  base_area_confirm:
+    - "<gold>Confirm Area"
+    - "<#7897ff>Confirm selected worldedit"
+    - "<#7897ff>region as room area"
+  base_exits_info:
+    - "<gold>Info: Add Room Exits"
+    - "<#7897ff>Select the exit type to add a new exit"
+    - ""
+    - "<#7897ff>Confirm exits when you added all the"
+    - "<#7897ff>desired exits"

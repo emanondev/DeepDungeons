@@ -1,7 +1,7 @@
 package emanondev.deepdungeons;
 
 import emanondev.core.gui.Gui;
-import emanondev.core.message.DMessage;
+import emanondev.core.message.SimpleMessage;
 import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
 import emanondev.deepdungeons.dungeon.DungeonType;
 import emanondev.deepdungeons.room.RoomInstanceManager;
@@ -118,9 +118,8 @@ public class BuilderMode implements Listener {
                     builderMode.forEach((p, b) -> {
                         if (!(p.isValid() && p.isOnline()))
                             return;
-                        if (DeepDungeons.get().getConfig().loadBoolean("editor.actionbar_reminder", true) && counter % 5 == 0)
-                            new DMessage(DeepDungeons.get(), p).append("<gold>You are on RoomBuilder Mode").sendActionBar();
-                        //TODO configurable DeepDungeons.get().getLanguageConfig(p).getMessage("editor.reminder",
+                        if (DeepDungeons.get().getConfig().loadBoolean("buildermode.actionbar_reminder", true) && counter % 5 == 0)
+                            new SimpleMessage(DeepDungeons.get(), "buildermode.actionbar").sendActionBar(p);
                         if (counter % 50 == 0)
                             b.setupTools();
                         b.timerTick();
