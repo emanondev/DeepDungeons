@@ -200,6 +200,9 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
         public @Nullable Player getLeader() {
             return Bukkit.getPlayer(leader);
         }
+        public @NotNull OfflinePlayer getOfflineLeader() {
+            return Bukkit.getOfflinePlayer(leader);
+        }
 
         public @Nullable DungeonType.DungeonInstance.DungeonHandler getDungeon() {
             return dungeon;
