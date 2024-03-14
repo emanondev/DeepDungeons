@@ -12,6 +12,7 @@ import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -20,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
@@ -142,7 +144,7 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
             return room;
         }
 
-        public abstract void spawnMobs(@NotNull Random random, @NotNull Location location, @Nullable Player who);
+        public abstract Collection<Entity> spawnMobs(@NotNull Random random, @NotNull Location location, @Nullable Player who);
 
     }
 

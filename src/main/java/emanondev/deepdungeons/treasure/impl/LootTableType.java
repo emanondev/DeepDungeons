@@ -128,7 +128,7 @@ public class LootTableType extends TreasureType {
             String[] args = section.getString("table").split(":");
             table = Bukkit.getLootTable(new NamespacedKey(args[0], args[1]));
             if (table == null) {
-                DeepDungeons.get().logIssue("Failed to find loot table &e" + args[0]+ ":" +  args[1]);
+                DeepDungeons.get().logIssue("Failed to find loot table &e" + args[0] + ":" + args[1]);
                 //TODO more info
             }
         }

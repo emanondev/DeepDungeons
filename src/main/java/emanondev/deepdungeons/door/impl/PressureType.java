@@ -1,0 +1,188 @@
+package emanondev.deepdungeons.door.impl;
+
+import emanondev.core.ItemBuilder;
+import emanondev.core.YMLSection;
+import emanondev.core.util.ParticleUtility;
+import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.Util;
+import emanondev.deepdungeons.door.DoorType;
+import emanondev.deepdungeons.dungeon.DungeonType;
+import emanondev.deepdungeons.room.RoomType;
+import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.Powerable;
+import org.bukkit.entity.*;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.BlockVector;
+import org.bukkit.util.Transformation;
+import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class PressureType extends DoorType {
+    public PressureType() {
+        super("pressure");
+    }
+
+    @Override
+    public @NotNull PressureInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
+        return new PressureInstance(room, section);
+    }
+
+    @Override
+    public @NotNull PressureInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+        return new PressureInstanceBuilder(room);
+    }
+
+    public final class PressureInstanceBuilder extends DoorInstanceBuilder {
+
+        private final List<BlockVector> blocks = new ArrayList<>();
+        private boolean completedPressurePlates = false;
+
+
+        public PressureInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+            super(room);
+        }
+
+        @Override
+        protected void writeToImpl(@NotNull YMLSection section) {
+            for (int i = 0; i < blocks.size(); i++)
+                section.set("pressureplates." + (i + 1), Util.toString(blocks.get(i).subtract(getRoomOffset())));
+        }
+
+        @Override
+        protected void handleInteractImpl(@NotNull PlayerInteractEvent event) {
+            switch (event.getPlayer().getInventory().getHeldItemSlot()) {
+                case 1 -> {
+                    if (event.getClickedBlock() == null)
+                        return;
+                    if (!getRoomBuilder().contains(event.getClickedBlock().getLocation()))
+                        return;
+                    if (!Tag.PRESSURE_PLATES.isTagged(event.getClickedBlock().getType()))
+                        return;
+                    BlockVector loc = event.getClickedBlock().getLocation().toVector().toBlockVector();
+                    if (!blocks.remove(loc))
+                        blocks.add(loc);
+
+                }
+                case 6 -> {
+                    if (blocks.size() > 0) {
+                        completedPressurePlates = true;
+                        event.getPlayer().getInventory().setHeldItemSlot(0);
+                        setupTools();
+                    }
+                }
+            }
+        }
+
+        @Override
+        protected void setupToolsImpl() {
+            if (!completedPressurePlates) {
+                PlayerInventory inv = getPlayer().getInventory();
+                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(List.of("Set PressurePlates",
+                        "Click with the stick the pressureplates to press")).build());
+                inv.setItem(1, new ItemBuilder(Material.STICK).setDescription(List.of("Add/remove PressurePlate")).build());
+                if (blocks.size() > 0)
+                    inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(List.of("Confirm selected PressurePlates")).build());
+                return;
+            }
+            this.getCompletableFuture().complete(this);
+        }
+
+        @Override
+        protected void tickTimerImpl(@NotNull Player player, @NotNull Color color) {
+            if (getRoomBuilder().getTickCounter() % 2 == 0)
+                blocks.forEach((block) -> ParticleUtility.spawnParticleCircle(player, Particle.REDSTONE, block.clone()
+                                .add(new Vector(0.5D, getRoomBuilder().getTickCounter() % 4 == 0 ? 0.1D : 0.2D, 0.5D)), getRoomBuilder().getTickCounter() % 4 == 0 ? 0.3D : 0.1D,
+                        getRoomBuilder().getTickCounter() % 4 == 0, new Particle.DustOptions(color, 0.4F)));
+
+        }
+
+    }
+
+    public class PressureInstance extends DoorInstance {
+
+        private final List<BlockVector> pressurePlates = new ArrayList<>();
+
+        public PressureInstance(@NotNull RoomType.RoomInstance roomInstance, @NotNull YMLSection section) {
+            super(roomInstance, section);
+            section.getKeys("pressureplates").forEach((key) -> this.pressurePlates.add(Util.toBlockVector(section.getString("pressureplates." + key))));
+        }
+
+        @Override
+        public @NotNull PressureHandler createDoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
+            return new PressureHandler(roomHandler);
+        }
+
+        public class PressureHandler extends DoorHandler {
+
+            private final List<Block> pressurePlates = new ArrayList<>();
+            private boolean unlocked = false;
+            private ItemDisplay item;
+            private TextDisplay text;
+
+            public PressureHandler(RoomType.RoomInstance.@NotNull RoomHandler roomHandler) {
+                super(roomHandler);
+            }
+
+            public void setupOffset() {
+                super.setupOffset();
+                for (BlockVector vector : PressureInstance.this.pressurePlates)
+                    pressurePlates.add(this.getRoom().getLocation().add(vector).getBlock());
+            }
+
+            @Override
+            public boolean canUse(Player player) {
+                if (!super.canUse(player))
+                    return false;
+                return unlocked;
+            }
+
+            @Override
+            public void onFirstPlayerEnter(Player player) {
+                //entities.addAll(getRoom().getMonsters());
+                @NotNull World world = getRoom().getDungeonHandler().getWorld();
+                Vector center = this.getBoundingBox().getCenter();
+                item = (ItemDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() + 0.5, center.getZ())
+                        .setDirection(getDoorFace().getOppositeFace().getDirection()), EntityType.ITEM_DISPLAY);
+                item.setItemStack(new ItemStack(Material.OAK_PRESSURE_PLATE));
+                Transformation tr = item.getTransformation();
+                tr.getScale().mul(1.3F, 1.3F, 0.1F);
+                item.setTransformation(tr);
+                item.setBrightness(new Display.Brightness(15, 15));
+                item.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.GUI);
+                text = (TextDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() - 0.5, center.getZ())
+                        .setDirection(getDoorFace().getDirection()), EntityType.TEXT_DISPLAY);
+                text.setBrightness(new Display.Brightness(15, 15));
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (getRoom().getDungeonHandler().getState() != DungeonType.DungeonInstance.DungeonHandler.State.STARTED) {
+                            this.cancel();
+                            return;
+                        }
+                        final int[] counter = {0};
+                        pressurePlates.forEach(block -> {
+                            if (Tag.PRESSURE_PLATES.isTagged(block.getType()) && ((Powerable) block.getBlockData()).isPowered())
+                                counter[0]++;
+                        });
+                        if (counter[0] >= pressurePlates.size()) {
+                            text.remove();
+                            item.remove();
+                            unlocked = true;
+                            this.cancel();
+                            return;
+                        }
+                        text.setText(counter[0] + "/" + pressurePlates.size() + " Left");
+                    }
+                }.runTaskTimer(DeepDungeons.get(), 10L, 10L);
+            }
+        }
+
+    }
+}

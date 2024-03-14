@@ -17,7 +17,6 @@ import emanondev.deepdungeons.DRInstance;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.door.DoorType;
 import emanondev.deepdungeons.door.DoorTypeManager;
-import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
 import emanondev.deepdungeons.dungeon.DungeonType;
 import emanondev.deepdungeons.spawner.MonsterSpawnerType;
 import emanondev.deepdungeons.spawner.MonsterSpawnerTypeManager;
@@ -43,6 +42,7 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BlockVector;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -176,25 +176,27 @@ public abstract class RoomType extends DRegistryElement {
                         snapshotsInventories.put(b, container.getSnapshotInventory());
                         snapshotsStates.put(b, b.getState());
                         snapshotsBlockData.put(b, b.getBlockData());
-                        ItemStack[] inv = container.getInventory().getContents(); //TODO test if original is edited
+                        Inventory inv = container.getInventory(); //TODO test if original is edited
                         boolean hasTreasures = false;
                         boolean hasMonsters = false;
-                        for (int i = 0; i < inv.length; i++) {
-                            TreasureType.@Nullable TreasureInstanceBuilder treasure = TreasureTypeManager.getInstance().getTreasureInstance(inv[i]);
+                        for (int i = 0; i < inv.getSize(); i++) {
+                            TreasureType.@Nullable TreasureInstanceBuilder treasure = TreasureTypeManager
+                                    .getInstance().getTreasureInstance(inv.getItem(i));
                             if (treasure != null) {
                                 hasTreasures = true;
                                 treasure.setOffset(new Vector(x, y, z).subtract(getOffset()).add(new Vector(0.5, 0, 0.5)));
                                 treasures.add(treasure);
-                                inv[i] = null; //TODO test if original is edited
+                                inv.setItem(i, null); //TODO test if original is edited
                             } else {
-                                MonsterSpawnerType.MonsterSpawnerInstanceBuilder monster = MonsterSpawnerTypeManager.getInstance().getMonsterSpawnerInstance(inv[i]);
+                                MonsterSpawnerType.MonsterSpawnerInstanceBuilder monster = MonsterSpawnerTypeManager
+                                        .getInstance().getMonsterSpawnerInstance(inv.getItem(i));
                                 if (monster != null) {
                                     hasMonsters = true;
                                     monster.setOffset(new Vector(x, y, z).subtract(getOffset()).add(new Vector(0.5, 0, 0.5)));
                                     if (b.getBlockData() instanceof Directional directional)
                                         monster.setDirection(directional.getFacing().getDirection());
                                     monsterSpawners.add(monster);
-                                    inv[i] = null; //TODO test if original is edited
+                                    inv.setItem(i, null); //TODO test if original is edited
                                 }
                             }
                         }
@@ -258,25 +260,28 @@ public abstract class RoomType extends DRegistryElement {
             //WorldEditUtility.save(new File(DeepDungeons.get().getDataFolder(), "schematics" + File.separator + schematicName)
             //        , clipboard);//TODO
             section.setEnumsAsStringList("breakableBlocks", breakableBlocks);
-
             writeToImpl(section);
+            section.save();
             WorldEditUtility.copy(smallArea, getPlayer().getWorld(), true, true, true,
-                    DeepDungeons.get()).whenComplete((c, e) ->
-            {
+                    DeepDungeons.get()).whenComplete((c, e) -> {
                 if (e != null) {
                     e.printStackTrace();
                     return;
                 }
                 WorldEditUtility.save(new File(DeepDungeons.get().getDataFolder(), "schematics" + File.separator + schematicName), c);
-                RoomInstanceManager.getInstance().readInstance(section.getFile());
-                entitiesSnapshots.forEach(EntitySnapshot::createEntity);
-                snapshotsStates.forEach(((block, blockState) -> {
-                    blockState.update(true, false);
-                    blockState.setBlockData(snapshotsBlockData.get(block));
-                    if (blockState instanceof Container container)
-                        container.getInventory().setContents(snapshotsInventories.get(block).getContents());
-                }
-                ));
+                new BukkitRunnable() {
+                    public void run() {
+                        entitiesSnapshots.forEach(EntitySnapshot::createEntity);
+                        snapshotsStates.forEach((block, blockState) ->
+                        {
+                            blockState.update(true, false);
+                            blockState.setBlockData(snapshotsBlockData.get(block));
+                            if (blockState instanceof Container container)
+                                container.getInventory().setContents(snapshotsInventories.get(block).getContents());
+                        });
+                        RoomInstanceManager.getInstance().readInstance(section.getFile());
+                    }
+                }.runTaskLater(DeepDungeons.get(), 20L);
             });
         }
 
@@ -291,10 +296,10 @@ public abstract class RoomType extends DRegistryElement {
 
             if (getArea() == null) {
                 switch (heldSlot) {
-                    case 1 -> Bukkit.dispatchCommand(event.getPlayer(),
+                    case 2 -> Bukkit.dispatchCommand(event.getPlayer(),
                             event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK ?
                                     "/pos1" : "/pos2");
-                    case 4 -> {
+                    case 6 -> {
                         BoundingBox box = WorldEditUtility.getSelectionBoxExpanded(event.getPlayer());
                         if (box == null) {
                             event.getPlayer().sendMessage("message not implemented: no area selected, use worldedit wand");
@@ -332,7 +337,7 @@ public abstract class RoomType extends DRegistryElement {
                     return;
                 }
                 switch (heldSlot) {
-                    case 0 -> {
+                    case 1 -> {
                         ArrayList<DoorType> types = new ArrayList<>(DoorTypeManager.getInstance().getAll());
                         types.sort(Comparator.comparing(DRegistryElement::getId));
                         new AdvancedResearchFGui<>(
@@ -374,6 +379,7 @@ public abstract class RoomType extends DRegistryElement {
                         if (!exits.isEmpty()) {
                             hasCompletedExitsCreation = true;
                             setupTools();
+                            getPlayer().getInventory().setHeldItemSlot(0);
                         }
                     }
                 }
@@ -382,7 +388,7 @@ public abstract class RoomType extends DRegistryElement {
 
             if (!hasCompletedBreakableMaterials) {
                 switch (heldSlot) {
-                    case 0 -> {
+                    case 1 -> {
                         ArrayList<Material> types = new ArrayList<>(List.of(Material.values()));
                         types.removeIf((m) -> !m.isBlock() || m.isAir());
                         types.sort(Comparator.comparing(Material::name));
@@ -415,9 +421,10 @@ public abstract class RoomType extends DRegistryElement {
                                 types
                         ).open(event.getPlayer());
                     }
-                    case 4 -> {
+                    case 6 -> {
                         hasCompletedBreakableMaterials = true;
                         setupTools();
+                        getPlayer().getInventory().setHeldItemSlot(0);
                     }
                 }
             }
@@ -437,11 +444,13 @@ public abstract class RoomType extends DRegistryElement {
             inv.setItem(8, new ItemBuilder(Material.BARRIER).setDescription(new DMessage(DeepDungeons.get(), player)
                     .append("Click to exit/abort building")).build());//TODO configurable
             if (getArea() == null) {
-                inv.setItem(0, new ItemBuilder(Material.WOODEN_AXE).setDescription(new DMessage(DeepDungeons.get(), player)
+                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(List.of("Set room area",
+                        "Use worldedit to set corners", "then confirm it clicking lime dye")).build());
+                inv.setItem(1, new ItemBuilder(Material.WOODEN_AXE).setDescription(new DMessage(DeepDungeons.get(), player)
                         .append("WorldEdit Wand")).build());
-                inv.setItem(1, new ItemBuilder(Material.BROWN_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
+                inv.setItem(2, new ItemBuilder(Material.BROWN_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
                         .append("//pos1 & //pos2")).build());
-                inv.setItem(4, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
+                inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
                         .append("Confirm Room Area")).build());
                 return;
             }
@@ -451,7 +460,9 @@ public abstract class RoomType extends DRegistryElement {
             }
             if (!hasCompletedExitsCreation) {
                 if (exits.isEmpty() || exits.get(exits.size() - 1).getCompletableFuture().isDone()) {
-                    inv.setItem(0, new ItemBuilder(Material.SPRUCE_DOOR).setDescription(new DMessage(DeepDungeons.get(), player)
+                    inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(List.of("Add exit or confirm if satisfied",
+                            "Click the door item to select exit type", "click the light blue dye to confirm", "when you already added desired exits")).build());
+                    inv.setItem(1, new ItemBuilder(Material.SPRUCE_DOOR).setDescription(new DMessage(DeepDungeons.get(), player)
                             .append("Select Exit Type")).build());
                     if (!exits.isEmpty())
                         inv.setItem(6, new ItemBuilder(Material.LIGHT_BLUE_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
@@ -463,10 +474,12 @@ public abstract class RoomType extends DRegistryElement {
             }
 
             if (!hasCompletedBreakableMaterials) {
-                inv.setItem(0, new ItemBuilder(Material.IRON_PICKAXE).setDescription(new DMessage(DeepDungeons.get(), player)
+                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(List.of("Set which blocks may be broken inside room",
+                        "then confirm")).build());
+                inv.setItem(1, new ItemBuilder(Material.IRON_PICKAXE).setDescription(new DMessage(DeepDungeons.get(), player)
                         .append("Select Breakable blocks")).setGuiProperty().build());
                 if (!exits.isEmpty())
-                    inv.setItem(4, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
+                    inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
                             .append("Confirm Selected Breakable blocks Completed")).build());
                 return;
             }
@@ -667,6 +680,8 @@ public abstract class RoomType extends DRegistryElement {
             private final List<DoorType.DoorInstance.DoorHandler> exits = new ArrayList<>();
             private Location location = null;
             private BoundingBox boundingBox = null;
+            private List<Entity> monsters = new ArrayList<>();
+            private boolean firstEnter = false;
 
             public RoomHandler(@NotNull DungeonType.DungeonInstance.DungeonHandler dungeonHandler) {
                 this.dungeonHandler = dungeonHandler;
@@ -724,15 +739,17 @@ public abstract class RoomType extends DRegistryElement {
                 exits.forEach(DoorType.DoorInstance.DoorHandler::setupOffset);
             }
 
-            public void onPlayerMove(PlayerMoveEvent event) {
-                if (this.getEntrance().contains(event.getTo()))
-                    this.getEntrance().onPlayerMove(event);
-                else
-                    for (DoorType.DoorInstance.DoorHandler exit : this.getExits())
-                        if (exit.contains(event.getTo())) {
-                            exit.onPlayerMove(event);
-                            return;
-                        }
+            public void onPlayerMove(@NotNull PlayerMoveEvent event) {
+                if (this.getEntrance().contains(event.getTo())) {
+                    getEntrance().onPlayerMove(event);
+                    return;
+                }
+                for (DoorType.DoorInstance.DoorHandler exit : this.getExits())
+                    if (exit.contains(event.getTo())) {
+                        exit.onPlayerMove(event);
+                        return;
+                    }
+                //TODO traps
             }
 
             public boolean contains(@NotNull Block block) {
@@ -759,13 +776,11 @@ public abstract class RoomType extends DRegistryElement {
                 return overlaps(box.getBoundingBox());
             }
 
-            public void onCreatureSpawn(CreatureSpawnEvent event) {
+            public void onCreatureSpawn(@NotNull CreatureSpawnEvent event) {
 
             }
 
-            private boolean firstEnter = false;
-
-            public void onPlayerTeleport(PlayerTeleportEvent event) {
+            public void onPlayerTeleport(@NotNull PlayerTeleportEvent event) {
                 if (!firstEnter) {
                     firstEnter = true;
                     onFirstPlayerEnter(event.getPlayer());
@@ -774,7 +789,7 @@ public abstract class RoomType extends DRegistryElement {
 
             }
 
-            protected void onFirstPlayerEnter(Player player) {
+            protected void onFirstPlayerEnter(@NotNull Player player) {
                 //TODO may generate treasures on chest opens instead
                 this.getRoomInstance().getTreasures().forEach((treasure -> {
                     Location to = getLocation().add(treasure.getOffset());
@@ -790,25 +805,38 @@ public abstract class RoomType extends DRegistryElement {
                 }));
                 this.getRoomInstance().getMonsterSpawners().forEach((monsterSpawner) -> {
                     Location to = getLocation().add(monsterSpawner.getOffset());
-                    monsterSpawner.spawnMobs(new Random(), to, player);
+                    addMonsters(monsterSpawner.spawnMobs(new Random(), to, player));
                 });
+                //TODO traps
+                this.getEntrance().onFirstPlayerEnter(player);
+                this.getExits().forEach(e -> e.onFirstPlayerEnter(player));
             }
 
-            public void onBlockPlace(BlockPlaceEvent event) {
+            public void onBlockPlace(@NotNull BlockPlaceEvent event) {
                 event.setCancelled(true);
             }
 
-            public void onBlockBreak(BlockBreakEvent event) {
+            public void onBlockBreak(@NotNull BlockBreakEvent event) {
                 if (!getRoomInstance().getBreakableBlocks().contains(event.getBlock().getType()))
                     event.setCancelled(true);
             }
 
-            public void onPlayerBucketFill(PlayerBucketFillEvent event) {
+            public void onPlayerBucketFill(@NotNull PlayerBucketFillEvent event) {
                 event.setCancelled(true);
             }
 
-            public void onPlayerBucketEmpty(PlayerBucketEmptyEvent event) {
+            public void onPlayerBucketEmpty(@NotNull PlayerBucketEmptyEvent event) {
                 event.setCancelled(true);
+            }
+
+
+            public @NotNull List<Entity> getMonsters() {
+                monsters.removeIf(entity -> !entity.isValid() || !overlaps(entity));
+                return Collections.unmodifiableList(monsters);
+            }
+
+            public void addMonsters(@NotNull Collection<Entity> monsters) {
+                this.monsters.addAll(monsters);
             }
         }
 

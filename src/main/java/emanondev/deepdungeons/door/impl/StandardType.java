@@ -2,11 +2,10 @@ package emanondev.deepdungeons.door.impl;
 
 import emanondev.core.YMLSection;
 import emanondev.deepdungeons.door.DoorType;
-import emanondev.deepdungeons.party.PartyManager;
 import emanondev.deepdungeons.room.RoomType;
+import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class StandardType extends DoorType {
@@ -24,7 +23,7 @@ public class StandardType extends DoorType {
         return new StandardInstanceBuilder(room);
     }
 
-    public class StandardInstanceBuilder extends DoorInstanceBuilder {
+    public final class StandardInstanceBuilder extends DoorInstanceBuilder {
 
         public StandardInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
             super(room);
@@ -34,7 +33,6 @@ public class StandardType extends DoorType {
         protected void writeToImpl(@NotNull YMLSection section) {
 
         }
-
 
         @Override
         protected void handleInteractImpl(@NotNull PlayerInteractEvent event) {
@@ -47,7 +45,7 @@ public class StandardType extends DoorType {
         }
 
         @Override
-        protected void tickTimerImpl(@NotNull Player player) {
+        protected void tickTimerImpl(@NotNull Player player, @NotNull Color color) {
 
         }
 
@@ -70,22 +68,6 @@ public class StandardType extends DoorType {
                 super(roomHandler);
             }
 
-            @Override
-            public void onPlayerMove(@NotNull PlayerMoveEvent event) {
-                DoorHandler link = this.getLink();
-                if (link==null){
-                    if (this.equals(this.getRoom().getDungeonHandler().getEntrance()))
-                        return;
-                    if (this.equals(this.getRoom().getEntrance())){
-                        //TODO going back
-                        return;
-                    }
-                    //TODO dungeon completed by this player ?
-                    return;
-                }
-                link.teleportIn(event.getPlayer());
-                PartyManager.getInstance().getDungeonPlayer(event.getPlayer()).addDoorHistory(this,link);
-            }
         }
     }
 }

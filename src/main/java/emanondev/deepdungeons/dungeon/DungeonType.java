@@ -119,6 +119,7 @@ public abstract class DungeonType extends DRegistryElement {
             YMLSection section = new YMLConfig(DeepDungeons.get(), "dungeons" + File.separator + getId());
             section.set("type", getType().getId());
             writeToImpl(section);
+            section.save();
             DungeonInstanceManager.getInstance().readInstance(section.getFile());
         }
 
@@ -344,13 +345,6 @@ public abstract class DungeonType extends DRegistryElement {
                 event.setCancelled(true);
             }
 
-            public enum State {
-                LOADING,
-                READY,
-                STARTED,
-                COMPLETED
-            }
-
             public void start(@NotNull PartyManager.Party party) {
                 startImpl(party);
                 if (this.getState() != State.STARTED)
@@ -364,6 +358,15 @@ public abstract class DungeonType extends DRegistryElement {
              * @param party
              */
             protected abstract void startImpl(@NotNull PartyManager.Party party);
+
+            public abstract void flagCompleted();
+
+            public enum State {
+                LOADING,
+                READY,
+                STARTED,
+                COMPLETED
+            }
         }
 
     }

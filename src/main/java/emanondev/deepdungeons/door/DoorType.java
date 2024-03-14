@@ -9,17 +9,20 @@ import emanondev.core.util.WorldEditUtility;
 import emanondev.deepdungeons.DInstance;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Util;
+import emanondev.deepdungeons.party.PartyManager;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BlockVector;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -27,6 +30,10 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class DoorType extends DRegistryElement {
@@ -123,21 +130,25 @@ public abstract class DoorType extends DRegistryElement {
                 inv.setItem(i, null);*/ //should be already done on RoomTypeBuilder
             Inventory inv = player.getInventory();
             if (getArea() == null) {
-                inv.setItem(0, new ItemBuilder(Material.WOODEN_AXE).setDescription(new DMessage(DeepDungeons.get(), player)
+                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(List.of("Set door Area",
+                        "Select the area with worldedit", "then confirm it clicking green dye")).build());
+                inv.setItem(1, new ItemBuilder(Material.WOODEN_AXE).setDescription(new DMessage(DeepDungeons.get(), player)
                         .append("WorldEdit Wand")).build());
-                inv.setItem(1, new ItemBuilder(Material.BROWN_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
+                inv.setItem(2, new ItemBuilder(Material.BROWN_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
                         .append("//pos1 & //pos2")).build());
-                inv.setItem(5, new ItemBuilder(Material.GREEN_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
+                inv.setItem(6, new ItemBuilder(Material.GREEN_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
                         .append("Confirm Door Area")).build());
                 return;
             }
             if (!hasConfirmedSpawnLocation) {
-                inv.setItem(0, new ItemBuilder(Material.ENDER_PEARL).setDescription(new DMessage(DeepDungeons.get(), player)
+                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(List.of("Set door spawn point & door facing direction",
+                        "Look on the right position when", "setting the spawn location", "then confirm it clicking lime dye")).build());
+                inv.setItem(1, new ItemBuilder(Material.ENDER_PEARL).setDescription(new DMessage(DeepDungeons.get(), player)
                         .append("Set Door Spawn (" + (spawnOffset == null ? "null" : Util.toString(spawnOffset)) + ")")).build());
-                inv.setItem(1, new ItemBuilder(Material.MAGENTA_GLAZED_TERRACOTTA).setDescription(new DMessage(DeepDungeons.get(), player)
+                inv.setItem(2, new ItemBuilder(Material.MAGENTA_GLAZED_TERRACOTTA).setDescription(new DMessage(DeepDungeons.get(), player)
                         .append("Change door facing (" + doorFace.name() + ")")).build());
                 if (getSpawnOffset() != null)
-                    inv.setItem(4, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
+                    inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
                             .append("Confirm Door spawn")).build());
                 return;
             }
@@ -151,10 +162,10 @@ public abstract class DoorType extends DRegistryElement {
         public void handleInteract(@NotNull PlayerInteractEvent event) {
             if (getArea() == null) {
                 switch (event.getPlayer().getInventory().getHeldItemSlot()) {
-                    case 1 -> Bukkit.dispatchCommand(event.getPlayer(),
+                    case 2 -> Bukkit.dispatchCommand(event.getPlayer(),
                             event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK ?
                                     "/pos1" : "/pos2");
-                    case 5 -> {
+                    case 6 -> {
                         BoundingBox box = WorldEditUtility.getSelectionBoxExpanded(event.getPlayer());
                         if (box == null) {
                             event.getPlayer().sendMessage("message not implemented: no area selected, use worldedit wand");
@@ -170,6 +181,7 @@ public abstract class DoorType extends DRegistryElement {
                         doorFace = guessFace();
                         roomBuilder.setupTools();
                         WorldEditUtility.clearSelection(event.getPlayer());
+                        event.getPlayer().getInventory().setHeldItemSlot(0);
                         //TODO adds spawn location default ? guessspawnlocation
 
                     }
@@ -178,7 +190,7 @@ public abstract class DoorType extends DRegistryElement {
             }
             if (!hasConfirmedSpawnLocation) {
                 switch (event.getPlayer().getInventory().getHeldItemSlot()) {
-                    case 0 -> {
+                    case 1 -> {
                         if (!roomBuilder.getArea().contains(event.getPlayer().getBoundingBox())) {
                             event.getPlayer().sendMessage("message not implemented: selected spawn point is outside the room or too close to border");
                             return;
@@ -188,7 +200,7 @@ public abstract class DoorType extends DRegistryElement {
                                 event.getPlayer().getLocation().getPitch());
                         roomBuilder.setupTools();
                     }
-                    case 1 -> {
+                    case 2 -> {
                         BlockFace next = doorFace;
                         next = BlockFace.values()[((BlockFace.values().length) + next.ordinal()
                                 + (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK ? 1 : -1)) % BlockFace.values().length];
@@ -198,10 +210,11 @@ public abstract class DoorType extends DRegistryElement {
                         setDoorFace(next);
                         roomBuilder.setupTools();
                     }
-                    case 4 -> {
+                    case 6 -> {
                         if (getSpawnOffset() != null) {
                             hasConfirmedSpawnLocation = true;
                             roomBuilder.setupTools();
+                            event.getPlayer().getInventory().setHeldItemSlot(0);
                         }
                     }
                 }
@@ -261,11 +274,11 @@ public abstract class DoorType extends DRegistryElement {
                 Vector doorSpawn = getSpawnOffset();
                 if (doorSpawn != null) {
                     ParticleUtility.spawnParticleCircle(player, Particle.REDSTONE, doorSpawn.add(getRoomOffset()), 0.25D,
-                            roomBuilder.getTickCounter() % 2 == 0, new Particle.DustOptions(color, 0.6F));
+                            roomBuilder.getTickCounter() % 4 == 0, new Particle.DustOptions(color, 0.6F));
                 }
             }
 
-            tickTimerImpl(player);
+            tickTimerImpl(player, color);
         }
 
         private void showFaceArrow(@NotNull Player player, @NotNull Color color) {
@@ -298,7 +311,7 @@ public abstract class DoorType extends DRegistryElement {
             }
         }
 
-        protected abstract void tickTimerImpl(@NotNull Player player);
+        protected abstract void tickTimerImpl(@NotNull Player player, @NotNull Color color);
 
         protected void showWEBound(@NotNull Player player) {
             try {
@@ -399,22 +412,73 @@ public abstract class DoorType extends DRegistryElement {
         public abstract class DoorHandler {
 
             private final RoomType.RoomInstance.RoomHandler roomHandler;
+            private final HashMap<UUID, Long> cooldowns = new HashMap<>();
+            private final HashMap<UUID, ItemDisplay> cooldownItems = new HashMap<>();
+            private final HashMap<UUID, TextDisplay> cooldownText = new HashMap<>();
             private DoorHandler link;
             private BoundingBox boundingBox;
             private Location spawn;
-
-
+            private BukkitTask cooldownTask;
 
             public DoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
                 this.roomHandler = roomHandler;
             }
 
-            public boolean teleportIn(@NotNull Player player){
+            public BoundingBox getBoundingBox() {
+                return boundingBox.clone();
+            }
+
+            public boolean teleportIn(@NotNull Player player) {
+                setCooldown(player, 5);
                 return player.teleport(this.getSpawn());
             }
 
+            private void setCooldown(Player player, int i) {
+                cooldowns.put(player.getUniqueId(), i * 1000L + System.currentTimeMillis());
+                @NotNull World world = getRoom().getDungeonHandler().getWorld();
+                Vector center = this.getBoundingBox().getCenter();
+                ItemDisplay item = (ItemDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() + 0.25, center.getZ())
+                        .setDirection(getDoorFace().getDirection()), EntityType.ITEM_DISPLAY);
+                item.setItemStack(new ItemStack(Material.BARRIER));
+                item.setBrightness(new Display.Brightness(15, 15));
+                TextDisplay text = (TextDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() - 0.5, center.getZ())
+                        .setDirection(getDoorFace().getDirection()), EntityType.TEXT_DISPLAY);
+                text.setBrightness(new Display.Brightness(15, 15));
+                PartyManager.getInstance().getParty(player).getPlayers()
+                        .forEach(player1 -> {
+                            if (player1 != player) {
+                                player1.hideEntity(DeepDungeons.get(), item);
+                                player1.hideEntity(DeepDungeons.get(), text);
+                            }
+                        });
+                if (this.cooldownTask == null || cooldownTask.isCancelled()) {
+                    cooldownTask = new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            long now = System.currentTimeMillis();
+                            for (UUID uuid : new ArrayList<>(cooldowns.keySet()))
+                                if (cooldowns.get(uuid) < now) {
+                                    cooldowns.remove(uuid);
+                                    cooldownItems.remove(uuid).remove();
+                                    cooldownText.remove(uuid).remove();
+                                }
+                            if (cooldowns.isEmpty()) {
+                                this.cancel();
+                                return;
+                            }
+
+                            cooldowns.keySet().forEach((uuid) -> cooldownText.get(uuid).setText("Cooldown " + ((cooldowns.get(uuid) - now) / 1000 + 1) + " s"));
+
+                        }
+                    }.runTaskTimer(DeepDungeons.get(), 10L, 10L);
+                }
+                cooldownItems.put(player.getUniqueId(), item);
+                cooldownText.put(player.getUniqueId(), text);
+                //Spawn message
+            }
+
             @NotNull
-            @Contract(pure = true,value = "-> new")
+            @Contract(pure = true, value = "-> new")
             public Location getSpawn() {
                 return this.spawn.clone();
             }
@@ -447,7 +511,36 @@ public abstract class DoorType extends DRegistryElement {
                 this.spawn.setYaw(getSpawnYaw());
             }
 
-            public abstract void onPlayerMove(PlayerMoveEvent event);
+            public void onPlayerMove(PlayerMoveEvent event) {
+                DoorHandler link = this.getLink();
+                if (link == null) {
+                    if (this.equals(this.getRoom().getDungeonHandler().getEntrance())) {
+                        //TODO help exit the dungeon confirm with gui
+                        return;
+                    }
+                    if (this.equals(this.getRoom().getEntrance())) {
+                        DoorType.DoorInstance.@Nullable DoorHandler back = PartyManager.getInstance().getDungeonPlayer(event.getPlayer()).getBackRoute(this);
+                        if (back != null) {
+                            if (canUse(event.getPlayer())) {
+                                back.teleportIn(event.getPlayer());
+                            }
+                            //TODO cooldown
+                            return;
+                        }
+                        //TODO else player was teleported to a room?
+                        return;
+                    }
+                    if (canUse(event.getPlayer())) {
+                        PartyManager.getInstance().getParty(event.getPlayer()).flagPlayerExitDungeon(event.getPlayer());
+                    }
+                    //TODO dungeon completed by this player ?
+                    return;
+                }
+                if (canUse(event.getPlayer())) {
+                    link.teleportIn(event.getPlayer());
+                    PartyManager.getInstance().getDungeonPlayer(event.getPlayer()).addDoorHistory(this, link);
+                }
+            }
 
             public boolean contains(@NotNull Block block) {
                 return contains(block.getLocation());
@@ -471,6 +564,15 @@ public abstract class DoorType extends DRegistryElement {
 
             public boolean overlaps(@NotNull Entity box) {
                 return overlaps(box.getBoundingBox());
+            }
+
+            public boolean canUse(Player player) {
+                Long cooldown = cooldowns.get(player.getUniqueId());
+                return cooldown == null || cooldown < System.currentTimeMillis();
+            }
+
+            public void onFirstPlayerEnter(Player player) {
+
             }
         }
 

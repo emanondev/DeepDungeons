@@ -13,6 +13,7 @@ import emanondev.deepdungeons.spawner.MonsterSpawnerType;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -218,12 +219,17 @@ public class VanillaMobsType extends MonsterSpawnerType {
         }
 
         @Override
-        public void spawnMobs(@NotNull Random random, @NotNull Location location, @Nullable Player who) {
+        public Collection<Entity> spawnMobs(@NotNull Random random, @NotNull Location location, @Nullable Player who) {
+            List<Entity> entities = new ArrayList<>();
             if (Math.random() < chance) {
                 int rand = new Random().nextInt() % (max - min + 1) + min;
                 boolean failed = false;
                 for (int i = 0; i < rand; i++) {
-                    failed |= !location.getWorld().spawnEntity(location, entityType,true).isValid();
+                    Entity entity = location.getWorld().spawnEntity(location, entityType, true);
+                    if (entity.isValid())
+                        entities.add(entity);
+                    else
+                        failed = true;
                 }
                 if (failed) {
                     DeepDungeons.get().logIssue("Failed to spawn monsters at &e" + location.getWorld() + " "
@@ -231,6 +237,7 @@ public class VanillaMobsType extends MonsterSpawnerType {
                     //TODO more info
                 }
             }
+            return entities;
         }
 
         public @NotNull EntityType getEntityType() {

@@ -63,10 +63,13 @@ public class RoomsGroupsSequence extends DungeonType {
         protected void setupToolsImpl() {
             Player player = getPlayer();
             Inventory inv = player.getInventory();
-            inv.setItem(0, new ItemBuilder(Material.CHISELED_STONE_BRICKS).setGuiProperty()
+            inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(
+                    List.of("Configure The dungeon rooms by clicking the CHISELED_STONE_BRICKS"
+                            , "the confirm pressing the lime dye")).build());
+            inv.setItem(1, new ItemBuilder(Material.CHISELED_STONE_BRICKS).setGuiProperty()
                     .setDescription(new DMessage(DeepDungeons.get(), player).append("<blue>Configure Rooms Groups")).build());
 
-            inv.setItem(4, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
+            inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
                     .append("<green>Confirm Setup")).build());
         }
 
@@ -74,7 +77,7 @@ public class RoomsGroupsSequence extends DungeonType {
         protected void handleInteractImpl(@NotNull PlayerInteractEvent event) {
             int heldSlot = event.getPlayer().getInventory().getHeldItemSlot();
             switch (heldSlot) {
-                case 0 -> {
+                case 1 -> {
                     resetButtons[0] = true;
                     PagedMapGui gui = new PagedMapGui(new DMessage(DeepDungeons.get(), event.getPlayer()).append("<blue>Groups"),
                             6, event.getPlayer(), null, DeepDungeons.get()) {
@@ -147,7 +150,7 @@ public class RoomsGroupsSequence extends DungeonType {
                     };
                     gui.open(getPlayer());
                 }
-                case 4 -> {
+                case 6 -> {
                     for (RoomsGroupBuilder group : groups)
                         if (!group.isValid()) {
                             event.getPlayer().sendMessage("Message not implemented (setup incomplete)");
@@ -230,7 +233,7 @@ public class RoomsGroupsSequence extends DungeonType {
             public Gui createGui(int slot, @NotNull Gui parent) {
                 Player p = RoomsGroupsSequence.RoomsGroupsSequenceBuilder.this.getPlayer();
                 //this.slot = slot;
-                PagedMapGui mapGui = new PagedMapGui(new DMessage(DeepDungeons.get(), getPlayer()).append("Group #" + slot),
+                PagedMapGui mapGui = new PagedMapGui(new DMessage(DeepDungeons.get(), getPlayer()).append("Group #" + slot + 1),
                         6, getPlayer(), parent, DeepDungeons.get());
                 mapGui.addButton(new ResearchFButton<>(mapGui,
                         () -> {
@@ -334,12 +337,6 @@ public class RoomsGroupsSequence extends DungeonType {
             private final BoundingBox boundingBox;
             private State state = State.LOADING;
 
-            @Override
-            @NotNull
-            public List<RoomType.RoomInstance.RoomHandler> getRooms() {
-                return Collections.unmodifiableList(rooms);
-            }
-
             public Handler(@Nullable World world) {
                 super();
                 RoomType.RoomInstance.@NotNull RoomHandler startRoom = RoomInstanceManager.getInstance().get(groups.get(0).rooms.getItem()).createRoomHandler(this);
@@ -420,6 +417,12 @@ public class RoomsGroupsSequence extends DungeonType {
                 paste();
             }
 
+            @Override
+            @NotNull
+            public List<RoomType.RoomInstance.RoomHandler> getRooms() {
+                return Collections.unmodifiableList(rooms);
+            }
+
             private void paste() {
                 getLocation().getWorld().getNearbyEntities(getBoundingBox(), (e) -> !(e instanceof Player)).forEach(Entity::remove);
                 CompletableFuture<EditSession> future = WorldEditUtility.pasteAir(getBoundingBox(), getLocation().getWorld(), true, DeepDungeons.get());
@@ -476,6 +479,11 @@ public class RoomsGroupsSequence extends DungeonType {
             protected void startImpl(@NotNull PartyManager.Party party) {
                 //TODO
                 state = State.STARTED;
+            }
+
+            @Override
+            public void flagCompleted() {
+                state = State.COMPLETED;
             }
 
             private void generate(RoomGroup group, RoomType.RoomInstance.RoomHandler groupStart, List<DoorType.DoorInstance.DoorHandler> deathEnds, int depth) {

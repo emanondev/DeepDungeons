@@ -18,14 +18,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class PartyManager extends DRegistry<PartyManager.Party> implements Listener {
+    private static final PartyManager instance = new PartyManager();
+    private final HashMap<UUID, Party> parties = new HashMap<>();
+    private final HashMap<UUID, DungeonPlayer> dungeonPlayers = new HashMap<>();
+
     public PartyManager() {
         super(DeepDungeons.get(), "PartyManager", true);
         getPlugin().registerListener(this);
     }
-
-    private final HashMap<UUID, Party> parties = new HashMap<>();
-
-    private static final PartyManager instance = new PartyManager();
 
     public static @NotNull PartyManager getInstance() {
         return instance;
@@ -48,7 +48,7 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
         party.start(dungeon);
     }
 
-    public @Nullable Party getParty(Player player) {
+    public @Nullable Party getParty(OfflinePlayer player) {
         return parties.get(player.getUniqueId());
     }
 
@@ -68,32 +68,45 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
         party.onPlayerJoin(event.getPlayer());
     }
 
-    public DungeonPlayer getDungeonPlayer(Player player) {
-        Party party = getParty(player);
-        if (party==null)
-            return null;
-        return party.getDungeonPlayer(player);
+    public @NotNull DungeonPlayer getDungeonPlayer(@NotNull OfflinePlayer player) {
+        return getDungeonPlayer(player.getUniqueId());
+    }
+
+    public @NotNull DungeonPlayer getDungeonPlayer(@NotNull UUID uuid) {
+        DungeonPlayer value = dungeonPlayers.get(uuid);
+        if (value != null)
+            return value;
+        value = new DungeonPlayer();
+        dungeonPlayers.put(uuid, value);
+        return value;
     }
 
     public class Party extends DRegistryElement {
 
-        private final HashMap<UUID, DungeonPlayer> dungeonPlayers = new HashMap<>();
+        private final HashSet<UUID> users = new HashSet<>();
+        private UUID leader;
         private DungeonType.DungeonInstance.DungeonHandler dungeon;
-        private final UUID leader;
+        private boolean isPartyPublic = true;
 
         Party(@NotNull Player leader) {
             super("p" + UUID.randomUUID().toString().replace("-", ""));
             this.leader = leader.getUniqueId();
-            dungeonPlayers.put(this.leader, new DungeonPlayer());
+            users.add(this.leader);//TODO setparty
+            //getDu
+            parties.put(leader.getUniqueId(), this);
         }
 
-        public @NotNull Collection<DungeonPlayer> getDungeonPlayers() {
-            return Collections.unmodifiableCollection(dungeonPlayers.values());
+        public boolean isPartyPublic() {
+            return isPartyPublic;
+        }
+
+        public void togglePartyPublic() {
+            isPartyPublic = !isPartyPublic;
         }
 
         public @NotNull Set<Player> getPlayers() {
             HashSet<Player> players = new HashSet<>();
-            this.dungeonPlayers.keySet().forEach(uuid -> {
+            this.users.forEach(uuid -> {
                 Player p = Bukkit.getPlayer(uuid);
                 if (p != null)
                     players.add(p);
@@ -101,8 +114,13 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
             return players;
         }
 
+        public void invite(@Nullable Player sender, @NotNull OfflinePlayer target) {
+            getDungeonPlayer(target).receiveInvite(this);
+
+        }
+
         public @NotNull Set<UUID> getPlayersUUID() {
-            return Collections.unmodifiableSet(dungeonPlayers.keySet());
+            return Collections.unmodifiableSet(users);
         }
 
         public boolean start(@NotNull DungeonType.DungeonInstance.DungeonHandler dungeon) {
@@ -113,7 +131,7 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
             Collection<Player> players = getPlayers();
             this.dungeon = dungeon;
             for (Player player : players) {
-                DungeonPlayer dp = dungeonPlayers.get(player.getUniqueId());
+                DungeonPlayer dp = PartyManager.getInstance().getDungeonPlayer(player);
                 dp.setPreEnterSnapshot(player);
                 dungeon.getEntrance().teleportIn(player);//TODO
             }
@@ -129,39 +147,50 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
         public boolean addPlayer(Player player) {
             if (parties.containsKey(player.getUniqueId()))
                 throw new IllegalStateException();
-            dungeonPlayers.put(player.getUniqueId(), new DungeonPlayer());
+            users.add(player.getUniqueId());//TODO set party
+            parties.put(player.getUniqueId(), this);
             return true;
         }
 
         public void removePlayer(@NotNull UUID player) {
-            if (!parties.containsKey(player) || !dungeonPlayers.containsKey(player))
+            if (!parties.containsKey(player) || !users.contains(player))
                 throw new IllegalStateException();
             if (player.equals(leader))
                 throw new IllegalArgumentException();
             Player p = Bukkit.getPlayer(player);
             if (p != null && this.isInsideDungeon(p))
-                dungeonPlayers.get(player).getAndDeletePreEnterSnapshot().apply(p);
-            dungeonPlayers.remove(player);
+                PartyManager.getInstance().getDungeonPlayer(player).getAndDeletePreEnterSnapshot().apply(p);
+            users.remove(player);
             parties.remove(player);
         }
 
-        public void removePlayer(@NotNull Player player) {
+        public void removePlayer(@NotNull OfflinePlayer player) {
             removePlayer(player.getUniqueId());
         }
 
         public void disband() {
-            dungeonPlayers.forEach((player, d) -> {
+            users.forEach((player) -> {
+                        DungeonPlayer d = PartyManager.getInstance().getDungeonPlayer(player);
                         Player p = Bukkit.getPlayer(player);
                         if (p != null && this.isInsideDungeon(p))
                             d.getPreEnterSnapshot().apply(p);
-                        dungeonPlayers.remove(player);
+                        users.remove(player);
                         parties.remove(player);
                     }
             );
+            //parties.remove(this);
         }
 
-        public boolean isInsideDungeon(@NotNull Player player) {
-            return dungeonPlayers.get(player.getUniqueId()).hasPreEnterSnapshot();
+        /**
+         * true if you are <b>online</b> & inside the dungeon
+         * <p>
+         * N.B. if you are offline but logged out inside the dungeon you are considered outside
+         *
+         * @param player
+         * @return
+         */
+        public boolean isInsideDungeon(@NotNull OfflinePlayer player) {
+            return PartyManager.getInstance().getDungeonPlayer(player).hasPreEnterSnapshot();
         }
 
         public @NotNull UUID getLeaderUUID() {
@@ -177,40 +206,54 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
         }
 
         public void flagPlayerExitDungeon(@NotNull Player player) {
-            DungeonPlayer dp = dungeonPlayers.get(player.getUniqueId());
+            DungeonPlayer dp = PartyManager.getInstance().getDungeonPlayer(player);
             dp.getAndDeletePreEnterSnapshot().apply(player);
             dp.clearDungeonData();
-            for (DungeonPlayer dungeonPlayer : dungeonPlayers.values())
+            for (UUID uuid : users) {
+                DungeonPlayer dungeonPlayer = PartyManager.getInstance().getDungeonPlayer(uuid);
                 if (dungeonPlayer.hasPreEnterSnapshot())
                     return;
+            }
 
             //dungeon completed
             AreaManager.getInstance().flagComplete(dungeon);
             dungeon = null;
-            dungeonPlayers.values().forEach(DungeonPlayer::clearDungeonData);
+
+            for (UUID uuid : users) {
+                DungeonPlayer dungeonPlayer = PartyManager.getInstance().getDungeonPlayer(uuid);
+                dungeonPlayer.clearDungeonData();
+            }
         }
 
         private void onPlayerQuit(Player player) {
             if (!isInsideDungeon(player))
                 return;
-            DungeonPlayer dp = dungeonPlayers.get(player.getUniqueId());
+            DungeonPlayer dp = PartyManager.getInstance().getDungeonPlayer(player);
             dp.setLogoutSnapshot(player);
             dp.getAndDeletePreEnterSnapshot().apply(player);
         }
 
         private void onPlayerJoin(Player player) {
-            DungeonPlayer dp = dungeonPlayers.get(player.getUniqueId());
+            DungeonPlayer dp = PartyManager.getInstance().getDungeonPlayer((player));
             if (dp.hasLogoutSnapshot()) {
                 dp.setPreEnterSnapshot(player);
                 dp.getAndDeleteLogoutSnapshot().apply(player);
             }
         }
 
+        public void setLeader(@NotNull Player newLeader) {
+            if (!this.equals(getParty(newLeader)))
+                throw new IllegalArgumentException();
+            leader = newLeader.getUniqueId();
+        }
+
+        /*
         public DungeonPlayer getDungeonPlayer(OfflinePlayer player) {
             return getDungeonPlayer(player.getUniqueId());
         }
+
         public DungeonPlayer getDungeonPlayer(UUID player) {
             return dungeonPlayers.get(player);
-        }
+        }*/
     }
 }

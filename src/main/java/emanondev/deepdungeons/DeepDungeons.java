@@ -58,6 +58,7 @@ public class DeepDungeons extends CorePlugin {
         this.registerCommand(new DungeonRoomBuilderCommand());
         this.registerCommand(new DungeonDungeonBuilderCommand());
         this.registerCommand(new DungeonCreatorCommand());
+        this.registerCommand(new DungeonPartyCommand());
     }
 
     @Override

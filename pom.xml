@@ -91,13 +91,6 @@
             <type>jar</type>
             <scope>provided</scope>
         </dependency>
-        <!-- SuperVanish -->
-        <dependency>
-            <groupId>com.github.LeonMangler</groupId>
-            <artifactId>SuperVanish</artifactId>
-            <version>6.2.6-2</version>
-            <scope>provided</scope>
-        </dependency>
         <!-- JetBrains Annotations -->
         <dependency>
             <groupId>org.jetbrains</groupId>
@@ -170,6 +163,12 @@
             <artifactId>DeepCore</artifactId>
             <version>3.8.5</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 </project>

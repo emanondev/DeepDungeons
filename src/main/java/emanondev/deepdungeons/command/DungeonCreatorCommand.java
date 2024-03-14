@@ -45,7 +45,7 @@ public class DungeonCreatorCommand extends CoreCommand {
     }
 
     private void start(CommandSender sender, String label, String[] args) {
-        if (!(sender instanceof Player player)){
+        if (!(sender instanceof Player player)) {
             return;
         }
         if (args.length != 2) {
@@ -55,9 +55,10 @@ public class DungeonCreatorCommand extends CoreCommand {
         String id = args[1];
         DungeonType.@Nullable DungeonInstance dungeon = DungeonInstanceManager.getInstance().get(id);
         DungeonType.DungeonInstance.@Nullable DungeonHandler handler = AreaManager.getInstance().getReady(dungeon);
-        PartyManager.getInstance().startDungeon(PartyManager.getInstance().createParty(player),handler);
-        //handler.start(PartyManager.getInstance().createParty(player));
-        //player.teleport(handler.getEntrance().getSpawn());
+        PartyManager.Party party = PartyManager.getInstance().getParty(player);
+        if (party == null)
+            party = PartyManager.getInstance().createParty(player);
+        PartyManager.getInstance().startDungeon(party, handler);
     }
 
     private void create(CommandSender sender, String label, String[] args) {
@@ -87,7 +88,7 @@ public class DungeonCreatorCommand extends CoreCommand {
     @Override
     public @Nullable List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
         return switch (args.length) {
-            case 1 -> this.complete(args[0], new String[]{"create","start"});
+            case 1 -> this.complete(args[0], new String[]{"create", "start"});
             case 2 -> this.complete(args[1], DungeonInstanceManager.getInstance().getIds());
             default -> Collections.emptyList();
         };
