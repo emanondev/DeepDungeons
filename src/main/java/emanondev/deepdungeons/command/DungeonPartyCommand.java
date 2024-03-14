@@ -1,6 +1,7 @@
 package emanondev.deepdungeons.command;
 
 import emanondev.core.command.CoreCommand;
+import emanondev.core.message.SimpleMessage;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Perms;
 import emanondev.deepdungeons.party.DungeonPlayer;
@@ -58,27 +59,30 @@ public class DungeonPartyCommand extends CoreCommand {
             return;
         }
         if (args.length != 2) {
-            //TODO argomenti -> join <player>
+            new SimpleMessage(DeepDungeons.get(),"party.join_arguments").send(player,"%label%",label);
             return;
         }
         PartyManager.Party party = PartyManager.getInstance().getParty(player);
         if (party != null) {
-            //TODO hai già un party
+            new SimpleMessage(DeepDungeons.get(),"party.has_party").send(player,"%label%",label);
             return;
         }
         OfflinePlayer target = readOfflinePlayer(args[1]);
         if (target == null) {
-            //TODO player non esiste
+            new SimpleMessage(DeepDungeons.get(),"party.target_do_not_exist").send(player,
+                    "%label%",label,"%name%",args[1]);
             return;
         }
         PartyManager.Party targetParty = PartyManager.getInstance().getParty(target);
         if (targetParty == null) {
-            //TODO target non ha un party
+            new SimpleMessage(DeepDungeons.get(),"party.target_has_no_party").send(player,
+                    "%label%",label,"%name%",args[1]);
             return;
         }
         DungeonPlayer dPlayer = PartyManager.getInstance().getDungeonPlayer(player);
         if (!targetParty.isPartyPublic() && !dPlayer.hasInvite(targetParty)) {
-            //TODO party chiuso / invito scaduto
+            new SimpleMessage(DeepDungeons.get(),"party.party_closed_cannot_join").send(player,
+                    "%label%",label,"%name%",args[1]);
             return;
         }
         dPlayer.revokeInvite(targetParty);
@@ -97,34 +101,38 @@ public class DungeonPartyCommand extends CoreCommand {
             return;
         }
         if (args.length != 2) {
-            //TODO argomenti -> kick <player>
+            new SimpleMessage(DeepDungeons.get(),"party.kick_arguments").send(player,"%label%",label);
             return;
         }
         PartyManager.Party party = PartyManager.getInstance().getParty(player);
         if (party == null) {
-            //TODO non hai un party
+            new SimpleMessage(DeepDungeons.get(),"party.has_no_party").send(player,"%label%",label);
             return;
         }
         if (!player.equals(party.getLeader())) {
-            //TODO devi essere leader per kickare
+            new SimpleMessage(DeepDungeons.get(),"party.require_leader").send(player,"%label%",label);
             return;
         }
         OfflinePlayer target = readOfflinePlayer(args[1]);
         if (target == null) {
-            //TODO player non esiste
+            new SimpleMessage(DeepDungeons.get(),"party.target_do_not_exist").send(player,
+                    "%label%",label,"%name%",args[1]);
             return;
         }
         PartyManager.Party targetParty = PartyManager.getInstance().getParty(target);
         if (!party.equals(targetParty)) {
-            //TODO non è nel tuo party
+            new SimpleMessage(DeepDungeons.get(),"party.target_not_in_your_party").send(player,
+                    "%label%",label,"%name%",args[1]);
             return;
         }
         if (target.equals(player)) {
-            //TODO non puoi kickarti
+            new SimpleMessage(DeepDungeons.get(),"party.cannot_target_yourself").send(player,
+                    "%label%",label);
             return;
         }
         if (party.isInsideDungeon(target)) {
-            //TODO non puoi kickare una persona che è dentro un dungeon
+            new SimpleMessage(DeepDungeons.get(),"party.kick_not_in_dungeons").send(player,
+                    "%label%",label);
             return;
         }
         party.removePlayer(target);
@@ -142,30 +150,33 @@ public class DungeonPartyCommand extends CoreCommand {
             return;
         }
         if (args.length != 2) {
-            //TODO argomenti -> invite <player>
+            new SimpleMessage(DeepDungeons.get(),"party.invite_arguments").send(player,"%label%",label);
             return;
         }
         PartyManager.Party party = PartyManager.getInstance().getParty(player);
         if (party == null) {
-            //TODO non hai un party
+            new SimpleMessage(DeepDungeons.get(),"party.has_no_party").send(player,"%label%",label);
             return;
         }
         if (!party.isPartyPublic() && !player.equals(party.getLeader())) {
-            //TODO devi essere leader per invitare in un party chiuso
+            new SimpleMessage(DeepDungeons.get(),"party.invite_require_leader").send(player,"%label%",label);
             return;
         }
         Player target = readPlayer(player, args[1]);
         if (target == null) {
-            //TODO player non trovato
+            new SimpleMessage(DeepDungeons.get(),"party.target_not_online").send(player,
+                    "%label%",label,"%name%",args[1]);
             return;
         }
         PartyManager.Party targetParty = PartyManager.getInstance().getParty(target);
         if (party.equals(targetParty)) {
-            //TODO è già nel party
+            new SimpleMessage(DeepDungeons.get(),"party.target_in_your_party").send(player,
+                    "%label%",label,"%name%",args[1]);
             return;
         }
         if (targetParty != null) {
-            //TODO ha già un party, non importunare
+            new SimpleMessage(DeepDungeons.get(),"party.target_has_party").send(player,
+                    "%label%",label,"%name%",args[1]);
             return;
         }
 
@@ -191,29 +202,31 @@ public class DungeonPartyCommand extends CoreCommand {
             return;
         }
         if (args.length != 2) {
-            //TODO argomenti -> leader <leader name>
+            new SimpleMessage(DeepDungeons.get(),"party.leader_arguments").send(player,"%label%",label);
             return;
         }
         PartyManager.Party party = PartyManager.getInstance().getParty(player);
         if (party == null) {
-            //TODO non hai un party
+            new SimpleMessage(DeepDungeons.get(),"party.has_no_party").send(player,"%label%",label);
             return;
         }
         if (!player.equals(party.getLeader())) {
-            //TODO devi essere leader
+            new SimpleMessage(DeepDungeons.get(),"party.require_leader").send(player,"%label%",label);
             return;
         }
         Player newLeader = readPlayer(sender, args[1]);
-        if (newLeader != null) {
-            //TODO player non trovato
+        if (newLeader == null) {
+            new SimpleMessage(DeepDungeons.get(),"party.target_not_online").send(player,
+                    "%label%",label,"%name%",args[1]);
             return;
         }
         if (!party.equals(PartyManager.getInstance().getParty(newLeader))) {
-            //TODO deve essere nel party
+            new SimpleMessage(DeepDungeons.get(),"party.target_not_in_your_party").send(player,
+                    "%label%",label,"%name%",args[1]);
             return;
         }
         if (newLeader.equals(player)) {
-            //TODO non puoi impostare te stesso
+            new SimpleMessage(DeepDungeons.get(),"party.cannot_target_yourself").send(player,"%label%",label);
             return;
         }
         party.setLeader(newLeader);
@@ -232,16 +245,15 @@ public class DungeonPartyCommand extends CoreCommand {
         //DungeonPlayer dPlayer = PartyManager.getInstance().getDungeonPlayer(player);
         PartyManager.Party party = PartyManager.getInstance().getParty(player);
         if (party == null) {
-            //TODO non hai un party
+            new SimpleMessage(DeepDungeons.get(),"party.has_no_party").send(player,"%label%",label);
             return;
         }
         if (player.equals(party.getLeader())) {
-            //TODO sei leader devi fare disband
+            new SimpleMessage(DeepDungeons.get(),"party.leave_leader_must_disband").send(player,"%label%",label);
             return;
         }
         party.removePlayer(player);
         //TODO feedback
-
     }
 
     private void open(CommandSender sender, String label, String[] args) {
@@ -256,15 +268,15 @@ public class DungeonPartyCommand extends CoreCommand {
         //DungeonPlayer dPlayer = PartyManager.getInstance().getDungeonPlayer(player);
         PartyManager.Party party = PartyManager.getInstance().getParty(player);
         if (party == null) {
-            //TODO non hai un party
+            new SimpleMessage(DeepDungeons.get(),"party.has_no_party").send(player,"%label%",label);
             return;
         }
         if (!player.equals(party.getLeader())) {
-            //TODO non sei leader
+            new SimpleMessage(DeepDungeons.get(),"party.require_leader").send(player,"%label%",label);
             return;
         }
         if (party.isPartyPublic()) {
-            //TODO already open
+            new SimpleMessage(DeepDungeons.get(),"party.already_opened").send(player,"%label%",label);
             return;
         }
         party.togglePartyPublic();
@@ -283,15 +295,15 @@ public class DungeonPartyCommand extends CoreCommand {
         //DungeonPlayer dPlayer = PartyManager.getInstance().getDungeonPlayer(player);
         PartyManager.Party party = PartyManager.getInstance().getParty(player);
         if (party == null) {
-            //TODO non hai un party
+            new SimpleMessage(DeepDungeons.get(),"party.has_no_party").send(player,"%label%",label);
             return;
         }
         if (!player.equals(party.getLeader())) {
-            //TODO non sei leader
+            new SimpleMessage(DeepDungeons.get(),"party.require_leader").send(player,"%label%",label);
             return;
         }
         if (!party.isPartyPublic()) {
-            //TODO already closed
+            new SimpleMessage(DeepDungeons.get(),"party.already_closed").send(player,"%label%",label);
             return;
         }
         party.togglePartyPublic();
@@ -299,12 +311,27 @@ public class DungeonPartyCommand extends CoreCommand {
     }
 
     private void list(CommandSender sender, String label, String[] args) {
+        if (!sender.hasPermission(Perms.PARTY_LIST)) {
+            this.permissionLackNotify(sender, Perms.PARTY_LIST);
+            return;
+        }
+        //TODO
     }
 
     private void info(CommandSender sender, String label, String[] args) {
+        if (!sender.hasPermission(Perms.PARTY_INFO)) {
+            this.permissionLackNotify(sender, Perms.PARTY_INFO);
+            return;
+        }
+        //TODO
     }
 
     private void help(CommandSender sender, String label, String[] args) {
+        if (!sender.hasPermission(Perms.PARTY_HELP)) {
+            this.permissionLackNotify(sender, Perms.PARTY_HELP);
+            return;
+        }
+        //TODO
     }
 
     private void disband(CommandSender sender, String label, String[] args) {
@@ -319,11 +346,11 @@ public class DungeonPartyCommand extends CoreCommand {
         //DungeonPlayer dPlayer = PartyManager.getInstance().getDungeonPlayer(player);
         PartyManager.Party party = PartyManager.getInstance().getParty(player);
         if (party == null) {
-            //TODO non hai un party
+            new SimpleMessage(DeepDungeons.get(),"party.has_no_party").send(player,"%label%",label);
             return;
         }
         if (!player.equals(party.getLeader())) {
-            //TODO non sei leader
+            new SimpleMessage(DeepDungeons.get(),"party.require_leader").send(player,"%label%",label);
             return;
         }
         party.disband();
@@ -342,7 +369,7 @@ public class DungeonPartyCommand extends CoreCommand {
         }
         //DungeonPlayer dPlayer = PartyManager.getInstance().getDungeonPlayer(player);
         if (PartyManager.getInstance().getParty(player) != null) {
-            //TODO hai già un party
+            new SimpleMessage(DeepDungeons.get(),"party.has_party").send(player,"%label%",label);
             return;
         }
         PartyManager.getInstance().createParty(player);
@@ -415,7 +442,7 @@ public class DungeonPartyCommand extends CoreCommand {
                 case "join" -> {
                     PartyManager.Party party = PartyManager.getInstance().getParty(player);
                     if (party == null && player.hasPermission(Perms.PARTY_JOIN)) {
-                        @NotNull DungeonPlayer dPlayer = PartyManager.getInstance().getDungeonPlayer(player);
+                        DungeonPlayer dPlayer = PartyManager.getInstance().getDungeonPlayer(player);
                         yield this.completePlayerNames(sender, args[1], (p) -> {
                             PartyManager.Party partyT = PartyManager.getInstance().getParty(p);
                             return partyT != null && (partyT.isPartyPublic() || dPlayer.hasInvite(partyT));
