@@ -148,3 +148,40 @@ roombuilder:
     - ""
     - "<#7897ff>Confirm exits when you added all the"
     - "<#7897ff>desired exits"
+  base_exits_selector:
+    - "<gold>Add New Room Exit"
+    - "<#7897ff>Select the exit type to add"
+  base_exits_confirm:
+    - "<gold>Confirm Exit Doors (count: %value%)"
+    - "<#7897ff>Confirm selected worldedit"
+    - "<#7897ff>region as room area"
+  base_commondata_info:
+    - "<gold>Info: Set data"
+    - "<#7897ff>Set additional info for the room"
+    - ""
+    - "<#7897ff>Set which blocks may be broken or placed"
+    - "<#7897ff>inside the room"
+  base_commondata_break:
+    - "<gold>Select which blocks may be <u>broken</u> (current: %value% blocks types)"
+    - "<#7897ff>While in dungeon broken blocks have standard drops"
+  base_commondata_place:
+    - "<gold>Select which blocks may be <u>placed</u> (current: %value% blocks types)"
+  base_commondata_confirm:
+    - "<gold>Confirm Data</gold>"
+    - "<#7897ff>Confirm current setting"
+dungeonbuilder:
+  base_rgs_info:
+    - "<gold>Info: Configure Dungeon"
+    - "<#7897ff>Open the gui to configure groups"
+    - ""
+    - "<#7897ff>Each group has its own group of selectable rooms"
+    - "<#7897ff>When generating a dungeon each group generate"
+    - "<#7897ff>a tree structure where nodes and leafs are rooms"
+    - "<#7897ff>and arches are doors, all the leaf rooms of a group"
+    - "<#7897ff>will be connected to the root of successive group"
+  base_rgs_gui:
+    - "<gold>Groups Gui"
+    - "<#7897ff>Click to open"
+  base_rgs_confirm:
+    - "<gold>Confirm configuration"
+    - "<#7897ff>Click to confirm configuration"

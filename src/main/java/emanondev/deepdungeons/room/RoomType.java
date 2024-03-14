@@ -77,6 +77,7 @@ public abstract class RoomType extends DRegistryElement {
         private final List<TrapType.TrapInstanceBuilder> traps = new ArrayList<>();
         private final List<MonsterSpawnerType.MonsterSpawnerInstanceBuilder> monsterSpawners = new ArrayList<>();
         private final HashSet<Material> breakableBlocks = new HashSet<>();
+        private final HashSet<Material> placeableBlocks = new HashSet<>();
         private final CompletableFuture<RoomType.RoomInstanceBuilder> completableFuture = new CompletableFuture<>();
         private final UUID playerUuid;
         private DoorType.DoorInstanceBuilder entrance;
@@ -132,6 +133,9 @@ public abstract class RoomType extends DRegistryElement {
 
         public @NotNull Set<Material> getBreakableBlocks() {
             return breakableBlocks;
+        }
+        public @NotNull Set<Material> getPlaceableBlocks() {
+            return placeableBlocks;
         }
 
         public String getSchematicName() {
@@ -260,6 +264,7 @@ public abstract class RoomType extends DRegistryElement {
             //WorldEditUtility.save(new File(DeepDungeons.get().getDataFolder(), "schematics" + File.separator + schematicName)
             //        , clipboard);//TODO
             section.setEnumsAsStringList("breakableBlocks", breakableBlocks);
+            section.setEnumsAsStringList("placeableBlocks", placeableBlocks);
             writeToImpl(section);
             section.save();
             WorldEditUtility.copy(smallArea, getPlayer().getWorld(), true, true, true,
@@ -421,6 +426,39 @@ public abstract class RoomType extends DRegistryElement {
                                 types
                         ).open(event.getPlayer());
                     }
+                    case 2 -> {
+                        ArrayList<Material> types = new ArrayList<>(List.of(Material.values()));
+                        types.removeIf((m) -> !m.isBlock() || m.isAir());
+                        types.sort(Comparator.comparing(Material::name));
+                        new AdvancedResearchFGui<>(
+                                new DMessage(DeepDungeons.get(), event.getPlayer()).append("&8Choose Placeable blocks"),
+                                event.getPlayer(), null, DeepDungeons.get(),
+                                new ItemBuilder(Material.SPRUCE_DOOR).setDescription(new DMessage(
+                                                DeepDungeons.get(), event.getPlayer()
+                                        ).append(">").newLine().append("<white>Choose Blocks")//TODO configurable
+                                ).build(), (String text, Material type) -> {
+                            String[] split = text.split(" ");
+                            for (String s : split)
+                                if (!(type.name().toLowerCase(Locale.ENGLISH).contains(s.toLowerCase(Locale.ENGLISH))))
+                                    return false;
+                            return true;
+                        },
+                                (evt, type) -> {
+                                    if (placeableBlocks.contains(type))
+                                        placeableBlocks.remove(type);
+                                    else
+                                        placeableBlocks.add(type);
+                                    return true;
+                                },
+                                (type) -> new ItemBuilder(type.isItem() ? type : Material.BARRIER)
+                                        .addEnchantment(Enchantment.DURABILITY, placeableBlocks.contains(type) ? 1 : 0)
+                                        .setGuiProperty().setDescription(new DMessage(DeepDungeons.get(), event.getPlayer())
+                                                .append("<gold><bold>" + type.name()) //TODO configurable description
+                                                .newLine().append("Click to toggle")
+                                                .newLine().append("Enabled? " + placeableBlocks.contains(type))).build(),
+                                types
+                        ).open(event.getPlayer());
+                    }
                     case 6 -> {
                         hasCompletedBreakableMaterials = true;
                         setupTools();
@@ -462,11 +500,11 @@ public abstract class RoomType extends DRegistryElement {
                 if (exits.isEmpty() || exits.get(exits.size() - 1).getCompletableFuture().isDone()) {
                     inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
                             .appendLang("roombuilder.base_exits_info")).build());
-                    inv.setItem(1, new ItemBuilder(Material.SPRUCE_DOOR).setDescription(new DMessage(DeepDungeons.get(), player)//TODO
-                            .append("Select Exit Type")).build());
+                    inv.setItem(1, new ItemBuilder(Material.SPRUCE_DOOR).setDescription(new DMessage(DeepDungeons.get(), player)
+                            .appendLang("roombuilder.base_exits_selector")).build());
                     if (!exits.isEmpty())
                         inv.setItem(6, new ItemBuilder(Material.LIGHT_BLUE_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                                .append("Confirm Exits Completed")).build());
+                                .appendLang("roombuilder.base_exits_confirm","%value%",String.valueOf(exits.size()))).build());
                 } else {
                     exits.get(exits.size() - 1).setupTools();
                 }
@@ -474,13 +512,14 @@ public abstract class RoomType extends DRegistryElement {
             }
 
             if (!hasCompletedBreakableMaterials) {
-                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(List.of("Set which blocks may be broken inside room",
-                        "then confirm")).build());
+                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
+                        .appendLang("roombuilder.base_commondata_info")).build());
                 inv.setItem(1, new ItemBuilder(Material.IRON_PICKAXE).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .append("Select Breakable blocks")).setGuiProperty().build());
-                if (!exits.isEmpty())
-                    inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                            .append("Confirm Selected Breakable blocks Completed")).build());
+                        .appendLang("roombuilder.base_commondata_break","%value%",String.valueOf(breakableBlocks.size()))).build());
+                inv.setItem(2, new ItemBuilder(Material.BRICKS).setDescription(new DMessage(DeepDungeons.get(), player)
+                        .appendLang("roombuilder.base_commondata_place","%value%",String.valueOf(placeableBlocks.size()))).build());
+                inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
+                        .appendLang("roombuilder.base_commondata_confirm")).build());
                 return;
             }
 
@@ -568,6 +607,7 @@ public abstract class RoomType extends DRegistryElement {
         private final List<MonsterSpawnerType.MonsterSpawnerInstance> monsterSpawners = new ArrayList<>();
 
         private final Set<Material> breakableBlocks = new HashSet<>();
+        private final Set<Material> placeableBlocks = new HashSet<>();
         private final String schematicName;
         private final BlockVector size;
         private SoftReference<Clipboard> clipboard = null;
@@ -600,6 +640,7 @@ public abstract class RoomType extends DRegistryElement {
             }
             this.schematicName = section.getString("schematic");
             this.breakableBlocks.addAll(section.getMaterialList("breakableBlocks", Collections.emptyList()));
+            this.placeableBlocks.addAll(section.getMaterialList("placeableBlocks", Collections.emptyList()));
             BlockVector3 dim;
             try {
                 dim = getClipboard(false).join().getDimensions();
@@ -616,6 +657,9 @@ public abstract class RoomType extends DRegistryElement {
 
         public @NotNull Set<Material> getBreakableBlocks() {
             return Collections.unmodifiableSet(breakableBlocks);
+        }
+        public @NotNull Set<Material> getPlaceableBlocks() {
+            return Collections.unmodifiableSet(placeableBlocks);
         }
 
         public @NotNull DoorType.DoorInstance getEntrance() {
@@ -679,7 +723,7 @@ public abstract class RoomType extends DRegistryElement {
             private final List<DoorType.DoorInstance.DoorHandler> exits = new ArrayList<>();
             private Location location = null;
             private BoundingBox boundingBox = null;
-            private List<Entity> monsters = new ArrayList<>();
+            private final List<Entity> monsters = new ArrayList<>();
             private boolean firstEnter = false;
 
             public RoomHandler(@NotNull DungeonType.DungeonInstance.DungeonHandler dungeonHandler) {
@@ -812,7 +856,8 @@ public abstract class RoomType extends DRegistryElement {
             }
 
             public void onBlockPlace(@NotNull BlockPlaceEvent event) {
-                event.setCancelled(true);
+                if (!getRoomInstance().getPlaceableBlocks().contains(event.getBlock().getType()))
+                    event.setCancelled(true);
             }
 
             public void onBlockBreak(@NotNull BlockBreakEvent event) {

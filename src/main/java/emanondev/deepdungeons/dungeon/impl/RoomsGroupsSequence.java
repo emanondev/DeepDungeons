@@ -63,14 +63,13 @@ public class RoomsGroupsSequence extends DungeonType {
         protected void setupToolsImpl() {
             Player player = getPlayer();
             Inventory inv = player.getInventory();
-            inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(
-                    List.of("Configure The dungeon rooms by clicking the CHISELED_STONE_BRICKS"
-                            , "the confirm pressing the lime dye")).build());
+            inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
+                    .appendLang("dungeonbuilder.base_rgs_info")).build());
             inv.setItem(1, new ItemBuilder(Material.CHISELED_STONE_BRICKS).setGuiProperty()
-                    .setDescription(new DMessage(DeepDungeons.get(), player).append("<blue>Configure Rooms Groups")).build());
-
+                    .setDescription(new DMessage(DeepDungeons.get(), player)
+                            .appendLang("dungeonbuilder.base_rgs_gui")).build());
             inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                    .append("<green>Confirm Setup")).build());
+                    .appendLang("dungeonbuilder.base_rgs_confirm")).build());
         }
 
         @Override
