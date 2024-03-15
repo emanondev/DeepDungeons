@@ -91,8 +91,7 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
         Party(@NotNull Player leader) {
             super("p" + UUID.randomUUID().toString().replace("-", ""));
             this.leader = leader.getUniqueId();
-            users.add(this.leader);//TODO setparty
-            //getDu
+            users.add(this.leader);
             parties.put(leader.getUniqueId(), this);
         }
 
@@ -147,7 +146,7 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
         public boolean addPlayer(Player player) {
             if (parties.containsKey(player.getUniqueId()))
                 throw new IllegalStateException();
-            users.add(player.getUniqueId());//TODO set party
+            users.add(player.getUniqueId());
             parties.put(player.getUniqueId(), this);
             return true;
         }

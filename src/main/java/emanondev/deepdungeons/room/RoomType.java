@@ -180,17 +180,17 @@ public abstract class RoomType extends DRegistryElement {
                         snapshotsInventories.put(b, container.getSnapshotInventory());
                         snapshotsStates.put(b, b.getState());
                         snapshotsBlockData.put(b, b.getBlockData());
-                        Inventory inv = container.getInventory(); //TODO test if original is edited
+                        Inventory inv = container.getInventory();
                         boolean hasTreasures = false;
                         boolean hasMonsters = false;
                         for (int i = 0; i < inv.getSize(); i++) {
-                            TreasureType.@Nullable TreasureInstanceBuilder treasure = TreasureTypeManager
+                            TreasureType.TreasureInstanceBuilder treasure = TreasureTypeManager
                                     .getInstance().getTreasureInstance(inv.getItem(i));
                             if (treasure != null) {
                                 hasTreasures = true;
                                 treasure.setOffset(new Vector(x, y, z).subtract(getOffset()).add(new Vector(0.5, 0, 0.5)));
                                 treasures.add(treasure);
-                                inv.setItem(i, null); //TODO test if original is edited
+                                inv.setItem(i, null);
                             } else {
                                 MonsterSpawnerType.MonsterSpawnerInstanceBuilder monster = MonsterSpawnerTypeManager
                                         .getInstance().getMonsterSpawnerInstance(inv.getItem(i));
@@ -200,7 +200,7 @@ public abstract class RoomType extends DRegistryElement {
                                     if (b.getBlockData() instanceof Directional directional)
                                         monster.setDirection(directional.getFacing().getDirection());
                                     monsterSpawners.add(monster);
-                                    inv.setItem(i, null); //TODO test if original is edited
+                                    inv.setItem(i, null);
                                 }
                             }
                         }
@@ -240,29 +240,24 @@ public abstract class RoomType extends DRegistryElement {
 
 
             tmp = section.loadSection("treasures");
-            for (
-                    int i = 0; i < treasures.size(); i++) {
-                @NotNull YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
+            for ( int i = 0; i < treasures.size(); i++) {
+                YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
                 treasures.get(i).writeTo(sub);
             }
 
             tmp = section.loadSection("traps");
-            for (
-                    int i = 0; i < traps.size(); i++) {
-                @NotNull YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
+            for ( int i = 0; i < traps.size(); i++) {
+                YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
                 traps.get(i).writeTo(sub);
             }
 
             tmp = section.loadSection("monsterspawners");
-            for (
-                    int i = 0; i < monsterSpawners.size(); i++) {
-                @NotNull YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
+            for (  int i = 0; i < monsterSpawners.size(); i++) {
+                YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
                 monsterSpawners.get(i).writeTo(sub);
             }
             section.set("schematic", schematicName);
 
-            //WorldEditUtility.save(new File(DeepDungeons.get().getDataFolder(), "schematics" + File.separator + schematicName)
-            //        , clipboard);//TODO
             section.setEnumsAsStringList("breakableBlocks", breakableBlocks);
             section.setEnumsAsStringList("placeableBlocks", placeableBlocks);
             writeToImpl(section);

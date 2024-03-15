@@ -23,6 +23,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class RedstoneType extends DoorType {
@@ -52,8 +53,9 @@ public class RedstoneType extends DoorType {
 
         @Override
         protected void writeToImpl(@NotNull YMLSection section) {
-            for (int i = 0; i < blocks.size(); i++)
-                section.set("powered_blocks." + (i + 1), Util.toString(blocks.get(i).subtract(getRoomOffset())));
+            List<String> blockList = new ArrayList<>();
+            blocks.forEach((value) -> blockList.add(Util.toString(value.subtract(getRoomOffset()))));
+            section.set("powered_blocks", blockList);
         }
 
         @Override
@@ -89,7 +91,7 @@ public class RedstoneType extends DoorType {
                         .appendLang("doorbuilder.redstone_blocks_selector", "%value%", String.valueOf(blocks.size()))).build());
                 if (blocks.size() > 0)
                     inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                            .appendLang("doorbuilder.redstone_blocks_confirm")).build());//TODO missing conf
+                            .appendLang("doorbuilder.redstone_blocks_confirm")).build());
                 return;
             }
             this.getCompletableFuture().complete(this);
@@ -100,18 +102,18 @@ public class RedstoneType extends DoorType {
             if (getRoomBuilder().getTickCounter() % 2 == 0)
                 blocks.forEach((block) -> {
                     Particle.DustOptions info = new Particle.DustOptions(color, 0.4F);
-                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX(),block.getY(),block.getZ(), BlockFace.UP.getDirection(), 1,0.25D, info);
-                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX()+1,block.getY(),block.getZ(), BlockFace.UP.getDirection(), 1,0.25D, info);
-                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX(),block.getY(),block.getZ()+1, BlockFace.UP.getDirection(), 1,0.25D, info);
-                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX()+1,block.getY(),block.getZ()+1, BlockFace.UP.getDirection(), 1,0.25D, info);
-                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX(),block.getY(),block.getZ(), BlockFace.EAST.getDirection(), 1,0.25D, info);
-                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX(),block.getY(),block.getZ(), BlockFace.SOUTH.getDirection(), 1,0.25D, info);
-                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX(),block.getY()+1,block.getZ(), BlockFace.EAST.getDirection(), 1,0.25D, info);
-                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX(),block.getY()+1,block.getZ(), BlockFace.SOUTH.getDirection(), 1,0.25D, info);
-                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX()+1,block.getY(),block.getZ()+1, BlockFace.WEST.getDirection(), 1,0.25D, info);
-                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX()+1,block.getY(),block.getZ()+1, BlockFace.NORTH.getDirection(), 1,0.25D, info);
-                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX()+1,block.getY()+1,block.getZ()+1, BlockFace.WEST.getDirection(), 1,0.25D, info);
-                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX()+1,block.getY()+1,block.getZ()+1, BlockFace.NORTH.getDirection(), 1,0.25D, info);
+                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX(), block.getY(), block.getZ(), BlockFace.UP.getDirection(), 1, 0.25D, info);
+                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX() + 1, block.getY(), block.getZ(), BlockFace.UP.getDirection(), 1, 0.25D, info);
+                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX(), block.getY(), block.getZ() + 1, BlockFace.UP.getDirection(), 1, 0.25D, info);
+                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX() + 1, block.getY(), block.getZ() + 1, BlockFace.UP.getDirection(), 1, 0.25D, info);
+                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX(), block.getY(), block.getZ(), BlockFace.EAST.getDirection(), 1, 0.25D, info);
+                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX(), block.getY(), block.getZ(), BlockFace.SOUTH.getDirection(), 1, 0.25D, info);
+                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX(), block.getY() + 1, block.getZ(), BlockFace.EAST.getDirection(), 1, 0.25D, info);
+                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX(), block.getY() + 1, block.getZ(), BlockFace.SOUTH.getDirection(), 1, 0.25D, info);
+                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX() + 1, block.getY(), block.getZ() + 1, BlockFace.WEST.getDirection(), 1, 0.25D, info);
+                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX() + 1, block.getY(), block.getZ() + 1, BlockFace.NORTH.getDirection(), 1, 0.25D, info);
+                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX() + 1, block.getY() + 1, block.getZ() + 1, BlockFace.WEST.getDirection(), 1, 0.25D, info);
+                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX() + 1, block.getY() + 1, block.getZ() + 1, BlockFace.NORTH.getDirection(), 1, 0.25D, info);
                 });
         }
 
@@ -123,7 +125,8 @@ public class RedstoneType extends DoorType {
 
         public RedstoneInstance(@NotNull RoomType.RoomInstance roomInstance, @NotNull YMLSection section) {
             super(roomInstance, section);
-            section.getKeys("powered_blocks").forEach((key) -> this.poweredBlocks.add(Util.toBlockVector(section.getString("powered_blocks." + key))));
+            section.getStringList("powered_blocks", Collections.emptyList()).forEach(
+                    (key) -> this.poweredBlocks.add(Util.toBlockVector(key)));
         }
 
         @Override
@@ -182,7 +185,7 @@ public class RedstoneType extends DoorType {
                         }
                         final int[] counter = {0};
                         poweredBlocksList.forEach(block -> {
-                            if (block.getBlockPower()>0)
+                            if (block.getBlockPower() > 0)
                                 counter[0]++;
                         });
                         if (counter[0] >= poweredBlocksList.size()) {
@@ -196,7 +199,7 @@ public class RedstoneType extends DoorType {
                         text.setText(new DMessage(DeepDungeons.get(), null).appendLang("door.redstone_info",
                                 "%current%", String.valueOf(counter[0]), "%max%", String.valueOf(poweredBlocksList.size())).toLegacy());
                     }
-                }.runTaskTimer(DeepDungeons.get(), 10L, 10L);//TODO missing conf
+                }.runTaskTimer(DeepDungeons.get(), 10L, 10L);
             }
         }
 

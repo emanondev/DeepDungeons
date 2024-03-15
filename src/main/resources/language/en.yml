@@ -2,6 +2,8 @@ door:
   pressure_info: "%current%/%max% left"
   cooldown_info: "Cooldown %left% s"
   guardian_info: "%value% left"
+  redstone_info: "%current%/%max% left"
+  timed_info: "%current% left"
 party:
   has_no_party: "<blue>[</blue>Party<blue>]</blue><red> You don't have a party</red>"
   has_party: "<blue>[</blue>Party<blue>]</blue><red> You already have a party</red>"
@@ -128,7 +130,49 @@ doorbuilder:
     - "<#7897ff>Click on pressure plates blocks"
   pressure_plates_confirm:
     - "<gold>Confirm Selected Pressure Plates"
-    - "<#7897ff>Confirm current setting"
+    - "<#7897ff>Confirm current settings"
+  guardian_door_gui_title: "<blue>Guardian door"
+  guardian_entitytype_info:
+    - "<gold>Info: Set guardian door details"
+    - "<#7897ff>Select specified guardian entity type"
+  guardian_entitytype_selector:
+    - "<gold>Select counted entity types"
+    - "<#7897ff>Selected <aqua>%value%</aqua> entity types"
+    - ""
+    - "<#7897ff>In a dungeon to unlock the door, players"
+    - "<#7897ff>must kill all guardians of selected types inside"
+    - "<#7897ff>the room"
+  guardian_entitytype_confirm:
+    - "<gold>Confirm Configuration"
+    - "<#7897ff>Confirm current settings"
+  redstone_blocks_info:
+    - "<gold>Info: Set Powered Blocks"
+    - "<#7897ff>Set which blocks must be powered unlock the door"
+    - "<#7897ff>To unlock it all the blocks should"
+    - "<#7897ff>be powered at the same time"
+    - ""
+    - "<#7897ff>A block with redstone signal on it is powered"
+    - ""
+    - "<#7897ff>In a dungeon breaking a block that should be"
+    - "<#7897ff>powered and being unable to place it back will"
+    - "<#7897ff>lock the door forever"
+  redstone_blocks_selector:
+    - "<gold>Add/remove Checked Blocks (count: %value%)</gold>"
+    - "<#7897ff>Click on blocks"
+  redstone_blocks_confirm:
+    - "<gold>Confirm Selected Blocks"
+    - "<#7897ff>Confirm current settings"
+  timed_door_gui_title: "<blue>Timed door"
+  timed_door_info:
+    - "<gold>Info: Set Cooldown before opening"
+    - "<#7897ff>This door will open after some time"
+    - "<#7897ff>has passed, you can edit the duration"
+  timed_door_selector:
+    - "<gold>Edit Duration (%value%)</gold>"
+    - "<#7897ff>Click to open gui"
+  timed_door_confirm:
+    - "<gold>Confirm Selected Blocks"
+    - "<#7897ff>Confirm current settings"
 roombuilder:
   base_area_info:
     - "<gold>Info: Set Room Area"

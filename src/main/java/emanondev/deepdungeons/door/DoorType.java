@@ -457,7 +457,7 @@ public abstract class DoorType extends DRegistryElement {
                 return player.teleport(this.getSpawn());
             }
 
-            private void setCooldown(Player player, int cooldownSeconds) { //TODO make cooldownSeconds specific to door
+            private void setCooldown(Player player, int cooldownSeconds) {
                 if (cooldownSeconds == 0)
                     return;
                 if (cooldownSeconds > 0)
@@ -563,12 +563,11 @@ public abstract class DoorType extends DRegistryElement {
                         return;
                     }
                     if (this.equals(this.getRoom().getEntrance())) {
-                        DoorType.DoorInstance.@Nullable DoorHandler back = PartyManager.getInstance().getDungeonPlayer(event.getPlayer()).getBackRoute(this);
+                        DoorType.DoorInstance.DoorHandler back = PartyManager.getInstance().getDungeonPlayer(event.getPlayer()).getBackRoute(this);
                         if (back != null) {
                             if (canUse(event.getPlayer())) {
                                 back.teleportIn(event.getPlayer());
                             }
-                            //TODO cooldown
                             return;
                         }
                         //TODO else player was teleported to a room?

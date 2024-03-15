@@ -56,7 +56,7 @@ public class TimedType extends DoorType {
         protected void handleInteractImpl(@NotNull PlayerInteractEvent event) {
             switch (event.getPlayer().getInventory().getHeldItemSlot()) {
                 case 1 -> {
-                    MapGui mapGui = new MapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("doorbuilder.timed_door_gui_title"),//TODO missing conf
+                    MapGui mapGui = new MapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("doorbuilder.timed_door_gui_title"),
                             1, getPlayer(), null, DeepDungeons.get());
 
                     mapGui.setButton(4, new NumberEditorFButton<>(mapGui, 1L, 1L, 10000L, () -> timeToUnlock,
@@ -84,9 +84,8 @@ public class TimedType extends DoorType {
                         .appendLang("doorbuilder.timed_door_info")).build());
                 inv.setItem(1, new ItemBuilder(Material.CLOCK).setDescription(new DMessage(DeepDungeons.get(), player)
                         .appendLang("doorbuilder.timed_door_selector", "%value%", UtilsString.getTimeStringSeconds(getPlayer(), timeToUnlock), "%value_raw%", "" + timeToUnlock)).build());
-                //TODO fare lang
                 inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.timed_door_confirm")).build());//TODO fare i msg in language
+                        .appendLang("doorbuilder.timed_door_confirm")).build());
                 return;
             }
             this.getCompletableFuture().complete(this);
@@ -173,8 +172,10 @@ public class TimedType extends DoorType {
                             return;
                         }
                         //TODO it's not player language specific
-                        text.setText(new DMessage(DeepDungeons.get(), null).appendLang("door.timed_info",//todo lang da fare
-                                "%current%", String.valueOf((timeAwaited - now) / 1000 + 1), "%max%", String.valueOf((unlockTime))).toLegacy());
+                        text.setText(new DMessage(DeepDungeons.get(), null).appendLang("door.timed_info",
+                                "%current%", UtilsString.getTimeStringSeconds(null, (timeAwaited - now) / 1000 + 1),
+                                "%max%", UtilsString.getTimeStringSeconds(null, unlockTime), "%current_raw%",
+                                String.valueOf((timeAwaited - now) / 1000 + 1), "%max_raw%", String.valueOf(unlockTime)).toLegacy());
                     }
                 }.runTaskTimer(DeepDungeons.get(), 10L, 10L);
             }

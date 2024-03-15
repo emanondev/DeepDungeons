@@ -51,7 +51,7 @@ public class GuardianType extends DoorType {
 
         @Override
         protected void writeToImpl(@NotNull YMLSection section) {
-                section.setEnumsAsStringList("filthered_types" , entityTypes);
+                section.setEnumsAsStringList("filtered_types" , entityTypes);
         }
 
         @Override
@@ -59,12 +59,12 @@ public class GuardianType extends DoorType {
             switch (event.getPlayer().getInventory().getHeldItemSlot()) {
                 case 1 -> {
 
-                    MapGui mapGui = new MapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("doorbuilder.guardian_door_gui_title"),//TODO
+                    MapGui mapGui = new MapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("doorbuilder.guardian_door_gui_title"),
                             1, getPlayer(), null, DeepDungeons.get());
 
                     mapGui.setButton(4,new ResearchFButton<>(mapGui,
                             () -> {
-                                DMessage msg = new DMessage(DeepDungeons.get(), event.getPlayer())
+                                DMessage msg = new DMessage(DeepDungeons.get(), event.getPlayer())//TODO lang
                                         .append("<gold>EntityType selector").newLine().append(
                                                 "<blue>Selected EntityType: <yellow>" + (entityTypes.isEmpty()?EntityType.values().length:entityTypes.size()));
                                 entityTypes.forEach((type) -> msg.newLine().append("<blue> - <yellow>" + type ));
@@ -85,7 +85,7 @@ public class GuardianType extends DoorType {
                                     entityTypes.add(type);
                                 return true;
                             },
-                            (type) -> new ItemBuilder(Material.BRICK).setDescription(new DMessage(DeepDungeons.get(), getPlayer())
+                            (type) -> new ItemBuilder(Material.BRICK).setDescription(new DMessage(DeepDungeons.get(), getPlayer())//TODO lang
                                             .append("<gold>EntityType: <yellow>" + type.name()).newLine().append(
                                                     "<blue>Enabled? " + (entityTypes.isEmpty()||entityTypes.contains(type) ? "<green>true" : "<red>false"))
                                     ).addEnchantment(Enchantment.DURABILITY, (entityTypes.isEmpty()||entityTypes.contains(type) ? 1 : 0))
@@ -113,12 +113,12 @@ public class GuardianType extends DoorType {
                 Player player = getPlayer();
                 PlayerInventory inv = player.getInventory();
                 inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.guardian_entitytype_info")).build());//TODO
+                        .appendLang("doorbuilder.guardian_entitytype_info")).build());
                 inv.setItem(1, new ItemBuilder(Material.STICK).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.guardian_entitytype_selector", "%value%", String.valueOf(entityTypes.size()))).build());//TODO
+                        .appendLang("doorbuilder.guardian_entitytype_selector", "%value%", String.valueOf(entityTypes.size()))).build());
                 if (entityTypes.size() > 0)
                     inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                            .appendLang("doorbuilder.guardian_entitytype_confirm")).build());//TODO
+                            .appendLang("doorbuilder.guardian_entitytype_confirm")).build());
                 return;
             }
             this.getCompletableFuture().complete(this);
@@ -137,7 +137,7 @@ public class GuardianType extends DoorType {
 
         public GuardianInstance(@NotNull RoomType.RoomInstance roomInstance, @NotNull YMLSection section) {
             super(roomInstance, section);
-            entityTypes.addAll(section.loadEntityTypeList("filthered_types",Collections.emptyList()));
+            entityTypes.addAll(section.loadEntityTypeList("filtered_types",Collections.emptyList()));
         }
 
         @Override
