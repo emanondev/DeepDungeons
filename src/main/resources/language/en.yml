@@ -105,6 +105,12 @@ doorbuilder:
   base_commondata_facing:
     - "<gold>Choose door facing (current: %value%)"
     - "<#7897ff>Redirect it toward the players"
+  base_commondata_cooldowntime:
+    - "<gold>Set cooldown Time</gold>"
+    - "<#7897ff>In dungeons whe you use a door you may have"
+    - "<#7897ff>a cooldown before being able to use it again"
+    - ""
+    - "<#7897ff>You can set -1 for ∞ cooldown"
   base_commondata_confirm:
     - "<gold>Confirm Data</gold>"
     - "<#7897ff>Confirm current setting"

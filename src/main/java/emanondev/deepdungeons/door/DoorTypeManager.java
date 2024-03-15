@@ -2,10 +2,7 @@ package emanondev.deepdungeons.door;
 
 import emanondev.core.util.DRegistry;
 import emanondev.deepdungeons.DeepDungeons;
-import emanondev.deepdungeons.door.impl.GuardianType;
-import emanondev.deepdungeons.door.impl.PressureType;
-import emanondev.deepdungeons.door.impl.StandardType;
-import emanondev.deepdungeons.door.impl.TimedType;
+import emanondev.deepdungeons.door.impl.*;
 import org.jetbrains.annotations.NotNull;
 
 public class DoorTypeManager extends DRegistry<DoorType> {
@@ -18,6 +15,7 @@ public class DoorTypeManager extends DRegistry<DoorType> {
         this.register(new GuardianType());
         this.register(new PressureType());
         this.register(new TimedType());
+        this.register(new RedstoneType());
     }
 
     public static DoorTypeManager getInstance() {

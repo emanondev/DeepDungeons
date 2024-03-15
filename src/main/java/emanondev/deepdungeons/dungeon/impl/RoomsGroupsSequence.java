@@ -268,6 +268,7 @@ public class RoomsGroupsSequence extends DungeonType {
                                     .setGuiProperty().build();
                         },
                         () -> RoomInstanceManager.getInstance().getIds()));
+
                 if (MIN_LEN != MAX_LEN) {
                     mapGui.addButton(new NumberEditorFButton<>(mapGui, 1, 1, 10000, () -> minLength, this::setMinLength,
                             () -> new ItemBuilder(Material.REPEATER).setDescription(new DMessage(DeepDungeons.get(), getPlayer())

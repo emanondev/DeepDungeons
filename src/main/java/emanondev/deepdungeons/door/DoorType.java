@@ -1,7 +1,10 @@
 package emanondev.deepdungeons.door;
 
 import emanondev.core.ItemBuilder;
+import emanondev.core.UtilsString;
 import emanondev.core.YMLSection;
+import emanondev.core.gui.NumberEditorFButton;
+import emanondev.core.gui.PagedMapGui;
 import emanondev.core.message.DMessage;
 import emanondev.core.util.DRegistryElement;
 import emanondev.core.util.ParticleUtility;
@@ -56,6 +59,7 @@ public abstract class DoorType extends DRegistryElement {
         private BlockFace doorFace = BlockFace.NORTH;
         private float spawnPitch;
         private boolean hasConfirmedSpawnLocation = false;
+        private int cooldownLenghtSeconds = 5;
 
         public DoorInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
             super(DoorType.this);
@@ -99,6 +103,7 @@ public abstract class DoorType extends DRegistryElement {
             section.set("spawnOffset", Util.toString(spawnOffset));
             section.set("spawnYaw", spawnYaw);
             section.set("spawnPitch", spawnPitch);
+            section.set("cooldownLengthSeconds", cooldownLenghtSeconds);
             writeToImpl(section);
         }
 
@@ -148,6 +153,9 @@ public abstract class DoorType extends DRegistryElement {
                                 spawnOffset == null ? "<red>null</red>" : Util.toString(spawnOffset))).build());
                 inv.setItem(2, new ItemBuilder(Material.MAGENTA_GLAZED_TERRACOTTA).setDescription(new DMessage(DeepDungeons.get(), player)
                         .appendLang("doorbuilder.base_commondata_facing", "%value%", doorFace.name())).build());
+                inv.setItem(3, new ItemBuilder(Material.CLOCK).setDescription(new DMessage(DeepDungeons.get(), player)
+                        .appendLang("doorbuilder.base_commondata_cooldowntime", "%value%",
+                                UtilsString.getTimeStringSeconds(getPlayer(), cooldownLenghtSeconds), "%value_raw%", String.valueOf(cooldownLenghtSeconds))).build());
                 if (getSpawnOffset() != null)
                     inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
                             .appendLang("doorbuilder.base_commondata_confirm")).build());
@@ -210,6 +218,18 @@ public abstract class DoorType extends DRegistryElement {
                                     + (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK ? 1 : -1)) % BlockFace.values().length];
                         setDoorFace(next);
                         roomBuilder.setupTools();
+                    }
+                    case 3 -> {
+                        PagedMapGui mapGui = new PagedMapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("doorbuilder.timed_door_gui_title"),
+                                1, getPlayer(), null, DeepDungeons.get());
+
+                        mapGui.setButton(4, new NumberEditorFButton<>(mapGui, 1, 1, 10000, () -> cooldownLenghtSeconds,
+                                (time) -> cooldownLenghtSeconds = Math.min(Math.max(-1, time), 36000),
+                                () -> new ItemBuilder(Material.REPEATER).setDescription(new DMessage(DeepDungeons.get(), getPlayer())
+                                        .append("<gold>Time: <yellow>" + UtilsString.getTimeStringSeconds(getPlayer(), cooldownLenghtSeconds), "%value_raw%", "" + cooldownLenghtSeconds).newLine()
+                                        .append("<blue>How much time until door opens?")
+                                ).setGuiProperty().build(), true));
+                        mapGui.open(event.getPlayer());
                     }
                     case 6 -> {
                         if (getSpawnOffset() != null) {
@@ -332,6 +352,7 @@ public abstract class DoorType extends DRegistryElement {
         private final Vector spawnOffset;
         private final float spawnYaw;
         private final float spawnPitch;
+        private final int cooldownLengthSeconds;
 
         public DoorInstance(@NotNull RoomType.RoomInstance roomInstance, @NotNull YMLSection section) {
             super(DoorType.this);
@@ -360,7 +381,7 @@ public abstract class DoorType extends DRegistryElement {
             this.spawnOffset = tempVector;
             this.spawnYaw = (float) section.getDouble("spawnYaw");
             this.spawnPitch = (float) section.getDouble("spawnPitch");
-            //TODO
+            this.cooldownLengthSeconds = section.getInt("cooldownLengthSeconds", 5);
         }
 
         @Contract(pure = true)
@@ -430,7 +451,7 @@ public abstract class DoorType extends DRegistryElement {
             }
 
             public boolean teleportIn(@NotNull Player player) {
-                setCooldown(player, 5);
+                setCooldown(player, cooldownLengthSeconds);
                 return player.teleport(this.getSpawn());
             }
 

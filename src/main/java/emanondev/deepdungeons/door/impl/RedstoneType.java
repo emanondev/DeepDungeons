@@ -1,74 +1,75 @@
 package emanondev.deepdungeons.door.impl;
 
 import emanondev.core.ItemBuilder;
-import emanondev.core.UtilsString;
 import emanondev.core.YMLSection;
-import emanondev.core.gui.NumberEditorFButton;
-import emanondev.core.gui.PagedMapGui;
 import emanondev.core.message.DMessage;
+import emanondev.core.util.ParticleUtility;
 import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.Util;
 import emanondev.deepdungeons.door.DoorType;
 import emanondev.deepdungeons.dungeon.DungeonType;
 import emanondev.deepdungeons.room.RoomType;
-import org.bukkit.Color;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.BlockVector;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-public class TimedType extends DoorType {
-    public TimedType() {
-        super("timed");
+import java.util.ArrayList;
+import java.util.List;
+
+public class RedstoneType extends DoorType {
+    public RedstoneType() {
+        super("redstone");
     }
 
     @Override
-    public @NotNull TimedType.TimedDoorInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
-        return new TimedDoorInstance(room, section);
+    public @NotNull RedstoneInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
+        return new RedstoneInstance(room, section);
     }
 
     @Override
-    public @NotNull TimedType.TimedDoorInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
-        return new TimedDoorInstanceBuilder(room);
+    public @NotNull RedstoneInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+        return new RedstoneInstanceBuilder(room);
     }
 
-    public final class TimedDoorInstanceBuilder extends DoorInstanceBuilder {
+    public final class RedstoneInstanceBuilder extends DoorInstanceBuilder {
 
-        private long timeToUnlock = 0;//in seconds
-        private boolean completedTimes = false;
-        public TimedDoorInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+        private final List<BlockVector> blocks = new ArrayList<>();
+        private boolean completedRedstonePlates = false;
+
+
+        public RedstoneInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
             super(room);
         }
 
         @Override
         protected void writeToImpl(@NotNull YMLSection section) {
-            section.set("timeToUnlock", "" + (timeToUnlock));
+            for (int i = 0; i < blocks.size(); i++)
+                section.set("powered_blocks." + (i + 1), Util.toString(blocks.get(i).subtract(getRoomOffset())));
         }
 
         @Override
         protected void handleInteractImpl(@NotNull PlayerInteractEvent event) {
             switch (event.getPlayer().getInventory().getHeldItemSlot()) {
                 case 1 -> {
-                    PagedMapGui mapGui = new PagedMapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("doorbuilder.timed_door_gui_title"),//TODO missing conf
-                            1, getPlayer(), null, DeepDungeons.get());
-
-                    mapGui.setButton(4,new NumberEditorFButton<>(mapGui, 1L, 1L, 10000L, () -> timeToUnlock,
-                            (time) -> timeToUnlock = Math.min(Math.max(1, time), 36000),
-                            () -> new ItemBuilder(Material.REPEATER).setDescription(new DMessage(DeepDungeons.get(), getPlayer())
-                                            .append("<gold>Time: <yellow>" + UtilsString.getTimeStringSeconds(getPlayer(), timeToUnlock),"%value_raw%",""+timeToUnlock).newLine()
-                                            .append("<blue>How much time until door opens?")
-                                    )                                    .setGuiProperty().build(), true));
-                    mapGui.open(event.getPlayer());
+                    if (event.getClickedBlock() == null)
+                        return;
+                    if (!getRoomBuilder().contains(event.getClickedBlock().getLocation()))
+                        return;
+                    BlockVector loc = event.getClickedBlock().getLocation().toVector().toBlockVector();
+                    if (!blocks.remove(loc))
+                        blocks.add(loc);
                 }
                 case 6 -> {
-                    if (timeToUnlock != 0) {
-                        completedTimes = true;
+                    if (blocks.size() > 0) {
+                        completedRedstonePlates = true;
                         event.getPlayer().getInventory().setHeldItemSlot(0);
                         setupTools();
                     }
@@ -78,17 +79,16 @@ public class TimedType extends DoorType {
 
         @Override
         protected void setupToolsImpl() {
-            if (!completedTimes) {
+            if (!completedRedstonePlates) {
                 Player player = getPlayer();
                 PlayerInventory inv = player.getInventory();
                 inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.timed_door_info")).build());
+                        .appendLang("doorbuilder.redstone_blocks_info")).build());
                 inv.setItem(1, new ItemBuilder(Material.STICK).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.timed_door_selector", "%value%",  UtilsString.getTimeStringSeconds(getPlayer(), timeToUnlock),"%value_raw%",""+timeToUnlock)).build());
-                //TODO fare lang
-                if (timeToUnlock != 0)
+                        .appendLang("doorbuilder.redstone_blocks_selector", "%value%", String.valueOf(blocks.size()))).build());
+                if (blocks.size() > 0)
                     inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                            .appendLang("doorbuilder.timed_door_confirm")).build());//TODO fare i msg in language
+                            .appendLang("doorbuilder.redstone_blocks_confirm")).build());//TODO missing conf
                 return;
             }
             this.getCompletableFuture().complete(this);
@@ -96,41 +96,44 @@ public class TimedType extends DoorType {
 
         @Override
         protected void tickTimerImpl(@NotNull Player player, @NotNull Color color) {
+            if (getRoomBuilder().getTickCounter() % 2 == 0)
+                blocks.forEach((block) -> ParticleUtility.spawnParticleCircle(player, Particle.REDSTONE, block.clone()
+                                .add(new Vector(0.5D, getRoomBuilder().getTickCounter() % 4 == 0 ? 0.1D : 0.2D, 0.5D)), getRoomBuilder().getTickCounter() % 4 == 0 ? 0.3D : 0.1D,
+                        getRoomBuilder().getTickCounter() % 4 == 0, new Particle.DustOptions(color, 0.4F)));
+
         }
 
     }
 
-    public class TimedDoorInstance extends DoorInstance {
+    public class RedstoneInstance extends DoorInstance {
 
-        private final long unlockTime;
+        private final List<BlockVector> poweredBlocks = new ArrayList<>();
 
-        public TimedDoorInstance(@NotNull RoomType.RoomInstance roomInstance, @NotNull YMLSection section) {
+        public RedstoneInstance(@NotNull RoomType.RoomInstance roomInstance, @NotNull YMLSection section) {
             super(roomInstance, section);
-            unlockTime = section.getLong("timeToUnlock", 60L);
+            section.getKeys("powered_blocks").forEach((key) -> this.poweredBlocks.add(Util.toBlockVector(section.getString("powered_blocks." + key))));
         }
 
         @Override
-        public @NotNull TimedType.TimedDoorInstance.TimeDoorHandler createDoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
-            return new TimeDoorHandler(roomHandler);
+        public @NotNull RedstoneHandler createDoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
+            return new RedstoneHandler(roomHandler);
         }
 
-        public class TimeDoorHandler extends DoorHandler {
+        public class RedstoneHandler extends DoorHandler {
 
-            private long timeAwaited;
+            private final List<Block> poweredBlocksList = new ArrayList<>();
             private boolean unlocked = false;
             private ItemDisplay item;
             private TextDisplay text;
 
-            public TimeDoorHandler(RoomType.RoomInstance.@NotNull RoomHandler roomHandler) {
+            public RedstoneHandler(RoomType.RoomInstance.@NotNull RoomHandler roomHandler) {
                 super(roomHandler);
             }
 
             public void setupOffset() {
                 super.setupOffset();
-              /*  for (BlockVector vector : TimedDoorInstance.this.pressurePlates)
-                    pressurePlates.add(this.getRoom().getLocation().add(vector).getBlock());
-
-               */
+                for (BlockVector vector : RedstoneInstance.this.poweredBlocks)
+                    poweredBlocksList.add(this.getRoom().getLocation().add(vector).getBlock());
             }
 
             @Override
@@ -147,7 +150,7 @@ public class TimedType extends DoorType {
                 Vector center = this.getBoundingBox().getCenter();
                 item = (ItemDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() + 0.5, center.getZ())
                         .setDirection(getDoorFace().getOppositeFace().getDirection()), EntityType.ITEM_DISPLAY);
-                item.setItemStack(new ItemStack(Material.CLOCK));
+                item.setItemStack(new ItemStack(Material.TARGET));
                 Transformation tr = item.getTransformation();
                 tr.getScale().mul(1.3F, 1.3F, 0.1F);
                 item.setTransformation(tr);
@@ -156,7 +159,6 @@ public class TimedType extends DoorType {
                 text = (TextDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() - 0.5, center.getZ())
                         .setDirection(getDoorFace().getDirection()), EntityType.TEXT_DISPLAY);
                 text.setBrightness(new Display.Brightness(15, 15));
-                timeAwaited = System.currentTimeMillis() + unlockTime * 1000;
                 new BukkitRunnable() {
                     @Override
                     public void run() {
@@ -166,8 +168,12 @@ public class TimedType extends DoorType {
                             this.cancel();
                             return;
                         }
-                        long now = System.currentTimeMillis();
-                        if (timeAwaited < now) {
+                        final int[] counter = {0};
+                        poweredBlocksList.forEach(block -> {
+                            if (block.getBlockPower()>0)
+                                counter[0]++;
+                        });
+                        if (counter[0] >= poweredBlocksList.size()) {
                             text.remove();
                             item.remove();
                             unlocked = true;
@@ -175,11 +181,12 @@ public class TimedType extends DoorType {
                             return;
                         }
                         //TODO it's not player language specific
-                        text.setText(new DMessage(DeepDungeons.get(), null).appendLang("door.timed_info",//todo lang da fare
-                                "%current%", String.valueOf((timeAwaited - now) / 1000 + 1), "%max%", String.valueOf((unlockTime))).toLegacy());
+                        text.setText(new DMessage(DeepDungeons.get(), null).appendLang("door.redstone_info",
+                                "%current%", String.valueOf(counter[0]), "%max%", String.valueOf(poweredBlocksList.size())).toLegacy());
                     }
-                }.runTaskTimer(DeepDungeons.get(), 10L, 10L);
+                }.runTaskTimer(DeepDungeons.get(), 10L, 10L);//TODO missing conf
             }
         }
+
     }
 }
