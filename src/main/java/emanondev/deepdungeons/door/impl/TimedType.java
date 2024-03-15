@@ -3,8 +3,8 @@ package emanondev.deepdungeons.door.impl;
 import emanondev.core.ItemBuilder;
 import emanondev.core.UtilsString;
 import emanondev.core.YMLSection;
+import emanondev.core.gui.MapGui;
 import emanondev.core.gui.NumberEditorFButton;
-import emanondev.core.gui.PagedMapGui;
 import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.door.DoorType;
@@ -40,8 +40,9 @@ public class TimedType extends DoorType {
 
     public final class TimedDoorInstanceBuilder extends DoorInstanceBuilder {
 
-        private long timeToUnlock = 0;//in seconds
+        private long timeToUnlock = 60;//in seconds
         private boolean completedTimes = false;
+
         public TimedDoorInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
             super(room);
         }
@@ -55,23 +56,21 @@ public class TimedType extends DoorType {
         protected void handleInteractImpl(@NotNull PlayerInteractEvent event) {
             switch (event.getPlayer().getInventory().getHeldItemSlot()) {
                 case 1 -> {
-                    PagedMapGui mapGui = new PagedMapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("doorbuilder.timed_door_gui_title"),//TODO missing conf
+                    MapGui mapGui = new MapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("doorbuilder.timed_door_gui_title"),//TODO missing conf
                             1, getPlayer(), null, DeepDungeons.get());
 
-                    mapGui.setButton(4,new NumberEditorFButton<>(mapGui, 1L, 1L, 10000L, () -> timeToUnlock,
+                    mapGui.setButton(4, new NumberEditorFButton<>(mapGui, 1L, 1L, 10000L, () -> timeToUnlock,
                             (time) -> timeToUnlock = Math.min(Math.max(1, time), 36000),
                             () -> new ItemBuilder(Material.REPEATER).setDescription(new DMessage(DeepDungeons.get(), getPlayer())
-                                            .append("<gold>Time: <yellow>" + UtilsString.getTimeStringSeconds(getPlayer(), timeToUnlock),"%value_raw%",""+timeToUnlock).newLine()
-                                            .append("<blue>How much time until door opens?")
-                                    )                                    .setGuiProperty().build(), true));
+                                    .append("<gold>Time: <yellow>" + UtilsString.getTimeStringSeconds(getPlayer(), timeToUnlock), "%value_raw%", "" + timeToUnlock).newLine()
+                                    .append("<blue>How much time until door opens?")
+                            ).setGuiProperty().build(), true));
                     mapGui.open(event.getPlayer());
                 }
                 case 6 -> {
-                    if (timeToUnlock != 0) {
-                        completedTimes = true;
-                        event.getPlayer().getInventory().setHeldItemSlot(0);
-                        setupTools();
-                    }
+                    completedTimes = true;
+                    event.getPlayer().getInventory().setHeldItemSlot(0);
+                    setupTools();
                 }
             }
         }
@@ -83,12 +82,11 @@ public class TimedType extends DoorType {
                 PlayerInventory inv = player.getInventory();
                 inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
                         .appendLang("doorbuilder.timed_door_info")).build());
-                inv.setItem(1, new ItemBuilder(Material.STICK).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.timed_door_selector", "%value%",  UtilsString.getTimeStringSeconds(getPlayer(), timeToUnlock),"%value_raw%",""+timeToUnlock)).build());
+                inv.setItem(1, new ItemBuilder(Material.CLOCK).setDescription(new DMessage(DeepDungeons.get(), player)
+                        .appendLang("doorbuilder.timed_door_selector", "%value%", UtilsString.getTimeStringSeconds(getPlayer(), timeToUnlock), "%value_raw%", "" + timeToUnlock)).build());
                 //TODO fare lang
-                if (timeToUnlock != 0)
-                    inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                            .appendLang("doorbuilder.timed_door_confirm")).build());//TODO fare i msg in language
+                inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
+                        .appendLang("doorbuilder.timed_door_confirm")).build());//TODO fare i msg in language
                 return;
             }
             this.getCompletableFuture().complete(this);
@@ -149,10 +147,10 @@ public class TimedType extends DoorType {
                         .setDirection(getDoorFace().getOppositeFace().getDirection()), EntityType.ITEM_DISPLAY);
                 item.setItemStack(new ItemStack(Material.CLOCK));
                 Transformation tr = item.getTransformation();
-                tr.getScale().mul(1.3F, 1.3F, 0.1F);
+                tr.getScale().mul(1F, 1F, 0.1F);
                 item.setTransformation(tr);
                 item.setBrightness(new Display.Brightness(15, 15));
-                item.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.GUI);
+                item.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.GROUND);
                 text = (TextDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() - 0.5, center.getZ())
                         .setDirection(getDoorFace().getDirection()), EntityType.TEXT_DISPLAY);
                 text.setBrightness(new Display.Brightness(15, 15));

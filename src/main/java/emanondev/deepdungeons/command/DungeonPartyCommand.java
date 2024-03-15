@@ -545,9 +545,12 @@ public class DungeonPartyCommand extends CoreCommand {
                     list.addAll(this.complete(args[0], Collections.singleton("info")));
                 if (player.hasPermission(Perms.PARTY_LIST))
                     list.addAll(this.complete(args[0], Collections.singleton("list")));
+                if (player.hasPermission(Perms.PARTY_HELP))
+                    list.addAll(this.complete(args[0], Collections.singleton("help")));
                 yield list;
             }
             case 2 -> switch (args[0].toLowerCase(Locale.ENGLISH)) {
+                case "help" -> player.hasPermission(Perms.PARTY_HELP) ? this.complete(args[1], List.of("1", "2")) : Collections.emptyList();
                 case "info" -> player.hasPermission(Perms.PARTY_INFO) ? this.completePlayerNames(sender, args[1],
                         (p) -> PartyManager.getInstance().getParty(p) != null) : Collections.emptyList();
                 case "list" -> player.hasPermission(Perms.PARTY_LIST) ? this.complete(args[1], List.of("1", "2", "3", "4", "5")) : Collections.emptyList();

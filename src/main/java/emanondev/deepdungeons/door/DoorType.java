@@ -3,8 +3,8 @@ package emanondev.deepdungeons.door;
 import emanondev.core.ItemBuilder;
 import emanondev.core.UtilsString;
 import emanondev.core.YMLSection;
+import emanondev.core.gui.MapGui;
 import emanondev.core.gui.NumberEditorFButton;
-import emanondev.core.gui.PagedMapGui;
 import emanondev.core.message.DMessage;
 import emanondev.core.util.DRegistryElement;
 import emanondev.core.util.ParticleUtility;
@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -220,7 +221,7 @@ public abstract class DoorType extends DRegistryElement {
                         roomBuilder.setupTools();
                     }
                     case 3 -> {
-                        PagedMapGui mapGui = new PagedMapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("doorbuilder.timed_door_gui_title"),
+                        MapGui mapGui = new MapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("doorbuilder.timed_door_gui_title"),
                                 1, getPlayer(), null, DeepDungeons.get());
 
                         mapGui.setButton(4, new NumberEditorFButton<>(mapGui, 1, 1, 10000, () -> cooldownLenghtSeconds,
@@ -435,6 +436,7 @@ public abstract class DoorType extends DRegistryElement {
 
             private final RoomType.RoomInstance.RoomHandler roomHandler;
             private final HashMap<UUID, Long> cooldowns = new HashMap<>();
+            private final HashSet<UUID> blocked = new HashSet<>();
             private final HashMap<UUID, ItemDisplay> cooldownItems = new HashMap<>();
             private final HashMap<UUID, TextDisplay> cooldownText = new HashMap<>();
             private DoorHandler link;
@@ -460,6 +462,8 @@ public abstract class DoorType extends DRegistryElement {
                     return;
                 if (cooldownSeconds > 0)
                     cooldowns.put(player.getUniqueId(), cooldownSeconds * 1000L + System.currentTimeMillis());
+                else
+                    blocked.add(player.getUniqueId());
                 @NotNull World world = getRoom().getDungeonHandler().getWorld();
                 Vector center = this.getBoundingBox().getCenter();
                 ItemDisplay item = (ItemDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() + 0.25, center.getZ())
@@ -607,6 +611,8 @@ public abstract class DoorType extends DRegistryElement {
             }
 
             public boolean canUse(Player player) {
+                if (blocked.contains(player.getUniqueId()))
+                    return false;
                 Long cooldown = cooldowns.get(player.getUniqueId());
                 return cooldown == null || cooldown < System.currentTimeMillis();
             }

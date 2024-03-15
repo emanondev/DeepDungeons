@@ -11,6 +11,7 @@ import emanondev.deepdungeons.dungeon.DungeonType;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -97,10 +98,21 @@ public class RedstoneType extends DoorType {
         @Override
         protected void tickTimerImpl(@NotNull Player player, @NotNull Color color) {
             if (getRoomBuilder().getTickCounter() % 2 == 0)
-                blocks.forEach((block) -> ParticleUtility.spawnParticleCircle(player, Particle.REDSTONE, block.clone()
-                                .add(new Vector(0.5D, getRoomBuilder().getTickCounter() % 4 == 0 ? 0.1D : 0.2D, 0.5D)), getRoomBuilder().getTickCounter() % 4 == 0 ? 0.3D : 0.1D,
-                        getRoomBuilder().getTickCounter() % 4 == 0, new Particle.DustOptions(color, 0.4F)));
-
+                blocks.forEach((block) -> {
+                    Particle.DustOptions info = new Particle.DustOptions(color, 0.4F);
+                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX(),block.getY(),block.getZ(), BlockFace.UP.getDirection(), 1,0.25D, info);
+                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX()+1,block.getY(),block.getZ(), BlockFace.UP.getDirection(), 1,0.25D, info);
+                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX(),block.getY(),block.getZ()+1, BlockFace.UP.getDirection(), 1,0.25D, info);
+                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX()+1,block.getY(),block.getZ()+1, BlockFace.UP.getDirection(), 1,0.25D, info);
+                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX(),block.getY(),block.getZ(), BlockFace.EAST.getDirection(), 1,0.25D, info);
+                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX(),block.getY(),block.getZ(), BlockFace.SOUTH.getDirection(), 1,0.25D, info);
+                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX(),block.getY()+1,block.getZ(), BlockFace.EAST.getDirection(), 1,0.25D, info);
+                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX(),block.getY()+1,block.getZ(), BlockFace.SOUTH.getDirection(), 1,0.25D, info);
+                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX()+1,block.getY(),block.getZ()+1, BlockFace.WEST.getDirection(), 1,0.25D, info);
+                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX()+1,block.getY(),block.getZ()+1, BlockFace.NORTH.getDirection(), 1,0.25D, info);
+                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX()+1,block.getY()+1,block.getZ()+1, BlockFace.WEST.getDirection(), 1,0.25D, info);
+                    ParticleUtility.spawnParticleLine(player,Particle.REDSTONE,block.getX()+1,block.getY()+1,block.getZ()+1, BlockFace.NORTH.getDirection(), 1,0.25D, info);
+                });
         }
 
     }
@@ -152,7 +164,7 @@ public class RedstoneType extends DoorType {
                         .setDirection(getDoorFace().getOppositeFace().getDirection()), EntityType.ITEM_DISPLAY);
                 item.setItemStack(new ItemStack(Material.TARGET));
                 Transformation tr = item.getTransformation();
-                tr.getScale().mul(1.3F, 1.3F, 0.1F);
+                tr.getScale().mul(1F, 1F, 0.1F);
                 item.setTransformation(tr);
                 item.setBrightness(new Display.Brightness(15, 15));
                 item.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.GUI);

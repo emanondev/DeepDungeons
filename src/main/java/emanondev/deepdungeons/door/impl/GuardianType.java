@@ -2,7 +2,7 @@ package emanondev.deepdungeons.door.impl;
 
 import emanondev.core.ItemBuilder;
 import emanondev.core.YMLSection;
-import emanondev.core.gui.PagedMapGui;
+import emanondev.core.gui.MapGui;
 import emanondev.core.gui.ResearchFButton;
 import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.DeepDungeons;
@@ -59,7 +59,7 @@ public class GuardianType extends DoorType {
             switch (event.getPlayer().getInventory().getHeldItemSlot()) {
                 case 1 -> {
 
-                    PagedMapGui mapGui = new PagedMapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("doorbuilder.timed_door_gui_title"),
+                    MapGui mapGui = new MapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("doorbuilder.guardian_door_gui_title"),//TODO
                             1, getPlayer(), null, DeepDungeons.get());
 
                     mapGui.setButton(4,new ResearchFButton<>(mapGui,
@@ -91,7 +91,7 @@ public class GuardianType extends DoorType {
                                     ).addEnchantment(Enchantment.DURABILITY, (entityTypes.isEmpty()||entityTypes.contains(type) ? 1 : 0))
                                     .setGuiProperty().build(),
                             () -> {List<EntityType> types = new ArrayList<>(Arrays.asList(EntityType.values()));
-                        types.removeIf(type->!type.isSpawnable());
+                        types.removeIf(type->!type.isSpawnable()&&!type.isAlive());
                         types.sort(Comparator.comparing(Enum::name));
                         return types;
                     }));
@@ -113,12 +113,12 @@ public class GuardianType extends DoorType {
                 Player player = getPlayer();
                 PlayerInventory inv = player.getInventory();
                 inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.pressure_plates_info")).build());
+                        .appendLang("doorbuilder.guardian_entitytype_info")).build());//TODO
                 inv.setItem(1, new ItemBuilder(Material.STICK).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.pressure_plates_selector", "%value%", String.valueOf(entityTypes.size()))).build());
+                        .appendLang("doorbuilder.guardian_entitytype_selector", "%value%", String.valueOf(entityTypes.size()))).build());//TODO
                 if (entityTypes.size() > 0)
                     inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                            .appendLang("doorbuilder.pressure_plates_confirm")).build());
+                            .appendLang("doorbuilder.guardian_entitytype_confirm")).build());//TODO
                 return;
             }
             this.getCompletableFuture().complete(this);
