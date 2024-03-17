@@ -228,9 +228,9 @@ public abstract class DoorType extends DRegistryElement {
                         mapGui.setButton(4, new NumberEditorFButton<>(mapGui, 1, 1, 10000, () -> cooldownLenghtSeconds,
                                 (time) -> cooldownLenghtSeconds = Math.min(Math.max(-1, time), 36000),
                                 () -> new ItemBuilder(Material.REPEATER).setDescription(new DMessage(DeepDungeons.get(), getPlayer())
-                                                .appendLang("doorbuilder.base_commandata_cooldowneditor","%value%",
-                                                        UtilsString.getTimeStringSeconds(getPlayer(), cooldownLenghtSeconds),
-                                                        "%value_raw%",String.valueOf(cooldownLenghtSeconds))
+                                        .appendLang("doorbuilder.base_commandata_cooldowneditor", "%value%",
+                                                UtilsString.getTimeStringSeconds(getPlayer(), cooldownLenghtSeconds),
+                                                "%value_raw%", String.valueOf(cooldownLenghtSeconds))
                                 ).setGuiProperty().build(), true));
                         mapGui.open(event.getPlayer());
                     }
@@ -340,7 +340,7 @@ public abstract class DoorType extends DRegistryElement {
         protected void showWEBound(@NotNull Player player) {
             try {
                 ParticleUtility.spawnParticleBoxFaces(player, roomBuilder.getTickCounter() / 6 + 6, 4, Particle.REDSTONE,
-                        WorldEditUtility.getSelectionBoxExpanded(player),                        new Particle.DustOptions(Color.WHITE, 0.3F));
+                        WorldEditUtility.getSelectionBoxExpanded(player), new Particle.DustOptions(Color.WHITE, 0.3F));
             } catch (Exception ignored) {
             }
         }

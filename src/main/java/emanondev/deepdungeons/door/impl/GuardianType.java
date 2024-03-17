@@ -42,16 +42,15 @@ public class GuardianType extends DoorType {
 
     public final class GuardianInstanceBuilder extends DoorInstanceBuilder {
 
+        private final HashSet<EntityType> entityTypes = new HashSet<>();
+        private boolean completedConfiguration = false;
         public GuardianInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
             super(room);
         }
 
-        private final HashSet<EntityType> entityTypes = new HashSet<>();
-        private boolean completedConfiguration = false;
-
         @Override
         protected void writeToImpl(@NotNull YMLSection section) {
-                section.setEnumsAsStringList("filtered_types" , entityTypes);
+            section.setEnumsAsStringList("filtered_types", entityTypes);
         }
 
         @Override
@@ -62,13 +61,13 @@ public class GuardianType extends DoorType {
                     MapGui mapGui = new MapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("doorbuilder.guardian_door_gui_title"),
                             1, getPlayer(), null, DeepDungeons.get());
 
-                    mapGui.setButton(4,new ResearchFButton<>(mapGui,
+                    mapGui.setButton(4, new ResearchFButton<>(mapGui,
                             () -> {
                                 DMessage msg = new DMessage(DeepDungeons.get(), event.getPlayer())//TODO lang
                                         .append("<gold>EntityType selector").newLine().append(
-                                                "<blue>Selected EntityType: <yellow>" + (entityTypes.isEmpty()?EntityType.values().length:entityTypes.size()));
-                                entityTypes.forEach((type) -> msg.newLine().append("<blue> - <yellow>" + type ));
-                                return new ItemBuilder(Material.ZOMBIE_HEAD).setAmount(Math.max(Math.min(100, (entityTypes.isEmpty()?EntityType.values().length:entityTypes.size())), 1))
+                                                "<blue>Selected EntityType: <yellow>" + (entityTypes.isEmpty() ? EntityType.values().length : entityTypes.size()));
+                                entityTypes.forEach((type) -> msg.newLine().append("<blue> - <yellow>" + type));
+                                return new ItemBuilder(Material.ZOMBIE_HEAD).setAmount(Math.max(Math.min(100, (entityTypes.isEmpty() ? EntityType.values().length : entityTypes.size())), 1))
                                         .setDescription(msg).build();
                             },
                             (String text, EntityType type) -> {
@@ -87,14 +86,15 @@ public class GuardianType extends DoorType {
                             },
                             (type) -> new ItemBuilder(Material.BRICK).setDescription(new DMessage(DeepDungeons.get(), getPlayer())//TODO lang
                                             .append("<gold>EntityType: <yellow>" + type.name()).newLine().append(
-                                                    "<blue>Enabled? " + (entityTypes.isEmpty()||entityTypes.contains(type) ? "<green>true" : "<red>false"))
-                                    ).addEnchantment(Enchantment.DURABILITY, (entityTypes.isEmpty()||entityTypes.contains(type) ? 1 : 0))
+                                                    "<blue>Enabled? " + (entityTypes.isEmpty() || entityTypes.contains(type) ? "<green>true" : "<red>false"))
+                                    ).addEnchantment(Enchantment.DURABILITY, (entityTypes.isEmpty() || entityTypes.contains(type) ? 1 : 0))
                                     .setGuiProperty().build(),
-                            () -> {List<EntityType> types = new ArrayList<>(Arrays.asList(EntityType.values()));
-                        types.removeIf(type->!type.isSpawnable()&&!type.isAlive());
-                        types.sort(Comparator.comparing(Enum::name));
-                        return types;
-                    }));
+                            () -> {
+                                List<EntityType> types = new ArrayList<>(Arrays.asList(EntityType.values()));
+                                types.removeIf(type -> !type.isSpawnable() && !type.isAlive());
+                                types.sort(Comparator.comparing(Enum::name));
+                                return types;
+                            }));
                     mapGui.open(event.getPlayer());
                 }
                 case 6 -> {
@@ -137,7 +137,7 @@ public class GuardianType extends DoorType {
 
         public GuardianInstance(@NotNull RoomType.RoomInstance roomInstance, @NotNull YMLSection section) {
             super(roomInstance, section);
-            entityTypes.addAll(section.loadEntityTypeList("filtered_types",Collections.emptyList()));
+            entityTypes.addAll(section.loadEntityTypeList("filtered_types", Collections.emptyList()));
         }
 
         @Override
@@ -169,7 +169,7 @@ public class GuardianType extends DoorType {
             @Override
             public void onFirstPlayerEnter(Player player) {
                 entities.addAll(getRoom().getMonsters());
-                entities.removeIf(type->!entityTypes.isEmpty()&&!entities.contains(type));
+                entities.removeIf(type -> !entityTypes.isEmpty() && !entities.contains(type));
                 @NotNull World world = getRoom().getDungeonHandler().getWorld();
                 Vector center = this.getBoundingBox().getCenter();
                 item = (ItemDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() + 0.5, center.getZ())

@@ -355,13 +355,12 @@ public class DungeonPartyCommand extends CoreCommand {
                 return pl1 - pl2;
             return c1.getOfflineLeader().getName().compareToIgnoreCase(c2.getOfflineLeader().getName());
         });
-        PartyManager.getInstance().getAll(party -> party.getPlayers().size()>0);
+        PartyManager.getInstance().getAll(party -> party.getPlayers().size() > 0);
         ArrayList<PartyManager.Party> list = new ArrayList<>(parties);
-        if (list.isEmpty()){
+        if (list.isEmpty()) {
             new SimpleMessage(DeepDungeons.get(), "party.list_no_parties").send(sender, "%label%", label);
             return;
         }
-
 
 
         int page = 0;
@@ -370,15 +369,15 @@ public class DungeonPartyCommand extends CoreCommand {
                 page = Math.max(0, Integer.parseInt(args[1]) - 1);
         } catch (Exception ignored) {
         }
-        page = Math.min(list.size()/LIST_PARTY_PER_PAGE+(list.size()%LIST_PARTY_PER_PAGE==0?-1:0),page);
+        page = Math.min(list.size() / LIST_PARTY_PER_PAGE + (list.size() % LIST_PARTY_PER_PAGE == 0 ? -1 : 0), page);
         DMessage msg = new DMessage(DeepDungeons.get(), sender);
         msg.appendLang("party.list_prefix", "%label%", label, "%page%", String.valueOf(page + 1),
                 "%next_page%", String.valueOf(page + 2), "%prev_page%", String.valueOf(page));
-        for (int i = 0; i <LIST_PARTY_PER_PAGE && page*LIST_PARTY_PER_PAGE+i<list.size();i++){
-            PartyManager.Party party = list.get(page*LIST_PARTY_PER_PAGE+i);
-            msg.newLine().append("party.list_line", "%label%",label,"%leader%",
-                    party.getOfflineLeader().getName(),"%online%",String.valueOf(party.getPlayers().size())
-                    ,"%members%",String.valueOf(party.getPlayersUUID().size()),"%index%",String.valueOf(page*LIST_PARTY_PER_PAGE+i+1));
+        for (int i = 0; i < LIST_PARTY_PER_PAGE && page * LIST_PARTY_PER_PAGE + i < list.size(); i++) {
+            PartyManager.Party party = list.get(page * LIST_PARTY_PER_PAGE + i);
+            msg.newLine().append("party.list_line", "%label%", label, "%leader%",
+                    party.getOfflineLeader().getName(), "%online%", String.valueOf(party.getPlayers().size())
+                    , "%members%", String.valueOf(party.getPlayersUUID().size()), "%index%", String.valueOf(page * LIST_PARTY_PER_PAGE + i + 1));
         }
         msg.newLine().appendLang("party.list_postfix", "%label%", label, "%page%", String.valueOf(page + 1),
                 "%next_page%", String.valueOf(page + 2), "%prev_page%", String.valueOf(page));
@@ -391,20 +390,20 @@ public class DungeonPartyCommand extends CoreCommand {
             this.permissionLackNotify(sender, Perms.PARTY_INFO);
             return;
         }
-        if (args.length<=1 && !(sender instanceof Player)){
+        if (args.length <= 1 && !(sender instanceof Player)) {
             new SimpleMessage(DeepDungeons.get(), "party.info_arguments_console").send(sender,
                     "%label%", label, "%name%", args[1]);
             return;
         }
-        OfflinePlayer target= args.length > 1?readOfflinePlayer(args[1]):(Player) sender;
-        if (target==null){
+        OfflinePlayer target = args.length > 1 ? readOfflinePlayer(args[1]) : (Player) sender;
+        if (target == null) {
             new SimpleMessage(DeepDungeons.get(), "party.target_do_not_exist").send(sender,
                     "%label%", label, "%name%", args[1]);
             return;
         }
         PartyManager.Party party = PartyManager.getInstance().getParty(target);
-        if (party==null){
-            if (target.equals(sender)){
+        if (party == null) {
+            if (target.equals(sender)) {
                 new SimpleMessage(DeepDungeons.get(), "party.has_no_party").send(sender,
                         "%label%", label);
                 return;

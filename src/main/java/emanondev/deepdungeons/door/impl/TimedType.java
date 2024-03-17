@@ -124,10 +124,6 @@ public class TimedType extends DoorType {
 
             public void setupOffset() {
                 super.setupOffset();
-              /*  for (BlockVector vector : TimedDoorInstance.this.pressurePlates)
-                    pressurePlates.add(this.getRoom().getLocation().add(vector).getBlock());
-
-               */
             }
 
             @Override

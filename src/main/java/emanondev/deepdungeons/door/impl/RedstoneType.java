@@ -209,8 +209,7 @@ public class RedstoneType extends DoorType {
                             //TODO it's not player language specific
                             text.setText(new DMessage(DeepDungeons.get(), null).appendLang("door.redstone_sametime_info",
                                     "%current%", String.valueOf(counter[0]), "%max%", String.valueOf(poweredBlocksList.size())).toLegacy());
-                        }
-                        else{
+                        } else {
                             poweredBlocksList.removeIf(block -> block.isBlockFacePowered(BlockFace.SELF));
                             if (poweredBlocksList.isEmpty()) {
                                 text.remove();

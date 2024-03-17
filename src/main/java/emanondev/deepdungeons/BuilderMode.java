@@ -34,7 +34,7 @@ public class BuilderMode implements Listener {
 
     private static final BuilderMode instance = new BuilderMode();
     private final PauseListener pauseListener;
-    private final HashMap<Player, ActiveBuilder> builderMode = new HashMap<>();
+    private final HashMap<Player, ActiveBuilder> builderMode = new HashMap<>();//TODO cannot build 2 stuff with same id at same time
     private final HashMap<UUID, ActiveBuilder> paused = new HashMap<>();
     private final HashMap<Player, ItemStack[]> inventoryBackup = new HashMap<>();
     private final HashMap<Player, ItemStack[]> offhandBackup = new HashMap<>();

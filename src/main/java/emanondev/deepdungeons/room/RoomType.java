@@ -135,6 +135,7 @@ public abstract class RoomType extends DRegistryElement {
         public @NotNull Set<Material> getBreakableBlocks() {
             return breakableBlocks;
         }
+
         public @NotNull Set<Material> getPlaceableBlocks() {
             return placeableBlocks;
         }
@@ -241,19 +242,19 @@ public abstract class RoomType extends DRegistryElement {
 
 
             tmp = section.loadSection("treasures");
-            for ( int i = 0; i < treasures.size(); i++) {
+            for (int i = 0; i < treasures.size(); i++) {
                 YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
                 treasures.get(i).writeTo(sub);
             }
 
             tmp = section.loadSection("traps");
-            for ( int i = 0; i < traps.size(); i++) {
+            for (int i = 0; i < traps.size(); i++) {
                 YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
                 traps.get(i).writeTo(sub);
             }
 
             tmp = section.loadSection("monsterspawners");
-            for (  int i = 0; i < monsterSpawners.size(); i++) {
+            for (int i = 0; i < monsterSpawners.size(); i++) {
                 YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
                 monsterSpawners.get(i).writeTo(sub);
             }
@@ -500,7 +501,7 @@ public abstract class RoomType extends DRegistryElement {
                             .appendLang("roombuilder.base_exits_selector")).build());
                     if (!exits.isEmpty())
                         inv.setItem(6, new ItemBuilder(Material.LIGHT_BLUE_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                                .appendLang("roombuilder.base_exits_confirm","%value%",String.valueOf(exits.size()))).build());
+                                .appendLang("roombuilder.base_exits_confirm", "%value%", String.valueOf(exits.size()))).build());
                 } else {
                     exits.get(exits.size() - 1).setupTools();
                 }
@@ -511,9 +512,9 @@ public abstract class RoomType extends DRegistryElement {
                 inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
                         .appendLang("roombuilder.base_commondata_info")).build());
                 inv.setItem(1, new ItemBuilder(Material.IRON_PICKAXE).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("roombuilder.base_commondata_break","%value%",String.valueOf(breakableBlocks.size()))).build());
+                        .appendLang("roombuilder.base_commondata_break", "%value%", String.valueOf(breakableBlocks.size()))).build());
                 inv.setItem(2, new ItemBuilder(Material.BRICKS).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("roombuilder.base_commondata_place","%value%",String.valueOf(placeableBlocks.size()))).build());
+                        .appendLang("roombuilder.base_commondata_place", "%value%", String.valueOf(placeableBlocks.size()))).build());
                 inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
                         .appendLang("roombuilder.base_commondata_confirm")).build());
                 return;
@@ -654,6 +655,7 @@ public abstract class RoomType extends DRegistryElement {
         public @NotNull Set<Material> getBreakableBlocks() {
             return Collections.unmodifiableSet(breakableBlocks);
         }
+
         public @NotNull Set<Material> getPlaceableBlocks() {
             return Collections.unmodifiableSet(placeableBlocks);
         }
@@ -717,9 +719,9 @@ public abstract class RoomType extends DRegistryElement {
             private final DungeonType.DungeonInstance.DungeonHandler dungeonHandler;
             private final DoorType.DoorInstance.DoorHandler entranceHandler;
             private final List<DoorType.DoorInstance.DoorHandler> exits = new ArrayList<>();
+            private final List<Entity> monsters = new ArrayList<>();
             private Location location = null;
             private BoundingBox boundingBox = null;
-            private final List<Entity> monsters = new ArrayList<>();
             private boolean firstEnter = false;
 
             public RoomHandler(@NotNull DungeonType.DungeonInstance.DungeonHandler dungeonHandler) {

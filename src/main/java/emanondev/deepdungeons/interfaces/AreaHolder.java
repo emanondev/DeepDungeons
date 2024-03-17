@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 public interface AreaHolder {
 
-    @Contract(pure = true,value = "-> new")
+    @Contract(pure = true, value = "-> new")
     BoundingBox getArea();
 
     default boolean contains(@NotNull Block block) {
