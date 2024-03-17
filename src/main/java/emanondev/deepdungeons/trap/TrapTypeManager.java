@@ -27,13 +27,15 @@ public class TrapTypeManager extends DRegistry<TrapType> {
         return getTrapType(itemStack) != null;
     }
 
-    public @Nullable TrapType getTrapType(@NotNull ItemStack itemStack) {
+    public @Nullable
+    TrapType getTrapType(@NotNull ItemStack itemStack) {
         if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
             return null;
         return getTrapType(itemStack.getItemMeta());
     }
 
-    public @Nullable TrapType getTrapType(@NotNull ItemMeta meta) {
+    public @Nullable
+    TrapType getTrapType(@NotNull ItemMeta meta) {
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))
             return null;
         List<String> lore = meta.getLore();
@@ -42,13 +44,15 @@ public class TrapTypeManager extends DRegistry<TrapType> {
         return get(lore.get(0).split(" ")[1]);
     }
 
-    public TrapType.@Nullable TrapInstanceBuilder getTrapInstance(@NotNull ItemStack itemStack) {
+    public @Nullable
+    TrapType.TrapInstanceBuilder getTrapInstance(@NotNull ItemStack itemStack) {
         if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
             return null;
         return getTrapInstance(itemStack.getItemMeta());
     }
 
-    public @Nullable TrapType.TrapInstanceBuilder getTrapInstance(@NotNull ItemMeta meta) {
+    public @Nullable
+    TrapType.TrapInstanceBuilder getTrapInstance(@NotNull ItemMeta meta) {
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))
             return null;
         List<String> lore = meta.getLore();

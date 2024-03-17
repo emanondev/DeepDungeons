@@ -31,12 +31,14 @@ public class GuardianType extends DoorType {
     }
 
     @Override
-    public @NotNull GuardianInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
+    public @NotNull
+    GuardianInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
         return new GuardianInstance(room, section);
     }
 
     @Override
-    public @NotNull GuardianInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+    public @NotNull
+    GuardianInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
         return new GuardianInstanceBuilder(room);
     }
 
@@ -144,7 +146,8 @@ public class GuardianType extends DoorType {
         }
 
         @Override
-        public @NotNull DoorHandler createDoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
+        public @NotNull
+        DoorHandler createDoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
             return new GuardianHandler(roomHandler);
         }
 
@@ -154,7 +157,7 @@ public class GuardianType extends DoorType {
             private ItemDisplay item;
             private TextDisplay text;
 
-            public GuardianHandler(RoomType.RoomInstance.@NotNull RoomHandler roomHandler) {
+            public GuardianHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
                 super(roomHandler);
             }
 

@@ -22,7 +22,8 @@ public class DoorTypeManager extends DRegistry<DoorType> {
         return instance;
     }
 
-    public @NotNull DoorType getStandard() {
+    public @NotNull
+    DoorType getStandard() {
         return this.get("standard");
     }
 

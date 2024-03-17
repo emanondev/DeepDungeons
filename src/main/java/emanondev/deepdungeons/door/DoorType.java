@@ -16,7 +16,9 @@ import emanondev.deepdungeons.dungeon.DungeonType;
 import emanondev.deepdungeons.interfaces.AreaHolder;
 import emanondev.deepdungeons.interfaces.MoveListener;
 import emanondev.deepdungeons.party.PartyManager;
-import emanondev.deepdungeons.room.RoomType;
+import emanondev.deepdungeons.room.RoomType.RoomInstance;
+import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
+import emanondev.deepdungeons.room.RoomType.RoomInstanceBuilder;
 import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.*;
@@ -46,13 +48,15 @@ public abstract class DoorType extends DRegistryElement {
         super(id);
     }
 
-    public abstract @NotNull DoorInstance read(@NotNull RoomType.RoomInstance instance, @NotNull YMLSection section);
+    public abstract @NotNull
+    DoorInstance read(@NotNull RoomInstance instance, @NotNull YMLSection section);
 
-    public abstract @NotNull DoorInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room);
+    public abstract @NotNull
+    DoorInstanceBuilder getBuilder(@NotNull RoomInstanceBuilder room);
 
     public abstract class DoorInstanceBuilder extends DInstance<DoorType> {
 
-        private final RoomType.RoomInstanceBuilder roomBuilder;
+        private final RoomInstanceBuilder roomBuilder;
         private final CompletableFuture<DoorInstanceBuilder> completableFuture = new CompletableFuture<>();
         private BoundingBox area;
         private Vector spawnOffset;
@@ -62,7 +66,7 @@ public abstract class DoorType extends DRegistryElement {
         private boolean hasConfirmedSpawnLocation = false;
         private int cooldownLenghtSeconds = 5;
 
-        public DoorInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+        public DoorInstanceBuilder(@NotNull RoomInstanceBuilder room) {
             super(DoorType.this);
             this.roomBuilder = room;
         }
@@ -81,7 +85,8 @@ public abstract class DoorType extends DRegistryElement {
             this.doorFace = doorFace;
         }
 
-        public @NotNull CompletableFuture<DoorInstanceBuilder> getCompletableFuture() {
+        public @NotNull
+        CompletableFuture<DoorInstanceBuilder> getCompletableFuture() {
             return completableFuture;
         }
 
@@ -93,7 +98,8 @@ public abstract class DoorType extends DRegistryElement {
             completableFuture.complete(this);
         }
 
-        public @NotNull RoomType.RoomInstanceBuilder getRoomBuilder() {
+        public @NotNull
+        RoomInstanceBuilder getRoomBuilder() {
             return roomBuilder;
         }
 
@@ -108,7 +114,8 @@ public abstract class DoorType extends DRegistryElement {
             writeToImpl(section);
         }
 
-        public @Nullable Vector getSpawnOffset() {
+        public @Nullable
+        Vector getSpawnOffset() {
             return spawnOffset == null ? null : spawnOffset.clone();
         }
 
@@ -246,7 +253,8 @@ public abstract class DoorType extends DRegistryElement {
             this.handleInteractImpl(event);
         }
 
-        private @NotNull BlockFace guessFace() {
+        private @NotNull
+        BlockFace guessFace() {
             Vector v = roomBuilder.getArea().shift(roomBuilder.getOffset().multiply(-1)).getCenter();
             if (area.getWidthX() < area.getWidthZ()) {
                 if (v.distanceSquared(area.getMin()) > v.distanceSquared(area.getMin().add(new Vector(area.getWidthX(), 0, 0))))
@@ -258,7 +266,8 @@ public abstract class DoorType extends DRegistryElement {
             return BlockFace.NORTH;
         }
 
-        public @Nullable Player getPlayer() {
+        public @Nullable
+        Player getPlayer() {
             return roomBuilder.getPlayer();
         }
 
@@ -348,7 +357,7 @@ public abstract class DoorType extends DRegistryElement {
 
     public abstract class DoorInstance extends DInstance<DoorType> {
 
-        private final RoomType.RoomInstance roomInstance;
+        private final RoomInstance roomInstance;
         private final BlockFace doorFace;
         private final BoundingBox box;
         private final Vector spawnOffset;
@@ -356,7 +365,7 @@ public abstract class DoorType extends DRegistryElement {
         private final float spawnPitch;
         private final int cooldownLengthSeconds;
 
-        public DoorInstance(@NotNull RoomType.RoomInstance roomInstance, @NotNull YMLSection section) {
+        public DoorInstance(@NotNull RoomInstance roomInstance, @NotNull YMLSection section) {
             super(DoorType.this);
             this.roomInstance = roomInstance;
             //this.section = section;
@@ -387,7 +396,8 @@ public abstract class DoorType extends DRegistryElement {
         }
 
         @Contract(pure = true)
-        public @NotNull RoomType.RoomInstance getRoomInstance() {
+        public @NotNull
+        RoomInstance getRoomInstance() {
             return this.roomInstance;
         }
 
@@ -395,7 +405,8 @@ public abstract class DoorType extends DRegistryElement {
          * @return a bounding box with offset relative to the room
          */
         @Contract("-> new")
-        public @NotNull BoundingBox getBoundingBox() {
+        public @NotNull
+        BoundingBox getBoundingBox() {
             return this.box.clone();
         }
 
@@ -404,7 +415,8 @@ public abstract class DoorType extends DRegistryElement {
          * @return spawn location yaw and picth included
          */
         @Contract("_ -> new")
-        public @NotNull Location getSpawnLocation(@NotNull Location roomOffset) {
+        public @NotNull
+        Location getSpawnLocation(@NotNull Location roomOffset) {
             Location loc = roomOffset.clone().add(spawnOffset);
             loc.setYaw(spawnYaw);
             loc.setPitch(spawnPitch);
@@ -415,7 +427,8 @@ public abstract class DoorType extends DRegistryElement {
          * @return offset relative to the room
          */
         @Contract("-> new")
-        public @NotNull Vector getSpawnOffset() {
+        public @NotNull
+        Vector getSpawnOffset() {
             return this.spawnOffset.clone();
         }
 
@@ -427,15 +440,17 @@ public abstract class DoorType extends DRegistryElement {
             return this.spawnPitch;
         }
 
-        public abstract @NotNull DoorHandler createDoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler);
+        public abstract @NotNull
+        DoorHandler createDoorHandler(@NotNull RoomHandler roomHandler);
 
-        public @NotNull BlockFace getDoorFace() {
+        public @NotNull
+        BlockFace getDoorFace() {
             return this.doorFace;
         }
 
         public abstract class DoorHandler implements MoveListener, AreaHolder {
 
-            private final RoomType.RoomInstance.RoomHandler roomHandler;
+            private final RoomHandler roomHandler;
             private final HashMap<UUID, Long> cooldowns = new HashMap<>();
             private final HashSet<UUID> blocked = new HashSet<>();
             private final HashMap<UUID, ItemDisplay> cooldownItems = new HashMap<>();
@@ -445,7 +460,7 @@ public abstract class DoorType extends DRegistryElement {
             private Location spawn;
             private BukkitTask cooldownTask;
 
-            public DoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
+            public DoorHandler(@NotNull RoomHandler roomHandler) {
                 this.roomHandler = roomHandler;
             }
 
@@ -459,7 +474,8 @@ public abstract class DoorType extends DRegistryElement {
             }
 
             @Override
-            public @NotNull World getWorld() {
+            public @NotNull
+            World getWorld() {
                 return roomHandler.getWorld();
             }
 
@@ -534,12 +550,14 @@ public abstract class DoorType extends DRegistryElement {
             }
 
             @Contract(pure = true)
-            public final @NotNull DoorInstance getInstance() {
+            public final @NotNull
+            DoorInstance getInstance() {
                 return DoorInstance.this;
             }
 
             @Contract(pure = true)
-            public @NotNull RoomType.RoomInstance.RoomHandler getRoom() {
+            public @NotNull
+            RoomHandler getRoom() {
                 return this.roomHandler;
             }
 
@@ -548,7 +566,8 @@ public abstract class DoorType extends DRegistryElement {
             }
 
             @Contract(pure = true)
-            public @Nullable DoorHandler getLink() {
+            public @Nullable
+            DoorHandler getLink() {
                 return this.link;
             }
 
@@ -569,7 +588,7 @@ public abstract class DoorType extends DRegistryElement {
                         return;
                     }
                     if (this.equals(this.getRoom().getEntrance())) {
-                        DoorType.DoorInstance.DoorHandler back = PartyManager.getInstance().getDungeonPlayer(event.getPlayer()).getBackRoute(this);
+                        DoorHandler back = PartyManager.getInstance().getDungeonPlayer(event.getPlayer()).getBackRoute(this);
                         if (back != null) {
                             if (canUse(event.getPlayer())) {
                                 back.teleportIn(event.getPlayer());

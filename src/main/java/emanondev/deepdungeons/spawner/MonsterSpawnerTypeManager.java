@@ -22,12 +22,14 @@ public class MonsterSpawnerTypeManager extends DRegistry<MonsterSpawnerType> {
         this.register(new VanillaMobsType());
     }
 
-    public static @NotNull MonsterSpawnerTypeManager getInstance() {
+    public static @NotNull
+    MonsterSpawnerTypeManager getInstance() {
         return instance;
     }
 
     @Contract("null -> null")
-    public @Nullable MonsterSpawnerType getMonsterSpawnerType(@Nullable ItemStack itemStack) {
+    public @Nullable
+    MonsterSpawnerType getMonsterSpawnerType(@Nullable ItemStack itemStack) {
         if (itemStack == null)
             return null;
         if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
@@ -36,7 +38,8 @@ public class MonsterSpawnerTypeManager extends DRegistry<MonsterSpawnerType> {
     }
 
     @Contract("null -> null")
-    public @Nullable MonsterSpawnerType getMonsterSpawnerType(@Nullable ItemMeta meta) {
+    public @Nullable
+    MonsterSpawnerType getMonsterSpawnerType(@Nullable ItemMeta meta) {
         if (meta == null)
             return null;
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))

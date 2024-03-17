@@ -21,10 +21,12 @@ public abstract class TrapType extends DRegistryElement {
         super(id);
     }
 
-    public abstract @NotNull TrapType.TrapInstance read(@NotNull RoomType.RoomInstance instance, @NotNull YMLSection sub);
+    public abstract @NotNull
+    TrapType.TrapInstance read(@NotNull RoomType.RoomInstance instance, @NotNull YMLSection sub);
 
 
-    public abstract @NotNull TrapType.TrapInstanceBuilder getBuilder();
+    public abstract @NotNull
+    TrapType.TrapInstanceBuilder getBuilder();
 
     public abstract class TrapInstanceBuilder extends DInstance<TrapType> {
 
@@ -32,7 +34,8 @@ public abstract class TrapType extends DRegistryElement {
             super(TrapType.this);
         }
 
-        public @NotNull ItemStack toItem() {
+        public @NotNull
+        ItemStack toItem() {
             return new ItemBuilder(Material.PAPER).setDescription(toItemLines()).build();
         }
 
@@ -41,12 +44,14 @@ public abstract class TrapType extends DRegistryElement {
          *
          * @return Trap info readable by TrapType
          */
-        protected abstract @NotNull List<String> toItemLinesImpl();
+        protected abstract @NotNull
+        List<String> toItemLinesImpl();
 
         /**
          * @return a mutable list with prefilled first two lines
          */
-        public final @NotNull List<String> toItemLines() {
+        public final @NotNull
+        List<String> toItemLines() {
             ArrayList<String> list = new ArrayList<>();
             list.add(TrapTypeManager.LINE_ONE);
             list.add("&9Type:&6 " + getType().getId());
@@ -62,7 +67,8 @@ public abstract class TrapType extends DRegistryElement {
         protected abstract void writeToImpl(@NotNull YMLSection section);
 
         @Contract("_ -> this")
-        public abstract @NotNull TrapType.TrapInstanceBuilder fromItemLines(@NotNull List<String> lines);
+        public abstract @NotNull
+        TrapType.TrapInstanceBuilder fromItemLines(@NotNull List<String> lines);
     }
 
     public abstract class TrapInstance extends DInstance<TrapType> {
@@ -77,7 +83,8 @@ public abstract class TrapType extends DRegistryElement {
 
         public abstract TrapHandler createTrapHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler);
 
-        public @NotNull RoomType.RoomInstance getRoomInstance() {
+        public @NotNull
+        RoomType.RoomInstance getRoomInstance() {
             return room;
         }
 

@@ -10,10 +10,10 @@ import emanondev.deepdungeons.ActiveBuilder;
 import emanondev.deepdungeons.DRInstance;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.area.AreaManager;
-import emanondev.deepdungeons.door.DoorType;
+import emanondev.deepdungeons.door.DoorType.DoorInstance.DoorHandler;
 import emanondev.deepdungeons.interfaces.*;
 import emanondev.deepdungeons.party.PartyManager;
-import emanondev.deepdungeons.room.RoomType;
+import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -46,16 +46,19 @@ public abstract class DungeonType extends DRegistryElement {
     }
 
 
-    public final @NotNull DungeonType.DungeonInstance read(@NotNull String id, @NotNull YMLSection section) {
+    public final @NotNull
+    DungeonInstance read(@NotNull String id, @NotNull YMLSection section) {
         return readImpl(id, section);
     }
 
-    public abstract @NotNull DungeonType.DungeonInstanceBuilder getBuilder(@NotNull String id, @NotNull Player player);
+    public abstract @NotNull
+    DungeonInstanceBuilder getBuilder(@NotNull String id, @NotNull Player player);
 
-    protected abstract @NotNull DungeonType.DungeonInstance readImpl(@NotNull String id, @NotNull YMLSection section);
+    protected abstract @NotNull
+    DungeonInstance readImpl(@NotNull String id, @NotNull YMLSection section);
 
     public abstract class DungeonInstanceBuilder extends DRInstance<DungeonType> implements ActiveBuilder {
-        private final CompletableFuture<DungeonType.DungeonInstanceBuilder> completableFuture = new CompletableFuture<>();
+        private final CompletableFuture<DungeonInstanceBuilder> completableFuture = new CompletableFuture<>();
         private final UUID playerUuid;
         private int tickCounter = 0;
 
@@ -64,11 +67,13 @@ public abstract class DungeonType extends DRegistryElement {
             this.playerUuid = player.getUniqueId();
         }
 
-        public @NotNull UUID getPlayerUuid() {
+        public @NotNull
+        UUID getPlayerUuid() {
             return playerUuid;
         }
 
-        public @Nullable Player getPlayer() {
+        public @Nullable
+        Player getPlayer() {
             return Bukkit.getPlayer(playerUuid);
         }
 
@@ -102,7 +107,8 @@ public abstract class DungeonType extends DRegistryElement {
         private void timerTickImpl() {
         }
 
-        public @NotNull CompletableFuture<DungeonType.DungeonInstanceBuilder> getCompletableFuture() {
+        public @NotNull
+        CompletableFuture<DungeonInstanceBuilder> getCompletableFuture() {
             return completableFuture;
         }
 
@@ -137,28 +143,34 @@ public abstract class DungeonType extends DRegistryElement {
             super(id, DungeonType.this);
         }
 
-        public abstract @NotNull DungeonHandler createHandler(@Nullable World world);
+        public abstract @NotNull
+        DungeonHandler createHandler(@Nullable World world);
 
         public abstract class DungeonHandler implements MoveListener, InteractListener, InteractEntityListener, BlockPlaceListener, BlockBreakListener, AreaHolder {
 
-            public @NotNull DungeonInstance getInstance() {
+            public @NotNull
+            DungeonInstance getInstance() {
                 return DungeonInstance.this;
             }
 
             @NotNull
-            public abstract List<RoomType.RoomInstance.RoomHandler> getRooms();
+            public abstract List<RoomHandler> getRooms();
 
             @Contract(pure = true)
-            public abstract @NotNull DoorType.DoorInstance.DoorHandler getEntrance();
+            public abstract @NotNull
+            DoorHandler getEntrance();
 
             @Contract(value = "-> new", pure = true)
-            public abstract @NotNull Location getLocation();
+            public abstract @NotNull
+            Location getLocation();
 
             @Contract(value = "-> new", pure = true)
-            public abstract @NotNull BoundingBox getBoundingBox();
+            public abstract @NotNull
+            BoundingBox getBoundingBox();
 
             @Contract(pure = true)
-            public abstract @NotNull State getState();
+            public abstract @NotNull
+            State getState();
 
             public void onEntityTeleportTo(@NotNull EntityTeleportEvent event) {
             }
@@ -182,7 +194,7 @@ public abstract class DungeonType extends DRegistryElement {
                 switch (event.getSpawnReason()) {
                     case NETHER_PORTAL, TRAP, RAID, VILLAGE_DEFENSE, VILLAGE_INVASION, REINFORCEMENTS, PATROL, NATURAL -> event.setCancelled(true);
                     default -> {
-                        for (RoomType.RoomInstance.RoomHandler room : getRooms())
+                        for (RoomHandler room : getRooms())
                             if (room.contains(event.getLocation())) {
                                 room.onCreatureSpawn(event);
                                 return;
@@ -235,7 +247,7 @@ public abstract class DungeonType extends DRegistryElement {
             }
 
             public void onPlayerBucketEmpty(@NotNull PlayerBucketEmptyEvent event) {
-                for (RoomType.RoomInstance.RoomHandler room : this.getRooms()) {
+                for (RoomHandler room : this.getRooms()) {
                     if (room.contains(event.getBlock())) {
                         room.onPlayerBucketEmpty(event);
                         return;
@@ -245,7 +257,7 @@ public abstract class DungeonType extends DRegistryElement {
             }
 
             public void onPlayerBucketFill(@NotNull PlayerBucketFillEvent event) {
-                for (RoomType.RoomInstance.RoomHandler room : this.getRooms()) {
+                for (RoomHandler room : this.getRooms()) {
                     if (room.contains(event.getBlock())) {
                         room.onPlayerBucketFill(event);
                         return;
@@ -279,7 +291,7 @@ public abstract class DungeonType extends DRegistryElement {
                     event.setCancelled(true);
                     return;
                 }
-                for (RoomType.RoomInstance.RoomHandler room : this.getRooms()) {
+                for (RoomHandler room : this.getRooms()) {
                     if (room.contains(to)) {
                         room.onPlayerMove(event);
                         return;
@@ -294,7 +306,7 @@ public abstract class DungeonType extends DRegistryElement {
                     event.setCancelled(true);
                     return;
                 }
-                for (RoomType.RoomInstance.RoomHandler room : this.getRooms()) {
+                for (RoomHandler room : this.getRooms()) {
                     if (room.contains(to)) {
                         room.onPlayerTeleport(event);
                         return;
@@ -305,7 +317,7 @@ public abstract class DungeonType extends DRegistryElement {
             }
 
             public void onBlockPlace(@NotNull BlockPlaceEvent event) {
-                for (RoomType.RoomInstance.RoomHandler room : this.getRooms()) {
+                for (RoomHandler room : this.getRooms()) {
                     if (room.contains(event.getBlock())) {
                         room.onBlockPlace(event);
                         return;
@@ -315,7 +327,7 @@ public abstract class DungeonType extends DRegistryElement {
             }
 
             public void onBlockBreak(@NotNull BlockBreakEvent event) {
-                for (RoomType.RoomInstance.RoomHandler room : this.getRooms()) {
+                for (RoomHandler room : this.getRooms()) {
                     if (room.contains(event.getBlock())) {
                         room.onBlockBreak(event);
                         return;

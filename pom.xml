@@ -94,7 +94,7 @@
         <!-- JetBrains Annotations -->
         <dependency>
             <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
+            <artifactId>annotations-java5</artifactId>
             <version>24.1.0</version>
             <scope>provided</scope>
         </dependency>

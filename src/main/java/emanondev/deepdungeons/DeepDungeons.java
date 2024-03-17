@@ -14,12 +14,7 @@ import emanondev.deepdungeons.treasure.TreasureTypeManager;
 
 public class DeepDungeons extends CorePlugin {
 
-    //public static final boolean DEBUG = true;
     private static DeepDungeons instance;
-    /*private RoomManager roomManager;
-    private RoomDataFactory roomDataFactory;
-    private MobManager mobManager;
-    private RewardManager rewardManager;*/
 
     public static DeepDungeons get() {
         return instance;
@@ -65,31 +60,5 @@ public class DeepDungeons extends CorePlugin {
     public void load() {
         instance = this;
     }
-
-    /*
-        ConfigurationSerialization.registerClass(Offset.class);
-        this.roomManager = new RoomManager();
-        this.roomDataFactory = new RoomDataFactory();
-        this.registerCommand(new DeepDungeonsCommand());
-        this.registerCommand(new DungeonRoomCommand());
-        mobManager = new MobManager();
-        rewardManager = new RewardManager();
-    }
-
-    public RoomDataFactory getRoomDataFactory() {
-        return roomDataFactory;
-    }
-
-    public RoomManager getRoomManager() {
-        return roomManager;
-    }
-
-    public MobManager getMobManager() {
-        return mobManager;
-    }
-
-    public RewardManager getRewardManager() {
-        return rewardManager;
-    }*/
 
 }

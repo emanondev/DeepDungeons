@@ -46,7 +46,8 @@ public class BuilderMode implements Listener {
         this.pauseListener = new PauseListener();
     }
 
-    public static @NotNull BuilderMode getInstance() {
+    public static @NotNull
+    BuilderMode getInstance() {
         return instance;
     }
 
@@ -54,7 +55,8 @@ public class BuilderMode implements Listener {
         return builderMode.containsKey(player);
     }
 
-    public @Nullable ActiveBuilder getBuilderMode(@NotNull Player player) {
+    public @Nullable
+    ActiveBuilder getBuilderMode(@NotNull Player player) {
         return builderMode.get(player);
     }
 

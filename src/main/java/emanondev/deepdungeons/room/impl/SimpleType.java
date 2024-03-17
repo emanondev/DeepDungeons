@@ -13,12 +13,14 @@ public class SimpleType extends RoomType {
     }
 
     @Override
-    public @NotNull RoomInstanceBuilder getBuilder(@NotNull String id, @NotNull Player player) {
+    public @NotNull
+    RoomInstanceBuilder getBuilder(@NotNull String id, @NotNull Player player) {
         return new SimpleInstanceBuilder(id, player);
     }
 
     @Override
-    protected @NotNull SimpleInstance readImpl(@NotNull String id, @NotNull YMLSection section) {
+    protected @NotNull
+    SimpleInstance readImpl(@NotNull String id, @NotNull YMLSection section) {
         return new SimpleInstance(id, section);
     }
 
@@ -57,7 +59,8 @@ public class SimpleType extends RoomType {
         }
 
         @Override
-        public @NotNull RoomHandler createRoomHandler(DungeonType.DungeonInstance.DungeonHandler dungeonHandler) {
+        public @NotNull
+        RoomHandler createRoomHandler(DungeonType.DungeonInstance.DungeonHandler dungeonHandler) {
             return new RoomHandler(dungeonHandler);
         }
     }

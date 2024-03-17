@@ -9,7 +9,9 @@ import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.door.DoorType;
 import emanondev.deepdungeons.dungeon.DungeonType;
-import emanondev.deepdungeons.room.RoomType;
+import emanondev.deepdungeons.room.RoomType.RoomInstance;
+import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
+import emanondev.deepdungeons.room.RoomType.RoomInstanceBuilder;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -29,12 +31,14 @@ public class TimedType extends DoorType {
     }
 
     @Override
-    public @NotNull TimedType.TimedDoorInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
+    public @NotNull
+    TimedDoorInstance read(@NotNull RoomInstance room, @NotNull YMLSection section) {
         return new TimedDoorInstance(room, section);
     }
 
     @Override
-    public @NotNull TimedType.TimedDoorInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+    public @NotNull
+    TimedDoorInstanceBuilder getBuilder(@NotNull RoomInstanceBuilder room) {
         return new TimedDoorInstanceBuilder(room);
     }
 
@@ -43,7 +47,7 @@ public class TimedType extends DoorType {
         private long timeToUnlock = 60;//in seconds
         private boolean completedTimes = false;
 
-        public TimedDoorInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+        public TimedDoorInstanceBuilder(@NotNull RoomInstanceBuilder room) {
             super(room);
         }
 
@@ -101,13 +105,14 @@ public class TimedType extends DoorType {
 
         private final long unlockTime;
 
-        public TimedDoorInstance(@NotNull RoomType.RoomInstance roomInstance, @NotNull YMLSection section) {
+        public TimedDoorInstance(@NotNull RoomInstance roomInstance, @NotNull YMLSection section) {
             super(roomInstance, section);
             unlockTime = section.getLong("timeToUnlock", 60L);
         }
 
         @Override
-        public @NotNull TimedType.TimedDoorInstance.TimeDoorHandler createDoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
+        public @NotNull
+        TimeDoorHandler createDoorHandler(@NotNull RoomHandler roomHandler) {
             return new TimeDoorHandler(roomHandler);
         }
 
@@ -118,7 +123,7 @@ public class TimedType extends DoorType {
             private ItemDisplay item;
             private TextDisplay text;
 
-            public TimeDoorHandler(RoomType.RoomInstance.@NotNull RoomHandler roomHandler) {
+            public TimeDoorHandler(@NotNull RoomHandler roomHandler) {
                 super(roomHandler);
             }
 

@@ -26,7 +26,8 @@ public class TreasureTypeManager extends DRegistry<TreasureType> {
     }
 
     @Contract("null -> null")
-    public @Nullable TreasureType getTreasureType(@Nullable ItemStack itemStack) {
+    public @Nullable
+    TreasureType getTreasureType(@Nullable ItemStack itemStack) {
         if (itemStack == null)
             return null;
         if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
@@ -35,7 +36,8 @@ public class TreasureTypeManager extends DRegistry<TreasureType> {
     }
 
     @Contract("null -> null")
-    public @Nullable TreasureType getTreasureType(@Nullable ItemMeta meta) {
+    public @Nullable
+    TreasureType getTreasureType(@Nullable ItemMeta meta) {
         if (meta == null)
             return null;
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))
@@ -47,7 +49,8 @@ public class TreasureTypeManager extends DRegistry<TreasureType> {
     }
 
     @Contract("null -> null")
-    public @Nullable TreasureType.TreasureInstanceBuilder getTreasureInstance(@Nullable ItemStack itemStack) {
+    public @Nullable
+    TreasureType.TreasureInstanceBuilder getTreasureInstance(@Nullable ItemStack itemStack) {
         if (itemStack == null)
             return null;
         if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
@@ -56,7 +59,8 @@ public class TreasureTypeManager extends DRegistry<TreasureType> {
     }
 
     @Contract("null -> null")
-    public @Nullable TreasureType.TreasureInstanceBuilder getTreasureInstance(@Nullable ItemMeta meta) {
+    public @Nullable
+    TreasureType.TreasureInstanceBuilder getTreasureInstance(@Nullable ItemMeta meta) {
         if (meta == null)
             return null;
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))

@@ -12,7 +12,8 @@ public class DRInstance<T extends DRegistryElement> extends DRegistryElement {
         this.type = type;
     }
 
-    public final @NotNull T getType() {
+    public final @NotNull
+    T getType() {
         return type;
     }
 }

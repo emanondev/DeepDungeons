@@ -27,11 +27,13 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
         getPlugin().registerListener(this);
     }
 
-    public static @NotNull PartyManager getInstance() {
+    public static @NotNull
+    PartyManager getInstance() {
         return instance;
     }
 
-    public @NotNull Party createParty(@NotNull Player leader) {
+    public @NotNull
+    Party createParty(@NotNull Player leader) {
         if (parties.containsKey(leader.getUniqueId()))
             throw new IllegalStateException();
         return new Party(leader);
@@ -48,7 +50,8 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
         party.start(dungeon);
     }
 
-    public @Nullable Party getParty(OfflinePlayer player) {
+    public @Nullable
+    Party getParty(OfflinePlayer player) {
         return parties.get(player.getUniqueId());
     }
 
@@ -68,11 +71,13 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
         party.onPlayerJoin(event.getPlayer());
     }
 
-    public @NotNull DungeonPlayer getDungeonPlayer(@NotNull OfflinePlayer player) {
+    public @NotNull
+    DungeonPlayer getDungeonPlayer(@NotNull OfflinePlayer player) {
         return getDungeonPlayer(player.getUniqueId());
     }
 
-    public @NotNull DungeonPlayer getDungeonPlayer(@NotNull UUID uuid) {
+    public @NotNull
+    DungeonPlayer getDungeonPlayer(@NotNull UUID uuid) {
         DungeonPlayer value = dungeonPlayers.get(uuid);
         if (value != null)
             return value;
@@ -103,7 +108,8 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
             isPartyPublic = !isPartyPublic;
         }
 
-        public @NotNull Set<Player> getPlayers() {
+        public @NotNull
+        Set<Player> getPlayers() {
             HashSet<Player> players = new HashSet<>();
             this.users.forEach(uuid -> {
                 Player p = Bukkit.getPlayer(uuid);
@@ -118,7 +124,8 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
 
         }
 
-        public @NotNull Set<UUID> getPlayersUUID() {
+        public @NotNull
+        Set<UUID> getPlayersUUID() {
             return Collections.unmodifiableSet(users);
         }
 
@@ -181,7 +188,7 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
         }
 
         /**
-         * true if you are <b>online</b> & inside the dungeon
+         * true if you are <b>online</b> and inside the dungeon
          * <p>
          * N.B. if you are offline but logged out inside the dungeon you are considered outside
          *
@@ -192,19 +199,23 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
             return PartyManager.getInstance().getDungeonPlayer(player).hasPreEnterSnapshot();
         }
 
-        public @NotNull UUID getLeaderUUID() {
+        public @NotNull
+        UUID getLeaderUUID() {
             return leader;
         }
 
-        public @Nullable Player getLeader() {
+        public @Nullable
+        Player getLeader() {
             return Bukkit.getPlayer(leader);
         }
 
-        public @NotNull OfflinePlayer getOfflineLeader() {
+        public @NotNull
+        OfflinePlayer getOfflineLeader() {
             return Bukkit.getOfflinePlayer(leader);
         }
 
-        public @Nullable DungeonType.DungeonInstance.DungeonHandler getDungeon() {
+        public @Nullable
+        DungeonType.DungeonInstance.DungeonHandler getDungeon() {
             return dungeon;
         }
 

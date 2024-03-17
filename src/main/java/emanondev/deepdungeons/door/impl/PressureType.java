@@ -31,12 +31,14 @@ public class PressureType extends DoorType {
     }
 
     @Override
-    public @NotNull PressureInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
+    public @NotNull
+    PressureInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
         return new PressureInstance(room, section);
     }
 
     @Override
-    public @NotNull PressureInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+    public @NotNull
+    PressureInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
         return new PressureInstanceBuilder(room);
     }
 
@@ -119,7 +121,8 @@ public class PressureType extends DoorType {
         }
 
         @Override
-        public @NotNull PressureHandler createDoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
+        public @NotNull
+        PressureHandler createDoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
             return new PressureHandler(roomHandler);
         }
 
@@ -130,7 +133,7 @@ public class PressureType extends DoorType {
             private ItemDisplay item;
             private TextDisplay text;
 
-            public PressureHandler(RoomType.RoomInstance.@NotNull RoomHandler roomHandler) {
+            public PressureHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
                 super(roomHandler);
             }
 

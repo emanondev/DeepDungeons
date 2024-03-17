@@ -14,7 +14,8 @@ public class DungeonTypeManager extends DRegistry<DungeonType> {
         register(new RoomsGroupsSequence());
     }
 
-    public static @NotNull DungeonTypeManager getInstance() {
+    public static @NotNull
+    DungeonTypeManager getInstance() {
         return instance;
     }
 }

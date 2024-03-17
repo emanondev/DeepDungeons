@@ -511,7 +511,8 @@ public class DungeonPartyCommand extends CoreCommand {
     }
 
     @Override
-    public @Nullable List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
+    public @Nullable
+    List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
         if (!(sender instanceof Player player))
             return Collections.emptyList();
         return switch (args.length) {

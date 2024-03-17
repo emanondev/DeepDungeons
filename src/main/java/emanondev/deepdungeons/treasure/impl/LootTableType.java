@@ -31,12 +31,14 @@ public class LootTableType extends TreasureType {
     }
 
     @Override
-    public @NotNull LootTableType.LootTableInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection sub) {
+    public @NotNull
+    LootTableType.LootTableInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection sub) {
         return new LootTableInstance(room, sub);
     }
 
     @Override
-    public @NotNull LootTableType.LootTableInstanceBuilder getBuilder() {
+    public @NotNull
+    LootTableType.LootTableInstanceBuilder getBuilder() {
         return new LootTableInstanceBuilder();
     }
 
@@ -49,7 +51,8 @@ public class LootTableType extends TreasureType {
             super();
         }
 
-        public @NotNull LootTable getTable() {
+        public @NotNull
+        LootTable getTable() {
             return table;
         }
 
@@ -58,7 +61,8 @@ public class LootTableType extends TreasureType {
         }
 
         @Override
-        protected @NotNull List<String> toItemLinesImpl() {
+        protected @NotNull
+        List<String> toItemLinesImpl() {
             return List.of("&9LootTable:&6 " + table.getKey());
         }
 
@@ -134,7 +138,8 @@ public class LootTableType extends TreasureType {
         }
 
         @Override
-        public @NotNull Collection<ItemStack> getTreasure(@NotNull Random random, @NotNull Location location, @Nullable Player who) {
+        public @NotNull
+        Collection<ItemStack> getTreasure(@NotNull Random random, @NotNull Location location, @Nullable Player who) {
             if (table == null)
                 return Collections.emptyList();
             return table.populateLoot(random, new LootContext.Builder(location).killer(who).lootingModifier(0).build());

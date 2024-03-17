@@ -29,12 +29,14 @@ public class VanillaMobsType extends MonsterSpawnerType {
     }
 
     @Override
-    public @NotNull VanillaMobsInstance read(RoomType.@NotNull RoomInstance room, @NotNull YMLSection sub) {
+    public @NotNull
+    VanillaMobsInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection sub) {
         return new VanillaMobsInstance(room, sub);
     }
 
     @Override
-    public @NotNull VanillaMobsInstanceBuilder getBuilder() {
+    public @NotNull
+    VanillaMobsInstanceBuilder getBuilder() {
         return new VanillaMobsInstanceBuilder();
     }
 
@@ -46,7 +48,8 @@ public class VanillaMobsType extends MonsterSpawnerType {
         private double chance = 1;
 
         @Override
-        protected @NotNull List<String> toItemLinesImpl() {
+        protected @NotNull
+        List<String> toItemLinesImpl() {
             List<String> list = new ArrayList<>();
             list.add("&9MobType:&6 " + type.name());
             list.add("&9Min:&6 " + min);
@@ -240,7 +243,8 @@ public class VanillaMobsType extends MonsterSpawnerType {
             return entities;
         }
 
-        public @NotNull EntityType getEntityType() {
+        public @NotNull
+        EntityType getEntityType() {
             return entityType;
         }
     }

@@ -32,12 +32,14 @@ public class RedstoneType extends DoorType {
     }
 
     @Override
-    public @NotNull RedstoneInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
+    public @NotNull
+    RedstoneInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
         return new RedstoneInstance(room, section);
     }
 
     @Override
-    public @NotNull RedstoneInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+    public @NotNull
+    RedstoneInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
         return new RedstoneInstanceBuilder(room);
     }
 
@@ -140,7 +142,8 @@ public class RedstoneType extends DoorType {
         }
 
         @Override
-        public @NotNull RedstoneHandler createDoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
+        public @NotNull
+        RedstoneHandler createDoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
             return new RedstoneHandler(roomHandler);
         }
 
@@ -151,7 +154,7 @@ public class RedstoneType extends DoorType {
             private ItemDisplay item;
             private TextDisplay text;
 
-            public RedstoneHandler(RoomType.RoomInstance.@NotNull RoomHandler roomHandler) {
+            public RedstoneHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
                 super(roomHandler);
             }
 

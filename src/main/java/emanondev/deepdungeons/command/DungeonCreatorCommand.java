@@ -75,8 +75,8 @@ public class DungeonCreatorCommand extends CoreCommand {
             return;
         }
         String id = args[1];
-        DungeonType.@Nullable DungeonInstance dungeon = DungeonInstanceManager.getInstance().get(id);
-        DungeonType.DungeonInstance.@Nullable DungeonHandler handler = AreaManager.getInstance().getReady(dungeon);
+         DungeonType.DungeonInstance dungeon = DungeonInstanceManager.getInstance().get(id);
+        DungeonType.DungeonInstance.DungeonHandler handler = AreaManager.getInstance().getReady(dungeon);
         PartyManager.Party party = PartyManager.getInstance().getParty(player);
         if (party == null)
             party = PartyManager.getInstance().createParty(player);
@@ -89,7 +89,7 @@ public class DungeonCreatorCommand extends CoreCommand {
             return;
         }
         String id = args[1];
-        DungeonType.@Nullable DungeonInstance dungeon = DungeonInstanceManager.getInstance().get(id);
+        DungeonType. DungeonInstance dungeon = DungeonInstanceManager.getInstance().get(id);
         if (dungeon == null) {
             sender.sendMessage("Help Message not implemented");
             return;
@@ -98,7 +98,7 @@ public class DungeonCreatorCommand extends CoreCommand {
             sender.sendMessage("Help Message not implemented");
             return;
         }
-        DungeonType.DungeonInstance.@NotNull DungeonHandler handler = dungeon.createHandler(player.getLocation().getWorld());
+        DungeonType.DungeonInstance. DungeonHandler handler = dungeon.createHandler(player.getLocation().getWorld());
         Vector loc = handler.getBoundingBox().getCenter();
         new DMessage(DeepDungeons.get(), sender).append("<blue>Dungeon created at " + loc.getBlockX() + " "
                 + loc.getBlockY() + " " + loc.getBlockZ() + " ").append("<click:run_command:'/tp "
@@ -108,7 +108,8 @@ public class DungeonCreatorCommand extends CoreCommand {
     }
 
     @Override
-    public @Nullable List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
+    public @Nullable
+    List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
         return switch (args.length) {
             case 1 -> this.complete(args[0], new String[]{"create", "start"});
             case 2 -> this.complete(args[1], DungeonInstanceManager.getInstance().getIds());

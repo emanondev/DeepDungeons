@@ -3,12 +3,13 @@ package emanondev.deepdungeons.dungeon;
 import emanondev.core.YMLConfig;
 import emanondev.core.util.DRegistry;
 import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.regex.Pattern;
 
-public class DungeonInstanceManager extends DRegistry<DungeonType.DungeonInstance> {
+public class DungeonInstanceManager extends DRegistry<DungeonInstance> {
 
     private static final DungeonInstanceManager instance = new DungeonInstanceManager();
 
@@ -16,7 +17,8 @@ public class DungeonInstanceManager extends DRegistry<DungeonType.DungeonInstanc
         super(DeepDungeons.get(), "DungeonInstanceManager", true);
     }
 
-    public static @NotNull DungeonInstanceManager getInstance() {
+    public static @NotNull
+    DungeonInstanceManager getInstance() {
         return instance;
     }
 
@@ -30,7 +32,7 @@ public class DungeonInstanceManager extends DRegistry<DungeonType.DungeonInstanc
         File[] files = dungeonsFolder.listFiles(File::isFile);
         if (files != null) for (File file : files) {
             try {
-                DungeonType.DungeonInstance dungeon = readInstance(file);
+                DungeonInstance dungeon = readInstance(file);
                 if (dungeon != null)
                     DungeonInstanceManager.getInstance().register(dungeon);
             } catch (Throwable t) {
@@ -42,11 +44,12 @@ public class DungeonInstanceManager extends DRegistry<DungeonType.DungeonInstanc
     }
 
 
-    public @NotNull File getFolder() {
+    public @NotNull
+    File getFolder() {
         return new File(DeepDungeons.get().getDataFolder(), "dungeons");
     }
 
-    public DungeonType.DungeonInstance readInstance(@NotNull File file) {
+    public DungeonInstance readInstance(@NotNull File file) {
         String fileName = file.getName();
         if (!fileName.endsWith(".yml")) {
             logIssue("Can't read dungeon file &edungeons" + File.separator + file.getName() + "&f because it's not ending with &e.yml (was it manually edited? is that file supposed to be in that folder?)");
@@ -60,7 +63,7 @@ public class DungeonInstanceManager extends DRegistry<DungeonType.DungeonInstanc
         return readInstance(new YMLConfig(DeepDungeons.get(), file), fileName);
     }
 
-    private DungeonType.DungeonInstance readInstance(@NotNull YMLConfig config, String fileName) {
+    private DungeonInstance readInstance(@NotNull YMLConfig config, String fileName) {
         String type = config.getString("type");
         if (type == null) {
             logIssue("Can't read dungeon file &edungeons" + File.separator + fileName + "&f because path &etype:&f leads to nothing (corrupted file?)");
@@ -71,7 +74,7 @@ public class DungeonInstanceManager extends DRegistry<DungeonType.DungeonInstanc
             logIssue("Can't read dungeon file &edungeons" + File.separator + fileName + "&f because dungeon type &etype &fdoesn't match any existing type (maybe a 3rd party plugin didn't load or was removed?)");
             return null;
         }
-        DungeonType.DungeonInstance dungeon = null;
+        DungeonInstance dungeon = null;
         try {
             dungeon = dungeonType.read(fileName, config);
             //DungeonInstanceManager.getInstance().register(dungeon);

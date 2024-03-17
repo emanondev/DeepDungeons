@@ -14,12 +14,14 @@ public class StandardType extends DoorType {
     }
 
     @Override
-    public @NotNull StandardInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
+    public @NotNull
+    StandardInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
         return new StandardInstance(room, section);
     }
 
     @Override
-    public @NotNull StandardInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+    public @NotNull
+    StandardInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
         return new StandardInstanceBuilder(room);
     }
 
@@ -58,13 +60,14 @@ public class StandardType extends DoorType {
         }
 
         @Override
-        public @NotNull DoorHandler createDoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
+        public @NotNull
+        DoorHandler createDoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
             return new StandardHandler(roomHandler);
         }
 
         public class StandardHandler extends DoorHandler {
 
-            public StandardHandler(RoomType.RoomInstance.@NotNull RoomHandler roomHandler) {
+            public StandardHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
                 super(roomHandler);
             }
 

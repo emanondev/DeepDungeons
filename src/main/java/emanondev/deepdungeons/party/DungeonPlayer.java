@@ -25,11 +25,13 @@ public class DungeonPlayer {
         preEnterSnapshot = snapshot == null ? null : snapshot.clone();
     }
 
-    public @Nullable PlayerSnapshot getPreEnterSnapshot() {
+    public @Nullable
+    PlayerSnapshot getPreEnterSnapshot() {
         return preEnterSnapshot;
     }
 
-    public @Nullable PlayerSnapshot getAndDeletePreEnterSnapshot() {
+    public @Nullable
+    PlayerSnapshot getAndDeletePreEnterSnapshot() {
         PlayerSnapshot value = preEnterSnapshot;
         preEnterSnapshot = null;
         return value;
@@ -43,11 +45,13 @@ public class DungeonPlayer {
         logoutSnapshot = snapshot == null ? null : snapshot.clone();
     }
 
-    public @Nullable PlayerSnapshot getLogoutSnapshot() {
+    public @Nullable
+    PlayerSnapshot getLogoutSnapshot() {
         return logoutSnapshot;
     }
 
-    public @Nullable PlayerSnapshot getAndDeleteLogoutSnapshot() {
+    public @Nullable
+    PlayerSnapshot getAndDeleteLogoutSnapshot() {
         PlayerSnapshot value = logoutSnapshot;
         logoutSnapshot = null;
         return value;
@@ -71,7 +75,8 @@ public class DungeonPlayer {
         history.put(to, from);
     }
 
-    public @Nullable DoorType.DoorInstance.DoorHandler getBackRoute(@NotNull DoorType.DoorInstance.DoorHandler from) {
+    public @Nullable
+    DoorType.DoorInstance.DoorHandler getBackRoute(@NotNull DoorType.DoorInstance.DoorHandler from) {
         return history.get(from);
     }
 

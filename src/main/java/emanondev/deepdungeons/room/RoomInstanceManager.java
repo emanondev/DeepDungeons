@@ -15,7 +15,8 @@ public class RoomInstanceManager extends DRegistry<RoomType.RoomInstance> {
         super(DeepDungeons.get(), "RoomInstanceManager", true);
     }
 
-    public static @NotNull RoomInstanceManager getInstance() {
+    public static @NotNull
+    RoomInstanceManager getInstance() {
         return instance;
     }
 
@@ -78,7 +79,8 @@ public class RoomInstanceManager extends DRegistry<RoomType.RoomInstance> {
 
     }
 
-    public @NotNull File getFolder() {
+    public @NotNull
+    File getFolder() {
         return new File(DeepDungeons.get().getDataFolder(), "rooms");
     }
 }

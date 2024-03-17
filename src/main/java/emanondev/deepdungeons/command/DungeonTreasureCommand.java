@@ -107,7 +107,8 @@ public class DungeonTreasureCommand extends CoreCommand {
     }
 
     @Override
-    public @Nullable List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
+    public @Nullable
+    List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
         return switch (args.length) {
             case 1 -> this.complete(args[0], new String[]{"create"});
             case 2 -> {
