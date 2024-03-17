@@ -11,6 +11,7 @@ import emanondev.deepdungeons.DRInstance;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.area.AreaManager;
 import emanondev.deepdungeons.door.DoorType;
+import emanondev.deepdungeons.interfaces.MoveListener;
 import emanondev.deepdungeons.party.PartyManager;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.Bukkit;
@@ -142,7 +143,7 @@ public abstract class DungeonType extends DRegistryElement {
 
         public abstract @NotNull DungeonHandler createHandler(@Nullable World world);
 
-        public abstract class DungeonHandler {
+        public abstract class DungeonHandler implements MoveListener {
 
             public @NotNull DungeonInstance getInstance() {
                 return DungeonInstance.this;
@@ -289,9 +290,11 @@ public abstract class DungeonType extends DRegistryElement {
             }
 
             public void onPlayerInteractEntity(@NotNull PlayerInteractEntityEvent event) {
+                //TODO
             }
 
             public void onPlayerInteract(@NotNull PlayerInteractEvent event) {
+                //TODO
             }
 
             public void onPlayerMove(@NotNull PlayerMoveEvent event) {

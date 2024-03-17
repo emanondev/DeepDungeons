@@ -60,7 +60,7 @@ public class TimedType extends DoorType {
                             1, getPlayer(), null, DeepDungeons.get());
 
                     mapGui.setButton(4, new NumberEditorFButton<>(mapGui, 1L, 1L, 10000L, () -> timeToUnlock,
-                            (time) -> timeToUnlock = Math.min(Math.max(1, time), 36000),
+                            (time) -> timeToUnlock = Math.min(Math.max(1, time), 36000),//TODO lang
                             () -> new ItemBuilder(Material.REPEATER).setDescription(new DMessage(DeepDungeons.get(), getPlayer())
                                     .append("<gold>Time: <yellow>" + UtilsString.getTimeStringSeconds(getPlayer(), timeToUnlock), "%value_raw%", "" + timeToUnlock).newLine()
                                     .append("<blue>How much time until door opens?")

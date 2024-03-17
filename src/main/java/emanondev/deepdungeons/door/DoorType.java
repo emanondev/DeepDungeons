@@ -13,6 +13,7 @@ import emanondev.deepdungeons.DInstance;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Util;
 import emanondev.deepdungeons.dungeon.DungeonType;
+import emanondev.deepdungeons.interfaces.MoveListener;
 import emanondev.deepdungeons.party.PartyManager;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.*;
@@ -177,11 +178,11 @@ public abstract class DoorType extends DRegistryElement {
                                     "/pos1" : "/pos2");
                     case 6 -> {
                         BoundingBox box = WorldEditUtility.getSelectionBoxExpanded(event.getPlayer());
-                        if (box == null) {
+                        if (box == null) {//TODO lang
                             event.getPlayer().sendMessage("message not implemented: no area selected, use worldedit wand");
                             return;
                         }
-                        if (!roomBuilder.getArea().contains(box)) {
+                        if (!roomBuilder.getArea().contains(box)) {//TODO lang
                             event.getPlayer().sendMessage("message not implemented: selected area is outside the room or too close to border");
                             return;
                         }
@@ -201,7 +202,7 @@ public abstract class DoorType extends DRegistryElement {
             if (!hasConfirmedSpawnLocation) {
                 switch (event.getPlayer().getInventory().getHeldItemSlot()) {
                     case 1 -> {
-                        if (!roomBuilder.getArea().contains(event.getPlayer().getBoundingBox())) {
+                        if (!roomBuilder.getArea().contains(event.getPlayer().getBoundingBox())) {//TODO lang
                             event.getPlayer().sendMessage("message not implemented: selected spawn point is outside the room or too close to border");
                             return;
                         }
@@ -221,14 +222,15 @@ public abstract class DoorType extends DRegistryElement {
                         roomBuilder.setupTools();
                     }
                     case 3 -> {
-                        MapGui mapGui = new MapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("doorbuilder.timed_door_gui_title"),
+                        MapGui mapGui = new MapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("doorbuilder.base_commandata_cooldowntitle"),
                                 1, getPlayer(), null, DeepDungeons.get());
 
                         mapGui.setButton(4, new NumberEditorFButton<>(mapGui, 1, 1, 10000, () -> cooldownLenghtSeconds,
                                 (time) -> cooldownLenghtSeconds = Math.min(Math.max(-1, time), 36000),
                                 () -> new ItemBuilder(Material.REPEATER).setDescription(new DMessage(DeepDungeons.get(), getPlayer())
-                                        .append("<gold>Time: <yellow>" + UtilsString.getTimeStringSeconds(getPlayer(), cooldownLenghtSeconds), "%value_raw%", "" + cooldownLenghtSeconds).newLine()
-                                        .append("<blue>How much time until door opens?")
+                                                .appendLang("doorbuilder.base_commandata_cooldowneditor","%value%",
+                                                        UtilsString.getTimeStringSeconds(getPlayer(), cooldownLenghtSeconds),
+                                                        "%value_raw%",String.valueOf(cooldownLenghtSeconds))
                                 ).setGuiProperty().build(), true));
                         mapGui.open(event.getPlayer());
                     }
@@ -337,8 +339,8 @@ public abstract class DoorType extends DRegistryElement {
 
         protected void showWEBound(@NotNull Player player) {
             try {
-                ParticleUtility.spawnParticleBoxFaces(player, roomBuilder.getTickCounter() / 6 + 6, 4, Particle.REDSTONE, WorldEditUtility.getSelectionBoxExpanded(player),
-                        new Particle.DustOptions(Color.WHITE, 0.3F));
+                ParticleUtility.spawnParticleBoxFaces(player, roomBuilder.getTickCounter() / 6 + 6, 4, Particle.REDSTONE,
+                        WorldEditUtility.getSelectionBoxExpanded(player),                        new Particle.DustOptions(Color.WHITE, 0.3F));
             } catch (Exception ignored) {
             }
         }
@@ -432,7 +434,7 @@ public abstract class DoorType extends DRegistryElement {
             return this.doorFace;
         }
 
-        public abstract class DoorHandler {
+        public abstract class DoorHandler implements MoveListener {
 
             private final RoomType.RoomInstance.RoomHandler roomHandler;
             private final HashMap<UUID, Long> cooldowns = new HashMap<>();
@@ -555,7 +557,7 @@ public abstract class DoorType extends DRegistryElement {
                 this.spawn.setYaw(getSpawnYaw());
             }
 
-            public void onPlayerMove(PlayerMoveEvent event) {
+            public void onPlayerMove(@NotNull PlayerMoveEvent event) {
                 DoorHandler link = this.getLink();
                 if (link == null) {
                     if (this.equals(this.getRoom().getDungeonHandler().getEntrance())) {

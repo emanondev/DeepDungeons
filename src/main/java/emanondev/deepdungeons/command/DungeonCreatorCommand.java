@@ -52,17 +52,18 @@ public class DungeonCreatorCommand extends CoreCommand {
 
     private void test(CommandSender sender) {
         Block block = ((Player) sender).getTargetBlock(null, 10);
-        sender.sendMessage("Block "+block.getType().name());
-        sender.sendMessage("isBlockPowered " + block.isBlockPowered());
-        sender.sendMessage("isBlockIndirectlyPowered " + block.isBlockIndirectlyPowered());
-        sender.sendMessage("getBlockPower " + block.getBlockPower());
+        sender.sendMessage("Block §a" + block.getType().name());
+        sender.sendMessage("isBlockPowered §6" + block.isBlockPowered());
+        sender.sendMessage("isBlockIndirectlyPowered §6" + block.isBlockIndirectlyPowered());
+        sender.sendMessage("getBlockPower §6" + block.getBlockPower());
         for (BlockFace face : BlockFace.values())
-            try {
-                sender.sendMessage("getBlockPower " + face.name() + " " + block.getBlockPower(face));
-                sender.sendMessage("isBlockFacePowered " + face.name() + " " + block.isBlockFacePowered(face));
-                sender.sendMessage("isBlockFaceIndirectlyPowered " + face.name() + " " + block.isBlockFaceIndirectlyPowered(face));
-            } catch (Throwable ignored) {
-            }
+            if (!(!face.isCartesian() && face != BlockFace.SELF))
+                try {
+                    sender.sendMessage("getBlockPower " + face.name() + " §6" + block.getBlockPower(face));
+                    sender.sendMessage("isBlockFacePowered " + face.name() + " §6" + block.isBlockFacePowered(face));
+                    sender.sendMessage("isBlockFaceIndirectlyPowered " + face.name() + " §6" + block.isBlockFaceIndirectlyPowered(face));
+                } catch (Throwable ignored) {
+                }
     }
 
     private void start(CommandSender sender, String label, String[] args) {

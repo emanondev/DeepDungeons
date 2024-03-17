@@ -45,6 +45,7 @@ public class RedstoneType extends DoorType {
 
         private final List<BlockVector> blocks = new ArrayList<>();
         private boolean completedRedstonePlates = false;
+        private boolean atSameTime = true;
 
 
         public RedstoneInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
@@ -56,6 +57,7 @@ public class RedstoneType extends DoorType {
             List<String> blockList = new ArrayList<>();
             blocks.forEach((value) -> blockList.add(Util.toString(value.subtract(getRoomOffset()))));
             section.set("powered_blocks", blockList);
+            section.set("all_powered_at_same_time", atSameTime);
         }
 
         @Override
@@ -69,6 +71,10 @@ public class RedstoneType extends DoorType {
                     BlockVector loc = event.getClickedBlock().getLocation().toVector().toBlockVector();
                     if (!blocks.remove(loc))
                         blocks.add(loc);
+                }
+                case 2 -> {
+                    atSameTime = !atSameTime;
+                    setupTools();
                 }
                 case 6 -> {
                     if (blocks.size() > 0) {
@@ -89,6 +95,8 @@ public class RedstoneType extends DoorType {
                         .appendLang("doorbuilder.redstone_blocks_info")).build());
                 inv.setItem(1, new ItemBuilder(Material.STICK).setDescription(new DMessage(DeepDungeons.get(), player)
                         .appendLang("doorbuilder.redstone_blocks_selector", "%value%", String.valueOf(blocks.size()))).build());
+                inv.setItem(2, new ItemBuilder(Material.CLOCK).setDescription(new DMessage(DeepDungeons.get(), player)
+                        .appendLang("doorbuilder.redstone_blocks_atsametime", "%value%", String.valueOf(atSameTime))).build());
                 if (blocks.size() > 0)
                     inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
                             .appendLang("doorbuilder.redstone_blocks_confirm")).build());
@@ -122,11 +130,13 @@ public class RedstoneType extends DoorType {
     public class RedstoneInstance extends DoorInstance {
 
         private final List<BlockVector> poweredBlocks = new ArrayList<>();
+        private final boolean atSameTime;
 
         public RedstoneInstance(@NotNull RoomType.RoomInstance roomInstance, @NotNull YMLSection section) {
             super(roomInstance, section);
             section.getStringList("powered_blocks", Collections.emptyList()).forEach(
                     (key) -> this.poweredBlocks.add(Util.toBlockVector(key)));
+            this.atSameTime = section.getBoolean("all_powered_at_same_time", true);
         }
 
         @Override
@@ -165,7 +175,7 @@ public class RedstoneType extends DoorType {
                 Vector center = this.getBoundingBox().getCenter();
                 item = (ItemDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() + 0.5, center.getZ())
                         .setDirection(getDoorFace().getOppositeFace().getDirection()), EntityType.ITEM_DISPLAY);
-                item.setItemStack(new ItemStack(Material.TARGET));
+                item.setItemStack(new ItemStack(atSameTime ? Material.REDSTONE_LAMP : Material.TARGET));
                 Transformation tr = item.getTransformation();
                 tr.getScale().mul(1F, 1F, 0.1F);
                 item.setTransformation(tr);
@@ -183,23 +193,38 @@ public class RedstoneType extends DoorType {
                             this.cancel();
                             return;
                         }
-                        final int[] counter = {0};
-                        poweredBlocksList.forEach(block -> {
-                            if (block.getBlockPower() > 0)
-                                counter[0]++;
-                        });
-                        if (counter[0] >= poweredBlocksList.size()) {
-                            text.remove();
-                            item.remove();
-                            unlocked = true;
-                            this.cancel();
-                            return;
+                        if (atSameTime) {
+                            final int[] counter = {0};
+                            poweredBlocksList.forEach(block -> {
+                                if (block.isBlockFacePowered(BlockFace.SELF))//TODO test
+                                    counter[0]++;
+                            });
+                            if (counter[0] >= poweredBlocksList.size()) {
+                                text.remove();
+                                item.remove();
+                                unlocked = true;
+                                this.cancel();
+                                return;
+                            }
+                            //TODO it's not player language specific
+                            text.setText(new DMessage(DeepDungeons.get(), null).appendLang("door.redstone_sametime_info",
+                                    "%current%", String.valueOf(counter[0]), "%max%", String.valueOf(poweredBlocksList.size())).toLegacy());
                         }
-                        //TODO it's not player language specific
-                        text.setText(new DMessage(DeepDungeons.get(), null).appendLang("door.redstone_info",
-                                "%current%", String.valueOf(counter[0]), "%max%", String.valueOf(poweredBlocksList.size())).toLegacy());
+                        else{
+                            poweredBlocksList.removeIf(block -> block.isBlockFacePowered(BlockFace.SELF));
+                            if (poweredBlocksList.isEmpty()) {
+                                text.remove();
+                                item.remove();
+                                unlocked = true;
+                                this.cancel();
+                                return;
+                            }
+                            //TODO it's not player language specific
+                            text.setText(new DMessage(DeepDungeons.get(), null).appendLang("door.redstone_notsametime_info",
+                                    "%value%", String.valueOf(poweredBlocksList.size())).toLegacy());
+                        }
                     }
-                }.runTaskTimer(DeepDungeons.get(), 10L, 10L);
+                }.runTaskTimer(DeepDungeons.get(), 8L, 8L);//snowball & small projectiles activate the Target for 8 ticks
             }
         }
 

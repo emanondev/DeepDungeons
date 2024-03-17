@@ -2,7 +2,8 @@ door:
   pressure_info: "%current%/%max% left"
   cooldown_info: "Cooldown %left% s"
   guardian_info: "%value% left"
-  redstone_info: "%current%/%max% left"
+  redstone_sametime_info: "%current%/%max% left"
+  redstone_notsametime_info: "%value% left"
   timed_info: "%current% left"
 party:
   has_no_party: "<blue>[</blue>Party<blue>]</blue><red> You don't have a party</red>"
@@ -113,6 +114,11 @@ doorbuilder:
     - "<#7897ff>a cooldown before being able to use it again"
     - ""
     - "<#7897ff>You can set -1 for ∞ cooldown"
+  base_commandata_cooldowntitle: "<blue>Cooldown settings"
+  base_commandata_cooldowneditor:
+    - "<gold>Time: <yellow>%value%</yellow> (<yellow>%value_raw%</yellow> s)"
+    - "<7897ff>How much time until door reopens?"
+    - "<7897ff>cooldown is personal to each player"
   base_commondata_confirm:
     - "<gold>Confirm Data</gold>"
     - "<#7897ff>Confirm current setting"
@@ -159,6 +165,12 @@ doorbuilder:
   redstone_blocks_selector:
     - "<gold>Add/remove Checked Blocks (count: %value%)</gold>"
     - "<#7897ff>Click on blocks"
+  redstone_blocks_atsametime:
+    - "<gold>Active at same time (count: %value%)</gold>"
+    - "<#7897ff>All selected blocks should be powered"
+    - "<#7897ff>by redstone at the same time?"
+    - "<#7897ff>When false, blocks may turn their redstone"
+    - "<#7897ff>signal off and still be counted as completed"
   redstone_blocks_confirm:
     - "<gold>Confirm Selected Blocks"
     - "<#7897ff>Confirm current settings"
@@ -220,7 +232,7 @@ roombuilder:
     - "<gold>Confirm Data</gold>"
     - "<#7897ff>Confirm current setting"
 dungeonbuilder:
-  base_rgs_info:
+  rgs_base_info:
     - "<gold>Info: Configure Dungeon"
     - "<#7897ff>Open the gui to configure groups"
     - ""
@@ -229,9 +241,48 @@ dungeonbuilder:
     - "<#7897ff>a tree structure where nodes and leafs are rooms"
     - "<#7897ff>and arches are doors, all the leaf rooms of a group"
     - "<#7897ff>will be connected to the root of successive group"
-  base_rgs_gui:
+  rgs_base_gui:
     - "<gold>Groups Gui"
     - "<#7897ff>Click to open"
-  base_rgs_confirm:
+  rgs_base_confirm:
     - "<gold>Confirm configuration"
     - "<#7897ff>Click to confirm configuration"
+  rgs_groupsgui_title: "<blue>Groups"
+  rgs_groupsgui_groupdesc:
+    - "<gold>Group #<yellow>%index%"
+    - "<7897ff>Selected rooms: <yellow>%size%"
+    - "<7897ff>Length: <yellow>%min_len%</yellow> to <yellow>%max_len%"
+    - ""
+    - "<7897ff>[<white>Click Left/Right</white>] <white>Edit"
+    - "<7897ff>[<white>Click Shift Left/Right</white>] <white>Move Left/Right"
+    - "<7897ff>[<white>Press <key:key.swapOffhand></white>] <red>Delete"
+  rgs_groupsgui_groupadd:
+    - "<gold>Add a new Group"
+  rgs_groupgui_title: "<blue>Group #%index%"
+  rgs_groupgui_selectorbase:
+    - "<gold>Room selector"
+    - "<7897ff>Selected rooms: <yellow>%size%"
+    - ""
+  rgs_groupgui_selectorroominfo:
+    - "<7897ff> - <yellow>%id% </yellow>(weight <yellow>%weight%</yellow>)"
+  rgs_selectorgui_roominfo:
+    - "<gold>Room ID: <yellow>%id%"
+    - "<7897ff>Room Type: <yellow>%type%"
+    - "<7897ff>Enabled: %selected%"
+  rgs_groupgui_min:
+    - "<gold>Min Depth: <yellow>%min%"
+    - "<7897ff>(max: %max%)"
+    - ""
+    - "<7897ff>How many rooms depth at <u>least</u> for this group?"
+  rgs_groupgui_max:
+    - "<gold>Max Depth: <yellow>%max%"
+    - "<7897ff>(min: %min%)"
+    - ""
+    - "<7897ff>How many rooms depth at <u>most</u> for this group?"
+  rgs_groupgui_weighteditor:
+    - "<gold>Weight editor"
+    - "<7897ff>Change rooms weight"
+  rgs_weightgui_title: "<blue>Group #%index%  Weight editor"
+  rgs_weightgui_roominfo:
+    - "<gold>Room: <yellow>%id%"
+    - "<7897ff>Weight: <yellow>%weight%</yellow>/<yellow>%full_weight%</yellow> = ~<yellow>%perc_weight%</yellow> %"
