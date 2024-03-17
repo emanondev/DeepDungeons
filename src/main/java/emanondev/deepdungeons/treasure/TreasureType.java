@@ -78,7 +78,7 @@ public abstract class TreasureType extends DRegistryElement {
             return list;
         }
 
-        public final void writeTo(@NotNull YMLSection section) {
+        public final void writeTo(@NotNull YMLSection section) throws Exception {
             section.set("type", getType().getId());
             if (offset == null)
                 throw new IllegalArgumentException("invalid offset");

@@ -68,9 +68,9 @@ public class GuardianType extends DoorType {
                             () -> {
                                 DMessage msg = new DMessage(DeepDungeons.get(), event.getPlayer())
                                         .appendLang("doorbuilder.guardian_door_guiselector_base",
-                                                "%amount%",String.valueOf(this.entityTypes.isEmpty() ?
-                                                EntityType.values().length : this.entityTypes.size()));
-                                this.entityTypes.forEach((type) -> msg.newLine().appendLang("doorbuilder.guardian_door_guiselector_line","%id%"));
+                                                "%amount%", String.valueOf(this.entityTypes.isEmpty() ?
+                                                        EntityType.values().length : this.entityTypes.size()));
+                                this.entityTypes.forEach((type) -> msg.newLine().appendLang("doorbuilder.guardian_door_guiselector_line", "%id%"));
                                 return new ItemBuilder(Material.ZOMBIE_HEAD).setAmount(Math.max(Math.min(100,
                                                 (this.entityTypes.isEmpty() ? EntityType.values().length : this.entityTypes.size())), 1))
                                         .setDescription(msg).build();
@@ -90,8 +90,8 @@ public class GuardianType extends DoorType {
                                 return true;
                             },
                             (type) -> new ItemBuilder(Material.BRICK).setDescription(new DMessage(DeepDungeons.get(), getPlayer())
-                                            .appendLang("doorbuilder.guardian_door_guiselector_item","%id%",type.name(),
-                                            "%selected%",(this.entityTypes.isEmpty() || this.entityTypes.contains(type) ? "<green>true</green>" : "<red>false</red>"))
+                                            .appendLang("doorbuilder.guardian_door_guiselector_item", "%id%", type.name(),
+                                                    "%selected%", (this.entityTypes.isEmpty() || this.entityTypes.contains(type) ? "<green>true</green>" : "<red>false</red>"))
                                     ).addEnchantment(Enchantment.DURABILITY, (this.entityTypes.isEmpty() || this.entityTypes.contains(type) ? 1 : 0))
                                     .setGuiProperty().build(),
                             () -> {
@@ -122,7 +122,7 @@ public class GuardianType extends DoorType {
                 inv.setItem(1, new ItemBuilder(Material.ZOMBIE_HEAD).setDescription(new DMessage(DeepDungeons.get(), player)
                         .appendLang("doorbuilder.guardian_entitytype_selector", "%value%", String.valueOf(this.entityTypes.size()))).build());
                 inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                            .appendLang("doorbuilder.guardian_entitytype_confirm")).build());
+                        .appendLang("doorbuilder.guardian_entitytype_confirm")).build());
                 return;
             }
             this.getCompletableFuture().complete(this);

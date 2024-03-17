@@ -9,8 +9,8 @@ import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.door.DoorType;
 import emanondev.deepdungeons.dungeon.DungeonType;
-import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
 import emanondev.deepdungeons.room.RoomType.RoomInstance;
+import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
 import emanondev.deepdungeons.room.RoomType.RoomInstanceBuilder;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -31,12 +31,14 @@ public class ReversedTimedType extends DoorType {
     }
 
     @Override
-    public @NotNull ReversedTimedDoorInstance read(@NotNull RoomInstance room, @NotNull YMLSection section) {
+    public @NotNull
+    ReversedTimedDoorInstance read(@NotNull RoomInstance room, @NotNull YMLSection section) {
         return new ReversedTimedDoorInstance(room, section);
     }
 
     @Override
-    public @NotNull ReversedTimedDoorInstanceBuilder getBuilder(@NotNull RoomInstanceBuilder room) {
+    public @NotNull
+    ReversedTimedDoorInstanceBuilder getBuilder(@NotNull RoomInstanceBuilder room) {
         return new ReversedTimedDoorInstanceBuilder(room);
     }
 
@@ -67,7 +69,7 @@ public class ReversedTimedType extends DoorType {
                             (time) -> timeToLock = Math.min(Math.max(1, time), 36000),
                             () -> new ItemBuilder(Material.REPEATER).setDescription(new DMessage(DeepDungeons.get(), getPlayer())
                                     .appendLang("doorbuilder.timed_door_gui_item",
-                                            "%value%" ,UtilsString.getTimeStringSeconds(getPlayer(), timeToLock),
+                                            "%value%", UtilsString.getTimeStringSeconds(getPlayer(), timeToLock),
                                             "%value_raw%", String.valueOf(timeToLock))
                             ).setGuiProperty().build(), true));
                     mapGui.open(event.getPlayer());
@@ -121,7 +123,8 @@ public class ReversedTimedType extends DoorType {
         }
 
         @Override
-        public @NotNull ReversedTimeDoorHandler createDoorHandler(@NotNull RoomHandler roomHandler) {
+        public @NotNull
+        ReversedTimeDoorHandler createDoorHandler(@NotNull RoomHandler roomHandler) {
             return new ReversedTimeDoorHandler(roomHandler);
         }
 
@@ -150,7 +153,7 @@ public class ReversedTimedType extends DoorType {
 
             @Override
             public boolean teleportIn(@NotNull Player player) {
-                if(super.teleportIn(player)) {
+                if (super.teleportIn(player)) {
                     passedThrough = true;
                     return true;
                 }
@@ -183,7 +186,7 @@ public class ReversedTimedType extends DoorType {
                             this.cancel();
                             return;
                         }
-                        if (locksOpenIfPassThrough&&passedThrough){
+                        if (locksOpenIfPassThrough && passedThrough) {
                             text.remove();
                             item.remove();
                             this.cancel();

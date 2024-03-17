@@ -53,7 +53,7 @@ public class DungeonCreatorCommand extends CoreCommand {
             return;
         }
         String id = args[1];
-         DungeonType.DungeonInstance dungeon = DungeonInstanceManager.getInstance().get(id);
+        DungeonType.DungeonInstance dungeon = DungeonInstanceManager.getInstance().get(id);
         DungeonType.DungeonInstance.DungeonHandler handler = AreaManager.getInstance().getReady(dungeon);
         PartyManager.Party party = PartyManager.getInstance().getParty(player);
         if (party == null)
@@ -67,7 +67,7 @@ public class DungeonCreatorCommand extends CoreCommand {
             return;
         }
         String id = args[1];
-        DungeonType. DungeonInstance dungeon = DungeonInstanceManager.getInstance().get(id);
+        DungeonType.DungeonInstance dungeon = DungeonInstanceManager.getInstance().get(id);
         if (dungeon == null) {
             sender.sendMessage("Help Message not implemented");
             return;
@@ -76,7 +76,7 @@ public class DungeonCreatorCommand extends CoreCommand {
             sender.sendMessage("Help Message not implemented");
             return;
         }
-        DungeonType.DungeonInstance. DungeonHandler handler = dungeon.createHandler(player.getLocation().getWorld());
+        DungeonType.DungeonInstance.DungeonHandler handler = dungeon.createHandler(player.getLocation().getWorld());
         Vector loc = handler.getBoundingBox().getCenter();
         new DMessage(DeepDungeons.get(), sender).append("<blue>Dungeon created at " + loc.getBlockX() + " "
                 + loc.getBlockY() + " " + loc.getBlockZ() + " ").append("<click:run_command:'/tp "

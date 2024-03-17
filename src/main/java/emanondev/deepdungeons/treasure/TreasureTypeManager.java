@@ -1,8 +1,10 @@
 package emanondev.deepdungeons.treasure;
 
+import emanondev.core.Hooks;
 import emanondev.core.util.DRegistry;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.treasure.impl.LootTableType;
+import emanondev.deepdungeons.treasure.impl.MythicMobsDropTableType;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -19,6 +21,8 @@ public class TreasureTypeManager extends DRegistry<TreasureType> {
     private TreasureTypeManager() {
         super(DeepDungeons.get(), "TreasureTypeManager", true);
         this.register(new LootTableType());
+        if (Hooks.isMythicMobsEnabled())
+            this.register(new MythicMobsDropTableType());
     }
 
     public static TreasureTypeManager getInstance() {

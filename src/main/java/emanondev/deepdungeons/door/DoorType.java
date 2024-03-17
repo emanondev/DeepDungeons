@@ -186,11 +186,11 @@ public abstract class DoorType extends DRegistryElement {
                     case 6 -> {
                         BoundingBox box = WorldEditUtility.getSelectionBoxExpanded(event.getPlayer());
                         if (box == null) {
-                            new SimpleMessage(DeepDungeons.get(),"doorbuilder.base_msg_must_set_area").send(event.getPlayer());
+                            new SimpleMessage(DeepDungeons.get(), "doorbuilder.base_msg_must_set_area").send(event.getPlayer());
                             return;
                         }
                         if (!roomBuilder.getArea().contains(box)) {
-                            new SimpleMessage(DeepDungeons.get(),"doorbuilder.base_msg_area_is_outside_room").send(event.getPlayer());
+                            new SimpleMessage(DeepDungeons.get(), "doorbuilder.base_msg_area_is_outside_room").send(event.getPlayer());
                             return;
                         }
 
@@ -210,7 +210,7 @@ public abstract class DoorType extends DRegistryElement {
                 switch (event.getPlayer().getInventory().getHeldItemSlot()) {
                     case 1 -> {
                         if (!roomBuilder.getArea().contains(event.getPlayer().getBoundingBox())) {
-                            new SimpleMessage(DeepDungeons.get(),"doorbuilder.base_msg_spawn_is_outside_room").send(event.getPlayer());
+                            new SimpleMessage(DeepDungeons.get(), "doorbuilder.base_msg_spawn_is_outside_room").send(event.getPlayer());
                             return;
                         }
                         setSpawn(event.getPlayer().getLocation().toVector().subtract(getRoomOffset()),

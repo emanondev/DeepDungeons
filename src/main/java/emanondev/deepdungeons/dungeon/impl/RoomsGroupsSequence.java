@@ -154,7 +154,7 @@ public class RoomsGroupsSequence extends DungeonType {
                 case 6 -> {
                     for (RoomsGroupBuilder group : groups)
                         if (!group.isValid()) {
-                            new SimpleMessage(DeepDungeons.get(),"dungeonbuilder.rgs_msg_setup_incomplete").send(event.getPlayer());
+                            new SimpleMessage(DeepDungeons.get(), "dungeonbuilder.rgs_msg_setup_incomplete").send(event.getPlayer());
                             return;
                         }
                     this.getCompletableFuture().complete(this);

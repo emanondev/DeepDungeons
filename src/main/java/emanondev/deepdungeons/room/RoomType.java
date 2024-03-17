@@ -253,19 +253,31 @@ public abstract class RoomType extends DRegistryElement {
             tmp = section.loadSection("treasures");
             for (int i = 0; i < treasures.size(); i++) {
                 YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
-                treasures.get(i).writeTo(sub);
+                try {
+                    treasures.get(i).writeTo(sub);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
             }
 
             tmp = section.loadSection("traps");
             for (int i = 0; i < traps.size(); i++) {
                 YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
-                traps.get(i).writeTo(sub);
+                try {
+                    traps.get(i).writeTo(sub);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
             }
 
             tmp = section.loadSection("monsterspawners");
             for (int i = 0; i < monsterSpawners.size(); i++) {
                 YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
-                monsterSpawners.get(i).writeTo(sub);
+                try {
+                    monsterSpawners.get(i).writeTo(sub);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
             }
             section.set("schematic", schematicName);
 
@@ -314,12 +326,12 @@ public abstract class RoomType extends DRegistryElement {
                     case 6 -> {
                         BoundingBox box = WorldEditUtility.getSelectionBoxExpanded(event.getPlayer());
                         if (box == null) {
-                            new SimpleMessage(DeepDungeons.get(),"roombuilder.base_msg_must_set_area").send(event.getPlayer());
+                            new SimpleMessage(DeepDungeons.get(), "roombuilder.base_msg_must_set_area").send(event.getPlayer());
                             return;
                         }
                         Vector volume = box.getMax().subtract(box.getMin());
                         if (volume.getX() < 5 || volume.getZ() < 5 || volume.getY() < 4) {
-                            new SimpleMessage(DeepDungeons.get(),"roombuilder.base_msg_too_small").send(event.getPlayer());
+                            new SimpleMessage(DeepDungeons.get(), "roombuilder.base_msg_too_small").send(event.getPlayer());
                             return;
                         }
                         setArea(event.getPlayer().getWorld(), box);
@@ -382,7 +394,7 @@ public abstract class RoomType extends DRegistryElement {
                                 },
                                 (type) -> new ItemBuilder(Material.SPRUCE_DOOR).setDescription(
                                         new DMessage(DeepDungeons.get(), event.getPlayer())
-                                                .appendLang("roombuilder.base_exits_guiitem","%id%",type.getId())
+                                                .appendLang("roombuilder.base_exits_guiitem", "%id%", type.getId())
                                 ).build(),
                                 types
                         ).open(event.getPlayer());
@@ -428,8 +440,8 @@ public abstract class RoomType extends DRegistryElement {
                                 (type) -> new ItemBuilder(type.isItem() ? type : Material.BARRIER)
                                         .addEnchantment(Enchantment.DURABILITY, breakableBlocks.contains(type) ? 1 : 0)
                                         .setGuiProperty().setDescription(new DMessage(DeepDungeons.get(), event.getPlayer())
-                                                .appendLang("roombuilder.base_commondata_guibreaktitle","%id%" + type.name(),"" +
-                                                        "%selected%",breakableBlocks.contains(type)?("<green>true</green>"):("<red>false</red>"))
+                                                .appendLang("roombuilder.base_commondata_guibreaktitle", "%id%" + type.name(), "" +
+                                                        "%selected%", breakableBlocks.contains(type) ? ("<green>true</green>") : ("<red>false</red>"))
                                         ).build(),
                                 types
                         ).open(event.getPlayer());
@@ -461,8 +473,8 @@ public abstract class RoomType extends DRegistryElement {
                                 (type) -> new ItemBuilder(type.isItem() ? type : Material.BARRIER)
                                         .addEnchantment(Enchantment.DURABILITY, placeableBlocks.contains(type) ? 1 : 0)
                                         .setGuiProperty().setDescription(new DMessage(DeepDungeons.get(), event.getPlayer())
-                                                .appendLang("roombuilder.base_commondata_guiplacetitle","%id%" + type.name(),"" +
-                                                        "%selected%",placeableBlocks.contains(type)?("<green>true</green>"):("<red>false</red>"))
+                                                .appendLang("roombuilder.base_commondata_guiplacetitle", "%id%" + type.name(), "" +
+                                                        "%selected%", placeableBlocks.contains(type) ? ("<green>true</green>") : ("<red>false</red>"))
                                         ).build(),
                                 types
                         ).open(event.getPlayer());

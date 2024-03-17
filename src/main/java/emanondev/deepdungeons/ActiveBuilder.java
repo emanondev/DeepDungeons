@@ -45,5 +45,6 @@ public interface ActiveBuilder {
     /**
      * @return unique id for this
      */
-    @NotNull String getId();
+    @NotNull
+    String getId();
 }

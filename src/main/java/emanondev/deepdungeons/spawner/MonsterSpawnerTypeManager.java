@@ -1,7 +1,9 @@
 package emanondev.deepdungeons.spawner;
 
+import emanondev.core.Hooks;
 import emanondev.core.util.DRegistry;
 import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.spawner.impl.MythicMobsType;
 import emanondev.deepdungeons.spawner.impl.VanillaMobsType;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -20,6 +22,8 @@ public class MonsterSpawnerTypeManager extends DRegistry<MonsterSpawnerType> {
     private MonsterSpawnerTypeManager() {
         super(DeepDungeons.get(), "MonsterSpawnerManager", true);
         this.register(new VanillaMobsType());
+        if (Hooks.isMythicMobsEnabled())
+            this.register(new MythicMobsType());
     }
 
     public static @NotNull

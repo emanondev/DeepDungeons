@@ -95,7 +95,7 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
             this.direction = direction;
         }
 
-        public final void writeTo(@NotNull YMLSection section) {
+        public final void writeTo(@NotNull YMLSection section) throws Exception {
             if (offset == null)
                 throw new IllegalArgumentException("invalid offset");
             section.set("type", getType().getId());
