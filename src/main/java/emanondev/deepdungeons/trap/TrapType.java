@@ -6,6 +6,7 @@ import emanondev.core.util.DRegistryElement;
 import emanondev.deepdungeons.DInstance;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -74,8 +75,17 @@ public abstract class TrapType extends DRegistryElement {
             this.room = room;
         }
 
+        public abstract TrapHandler createTrapHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler);
+
         public @NotNull RoomType.RoomInstance getRoomInstance() {
             return room;
+        }
+
+        public abstract class TrapHandler {
+
+            public abstract void setupOffset();
+
+            public abstract void onFirstPlayerEnter(@NotNull Player player);
         }
     }
 }

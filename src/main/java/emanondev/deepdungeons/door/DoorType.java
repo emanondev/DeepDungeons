@@ -13,13 +13,12 @@ import emanondev.deepdungeons.DInstance;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Util;
 import emanondev.deepdungeons.dungeon.DungeonType;
+import emanondev.deepdungeons.interfaces.AreaHolder;
 import emanondev.deepdungeons.interfaces.MoveListener;
 import emanondev.deepdungeons.party.PartyManager;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.*;
-import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
 import org.bukkit.entity.*;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -434,7 +433,7 @@ public abstract class DoorType extends DRegistryElement {
             return this.doorFace;
         }
 
-        public abstract class DoorHandler implements MoveListener {
+        public abstract class DoorHandler implements MoveListener, AreaHolder {
 
             private final RoomType.RoomInstance.RoomHandler roomHandler;
             private final HashMap<UUID, Long> cooldowns = new HashMap<>();
@@ -457,6 +456,11 @@ public abstract class DoorType extends DRegistryElement {
             public boolean teleportIn(@NotNull Player player) {
                 setCooldown(player, cooldownLengthSeconds);
                 return player.teleport(this.getSpawn());
+            }
+
+            @Override
+            public @NotNull World getWorld() {
+                return roomHandler.getWorld();
             }
 
             private void setCooldown(Player player, int cooldownSeconds) {
@@ -587,28 +591,12 @@ public abstract class DoorType extends DRegistryElement {
                 }
             }
 
-            public boolean contains(@NotNull Block block) {
-                return contains(block.getLocation());
-            }
-
-            public boolean contains(@NotNull BlockState block) {
-                return contains(block.getLocation());
-            }
-
-            public boolean contains(@NotNull Location loc) {
-                return getRoom().getDungeonHandler().getWorld().equals(loc.getWorld()) && contains(loc.toVector());
-            }
-
             public boolean contains(@NotNull Vector vector) {
                 return this.boundingBox.contains(vector);
             }
 
             public boolean overlaps(@NotNull BoundingBox box) {
                 return this.boundingBox.overlaps(box);
-            }
-
-            public boolean overlaps(@NotNull Entity box) {
-                return overlaps(box.getBoundingBox());
             }
 
             public boolean canUse(Player player) {

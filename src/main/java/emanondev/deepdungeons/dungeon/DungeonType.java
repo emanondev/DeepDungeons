@@ -11,16 +11,13 @@ import emanondev.deepdungeons.DRInstance;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.area.AreaManager;
 import emanondev.deepdungeons.door.DoorType;
-import emanondev.deepdungeons.interfaces.MoveListener;
+import emanondev.deepdungeons.interfaces.*;
 import emanondev.deepdungeons.party.PartyManager;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
@@ -33,7 +30,6 @@ import org.bukkit.event.player.*;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -143,7 +139,7 @@ public abstract class DungeonType extends DRegistryElement {
 
         public abstract @NotNull DungeonHandler createHandler(@Nullable World world);
 
-        public abstract class DungeonHandler implements MoveListener {
+        public abstract class DungeonHandler implements MoveListener, InteractListener, InteractEntityListener, BlockPlaceListener, BlockBreakListener, AreaHolder {
 
             public @NotNull DungeonInstance getInstance() {
                 return DungeonInstance.this;
@@ -163,28 +159,6 @@ public abstract class DungeonType extends DRegistryElement {
 
             @Contract(pure = true)
             public abstract @NotNull State getState();
-
-            public abstract @NotNull World getWorld();
-
-            public boolean contains(@NotNull Block block) {
-                return contains(block.getLocation());
-            }
-
-            public boolean contains(@NotNull BlockState block) {
-                return contains(block.getLocation());
-            }
-
-            public boolean contains(@NotNull Location loc) {
-                return getWorld().equals(loc.getWorld()) && contains(loc.toVector());
-            }
-
-            public abstract boolean contains(@NotNull Vector vector);
-
-            public abstract boolean overlaps(@NotNull BoundingBox box);
-
-            public boolean overlaps(@NotNull Entity box) {
-                return overlaps(box.getBoundingBox());
-            }
 
             public void onEntityTeleportTo(@NotNull EntityTeleportEvent event) {
             }
@@ -289,12 +263,14 @@ public abstract class DungeonType extends DRegistryElement {
             public void onPlayerHarvestBlock(@NotNull PlayerHarvestBlockEvent event) {
             }
 
+            @Override
             public void onPlayerInteractEntity(@NotNull PlayerInteractEntityEvent event) {
-                //TODO
+                //TODO call room
             }
 
+            @Override
             public void onPlayerInteract(@NotNull PlayerInteractEvent event) {
-                //TODO
+                //TODO call room
             }
 
             public void onPlayerMove(@NotNull PlayerMoveEvent event) {
