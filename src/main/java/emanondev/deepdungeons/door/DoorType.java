@@ -6,6 +6,7 @@ import emanondev.core.YMLSection;
 import emanondev.core.gui.MapGui;
 import emanondev.core.gui.NumberEditorFButton;
 import emanondev.core.message.DMessage;
+import emanondev.core.message.SimpleMessage;
 import emanondev.core.util.DRegistryElement;
 import emanondev.core.util.ParticleUtility;
 import emanondev.core.util.WorldEditUtility;
@@ -184,12 +185,12 @@ public abstract class DoorType extends DRegistryElement {
                                     "/pos1" : "/pos2");
                     case 6 -> {
                         BoundingBox box = WorldEditUtility.getSelectionBoxExpanded(event.getPlayer());
-                        if (box == null) {//TODO lang
-                            event.getPlayer().sendMessage("message not implemented: no area selected, use worldedit wand");
+                        if (box == null) {
+                            new SimpleMessage(DeepDungeons.get(),"doorbuilder.base_msg_must_set_area").send(event.getPlayer());
                             return;
                         }
-                        if (!roomBuilder.getArea().contains(box)) {//TODO lang
-                            event.getPlayer().sendMessage("message not implemented: selected area is outside the room or too close to border");
+                        if (!roomBuilder.getArea().contains(box)) {
+                            new SimpleMessage(DeepDungeons.get(),"doorbuilder.base_msg_area_is_outside_room").send(event.getPlayer());
                             return;
                         }
 
@@ -208,8 +209,8 @@ public abstract class DoorType extends DRegistryElement {
             if (!hasConfirmedSpawnLocation) {
                 switch (event.getPlayer().getInventory().getHeldItemSlot()) {
                     case 1 -> {
-                        if (!roomBuilder.getArea().contains(event.getPlayer().getBoundingBox())) {//TODO lang
-                            event.getPlayer().sendMessage("message not implemented: selected spawn point is outside the room or too close to border");
+                        if (!roomBuilder.getArea().contains(event.getPlayer().getBoundingBox())) {
+                            new SimpleMessage(DeepDungeons.get(),"doorbuilder.base_msg_spawn_is_outside_room").send(event.getPlayer());
                             return;
                         }
                         setSpawn(event.getPlayer().getLocation().toVector().subtract(getRoomOffset()),
@@ -618,14 +619,14 @@ public abstract class DoorType extends DRegistryElement {
                 return this.boundingBox.overlaps(box);
             }
 
-            public boolean canUse(Player player) {
+            public boolean canUse(@NotNull Player player) {
                 if (blocked.contains(player.getUniqueId()))
                     return false;
                 Long cooldown = cooldowns.get(player.getUniqueId());
                 return cooldown == null || cooldown < System.currentTimeMillis();
             }
 
-            public void onFirstPlayerEnter(Player player) {
+            public void onFirstPlayerEnter(@NotNull Player player) {
 
             }
         }

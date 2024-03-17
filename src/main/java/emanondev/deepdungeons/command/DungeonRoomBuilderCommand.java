@@ -51,7 +51,7 @@ public class DungeonRoomBuilderCommand extends CoreCommand {
             return;
         }
         if (!BuilderMode.getInstance().unpauseBuilder(player))
-            sender.sendMessage("Message not implemented yet (not on paused mode)");//TODO//TODO check
+            sender.sendMessage("Message not implemented yet (not on paused mode)");//TODO
     }
 
     private void pause(CommandSender sender, String label, String[] args) {

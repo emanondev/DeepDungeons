@@ -7,6 +7,7 @@ import emanondev.core.UtilsString;
 import emanondev.core.YMLSection;
 import emanondev.core.gui.*;
 import emanondev.core.message.DMessage;
+import emanondev.core.message.SimpleMessage;
 import emanondev.core.util.WorldEditUtility;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.area.AreaManager;
@@ -152,8 +153,8 @@ public class RoomsGroupsSequence extends DungeonType {
                 }
                 case 6 -> {
                     for (RoomsGroupBuilder group : groups)
-                        if (!group.isValid()) { //TODO lang
-                            event.getPlayer().sendMessage("Message not implemented (setup incomplete)");
+                        if (!group.isValid()) {
+                            new SimpleMessage(DeepDungeons.get(),"dungeonbuilder.rgs_msg_setup_incomplete").send(event.getPlayer());
                             return;
                         }
                     this.getCompletableFuture().complete(this);
@@ -263,7 +264,7 @@ public class RoomsGroupsSequence extends DungeonType {
                         },
                         (roomId) -> {
                             RoomInstance inst = RoomInstanceManager.getInstance().get(roomId);
-                            return new ItemBuilder(Material.BRICK).setDescription(new DMessage(DeepDungeons.get(), getPlayer())
+                            return new ItemBuilder(Material.BRICK).setDescription(new DMessage(DeepDungeons.get(), p)
                                             .appendLang("dungeonbuilder.rgs_selectorgui_roominfo",
                                                     "%id%", roomId, "%type%", (inst == null ? "?" : inst.getType().getId()),
                                                     "%selected%", (rooms.containsKey(roomId) ? "<green>true</green>" : "<red>false</red>"))
@@ -274,22 +275,22 @@ public class RoomsGroupsSequence extends DungeonType {
 
                 if (MIN_LEN != MAX_LEN) {
                     mapGui.addButton(new NumberEditorFButton<>(mapGui, 1, 1, 100, () -> minLength, this::setMinLength,
-                            () -> new ItemBuilder(Material.REPEATER).setDescription(new DMessage(DeepDungeons.get(), getPlayer())
+                            () -> new ItemBuilder(Material.REPEATER).setDescription(new DMessage(DeepDungeons.get(), p)
                                             .appendLang("dungeonbuilder.rgs_groupgui_min", "%min%", String.valueOf(minLength)
                                                     , "%max%", String.valueOf(maxLength))
                                     ).setAmount(Math.max(1, Math.min(100, minLength)))
                                     .setGuiProperty().build(), true));
                     mapGui.addButton(new NumberEditorFButton<>(mapGui, 1, 1, 100, () -> maxLength, this::setMaxLength,
-                            () -> new ItemBuilder(Material.REPEATER).setDescription(new DMessage(DeepDungeons.get(), getPlayer())
+                            () -> new ItemBuilder(Material.REPEATER).setDescription(new DMessage(DeepDungeons.get(), p)
                                             .appendLang("dungeonbuilder.rgs_groupgui_max", "%min%", String.valueOf(minLength)
                                                     , "%max%", String.valueOf(maxLength))).setAmount(Math.max(1, Math.min(100, maxLength)))
                                     .setGuiProperty().build(), true));
                 }
                 mapGui.addButton(new FButton(mapGui,
-                        () -> new ItemBuilder(Material.ANVIL).setDescription(new DMessage(DeepDungeons.get(), getPlayer())
+                        () -> new ItemBuilder(Material.ANVIL).setDescription(new DMessage(DeepDungeons.get(), p)
                                 .appendLang("dungeonbuilder.rgs_groupgui_weighteditor")).build(),
                         (event) -> {
-                            PagedMapGui weightGui = new PagedMapGui(new DMessage(DeepDungeons.get(), getPlayer())
+                            PagedMapGui weightGui = new PagedMapGui(new DMessage(DeepDungeons.get(), p)
                                     .appendLang("dungeonbuilder.rgs_weightgui_title", "%index%", String.valueOf(slot + 1)),
                                     6, getPlayer(), mapGui, DeepDungeons.get());
                             for (String key : rooms.keySet()) {
@@ -299,7 +300,7 @@ public class RoomsGroupsSequence extends DungeonType {
                                             final int[] fullWeight = {0};
                                             rooms.values().forEach((value) -> fullWeight[0] += value);
                                             RoomInstance inst = RoomInstanceManager.getInstance().get(key);
-                                            return new ItemBuilder(Material.BRICK).setDescription(new DMessage(DeepDungeons.get(), getPlayer())
+                                            return new ItemBuilder(Material.BRICK).setDescription(new DMessage(DeepDungeons.get(), p)
                                                             .appendLang("dungeonbuilder.rgs_weightgui_roominfo",
                                                                     "%id%", key,
                                                                     "%type%", (inst == null ? "?" : inst.getType().getId()),
@@ -309,6 +310,7 @@ public class RoomsGroupsSequence extends DungeonType {
                                                     .setGuiProperty().build();
                                         }, true));
                             }
+                            weightGui.open(p);
                             return false;
                         })
 

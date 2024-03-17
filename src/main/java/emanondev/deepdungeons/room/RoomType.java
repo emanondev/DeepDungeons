@@ -9,6 +9,7 @@ import emanondev.core.YMLSection;
 import emanondev.core.gui.AdvancedResearchFGui;
 import emanondev.core.gui.Gui;
 import emanondev.core.message.DMessage;
+import emanondev.core.message.SimpleMessage;
 import emanondev.core.util.DRegistryElement;
 import emanondev.core.util.ParticleUtility;
 import emanondev.core.util.WorldEditUtility;
@@ -312,13 +313,13 @@ public abstract class RoomType extends DRegistryElement {
                                     "/pos1" : "/pos2");
                     case 6 -> {
                         BoundingBox box = WorldEditUtility.getSelectionBoxExpanded(event.getPlayer());
-                        if (box == null) {//TODO lang
-                            event.getPlayer().sendMessage("message not implemented: no area selected, use worldedit wand");
+                        if (box == null) {
+                            new SimpleMessage(DeepDungeons.get(),"roombuilder.base_msg_must_set_area").send(event.getPlayer());
                             return;
                         }
                         Vector volume = box.getMax().subtract(box.getMin());
-                        if (volume.getX() < 5 || volume.getZ() < 5 || volume.getY() < 4) {//TODO lang
-                            event.getPlayer().sendMessage("message not implemented: selected area is too small");
+                        if (volume.getX() < 5 || volume.getZ() < 5 || volume.getY() < 4) {
+                            new SimpleMessage(DeepDungeons.get(),"roombuilder.base_msg_too_small").send(event.getPlayer());
                             return;
                         }
                         setArea(event.getPlayer().getWorld(), box);
@@ -351,12 +352,13 @@ public abstract class RoomType extends DRegistryElement {
                     case 1 -> {
                         ArrayList<DoorType> types = new ArrayList<>(DoorTypeManager.getInstance().getAll());
                         types.sort(Comparator.comparing(DRegistryElement::getId));
-                        new AdvancedResearchFGui<>(//TODO lang
-                                new DMessage(DeepDungeons.get(), event.getPlayer()).append("&8Choose an Exit Door type"),
+                        new AdvancedResearchFGui<>(
+                                new DMessage(DeepDungeons.get(), event.getPlayer()).appendLang("roombuilder.base_exits_guititle"),
                                 event.getPlayer(), null, DeepDungeons.get(),
-                                new ItemBuilder(Material.SPRUCE_DOOR).setDescription(new DMessage(
+                                new ItemBuilder(Material.SPRUCE_DOOR).setDescription(
+                                        new DMessage(
                                                 DeepDungeons.get(), event.getPlayer()
-                                        ).append(">").newLine().append("<white>Choose door type")//TODO configurable
+                                        ).append(">").newLine().appendLang("roombuilder.base_exits_guihelp")
                                 ).build(), (String text, DoorType type) -> {
                             String[] split = text.split(" ");
                             for (String s : split)
@@ -380,8 +382,7 @@ public abstract class RoomType extends DRegistryElement {
                                 },
                                 (type) -> new ItemBuilder(Material.SPRUCE_DOOR).setDescription(
                                         new DMessage(DeepDungeons.get(), event.getPlayer())
-                                                .append("<gold><bold>" + type.getId()) //TODO lang
-                                                .newLine().append("Click to choose")
+                                                .appendLang("roombuilder.base_exits_guiitem","%id%",type.getId())
                                 ).build(),
                                 types
                         ).open(event.getPlayer());
@@ -396,6 +397,7 @@ public abstract class RoomType extends DRegistryElement {
                 }
                 return;
             }
+            //TODO traps
 
             if (!hasCompletedBreakableMaterials) {
                 switch (heldSlot) {
@@ -404,11 +406,11 @@ public abstract class RoomType extends DRegistryElement {
                         types.removeIf((m) -> !m.isBlock() || m.isAir());
                         types.sort(Comparator.comparing(Material::name));
                         new AdvancedResearchFGui<>(
-                                new DMessage(DeepDungeons.get(), event.getPlayer()).append("&8Choose Breakable blocks"),//TODO lang
+                                new DMessage(DeepDungeons.get(), event.getPlayer()).appendLang("roombuilder.base_commondata_guibreaktitle"),
                                 event.getPlayer(), null, DeepDungeons.get(),
                                 new ItemBuilder(Material.SPRUCE_DOOR).setDescription(new DMessage(
                                                 DeepDungeons.get(), event.getPlayer()
-                                        ).append(">").newLine().append("<white>Choose Blocks")//TODO lang
+                                        ).append(">").newLine().appendLang("roombuilder.base_commondata_guibreakhelp")
                                 ).build(), (String text, Material type) -> {
                             String[] split = text.split(" ");
                             for (String s : split)
@@ -426,9 +428,9 @@ public abstract class RoomType extends DRegistryElement {
                                 (type) -> new ItemBuilder(type.isItem() ? type : Material.BARRIER)
                                         .addEnchantment(Enchantment.DURABILITY, breakableBlocks.contains(type) ? 1 : 0)
                                         .setGuiProperty().setDescription(new DMessage(DeepDungeons.get(), event.getPlayer())
-                                                .append("<gold><bold>" + type.name()) //TODO lang
-                                                .newLine().append("Click to toggle")
-                                                .newLine().append("Enabled? " + breakableBlocks.contains(type))).build(),
+                                                .appendLang("roombuilder.base_commondata_guibreaktitle","%id%" + type.name(),"" +
+                                                        "%selected%",breakableBlocks.contains(type)?("<green>true</green>"):("<red>false</red>"))
+                                        ).build(),
                                 types
                         ).open(event.getPlayer());
                     }
@@ -437,11 +439,11 @@ public abstract class RoomType extends DRegistryElement {
                         types.removeIf((m) -> !m.isBlock() || m.isAir());
                         types.sort(Comparator.comparing(Material::name));
                         new AdvancedResearchFGui<>(
-                                new DMessage(DeepDungeons.get(), event.getPlayer()).append("&8Choose Placeable blocks"),//TODO lang
+                                new DMessage(DeepDungeons.get(), event.getPlayer()).appendLang("roombuilder.base_commondata_guiplacetitle"),
                                 event.getPlayer(), null, DeepDungeons.get(),
                                 new ItemBuilder(Material.SPRUCE_DOOR).setDescription(new DMessage(
                                                 DeepDungeons.get(), event.getPlayer()
-                                        ).append(">").newLine().append("<white>Choose Blocks")//TODO lang
+                                        ).append(">").newLine().appendLang("roombuilder.base_commondata_guiplacehelp")
                                 ).build(), (String text, Material type) -> {
                             String[] split = text.split(" ");
                             for (String s : split)
@@ -459,9 +461,9 @@ public abstract class RoomType extends DRegistryElement {
                                 (type) -> new ItemBuilder(type.isItem() ? type : Material.BARRIER)
                                         .addEnchantment(Enchantment.DURABILITY, placeableBlocks.contains(type) ? 1 : 0)
                                         .setGuiProperty().setDescription(new DMessage(DeepDungeons.get(), event.getPlayer())
-                                                .append("<gold><bold>" + type.name()) //TODO lang
-                                                .newLine().append("Click to toggle")
-                                                .newLine().append("Enabled? " + placeableBlocks.contains(type))).build(),
+                                                .appendLang("roombuilder.base_commondata_guiplacetitle","%id%" + type.name(),"" +
+                                                        "%selected%",placeableBlocks.contains(type)?("<green>true</green>"):("<red>false</red>"))
+                                        ).build(),
                                 types
                         ).open(event.getPlayer());
                     }
@@ -472,7 +474,6 @@ public abstract class RoomType extends DRegistryElement {
                     }
                 }
             }
-            //TODO traps
             handleInteractImpl(event);
         }
 
@@ -516,6 +517,7 @@ public abstract class RoomType extends DRegistryElement {
                 }
                 return;
             }
+            //TODO traps
 
             if (!hasCompletedBreakableMaterials) {
                 inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)

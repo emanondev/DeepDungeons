@@ -15,6 +15,7 @@ public class DoorTypeManager extends DRegistry<DoorType> {
         this.register(new GuardianType());
         this.register(new PressureType());
         this.register(new TimedType());
+        this.register(new ReversedTimedType());
         this.register(new RedstoneType());
     }
 

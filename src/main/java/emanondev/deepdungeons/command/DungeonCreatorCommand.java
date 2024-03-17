@@ -9,8 +9,6 @@ import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
 import emanondev.deepdungeons.dungeon.DungeonType;
 import emanondev.deepdungeons.party.PartyManager;
 import org.bukkit.Location;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -42,28 +40,8 @@ public class DungeonCreatorCommand extends CoreCommand {
                 start(sender, label, args);
                 return;
             }
-            case "test" -> { //TODO remove later
-                test(sender);
-                return;
-            }
         }
         sender.sendMessage("Help Message not implemented");
-    }
-
-    private void test(CommandSender sender) {
-        Block block = ((Player) sender).getTargetBlock(null, 10);
-        sender.sendMessage("Block §a" + block.getType().name());
-        sender.sendMessage("isBlockPowered §6" + block.isBlockPowered());
-        sender.sendMessage("isBlockIndirectlyPowered §6" + block.isBlockIndirectlyPowered());
-        sender.sendMessage("getBlockPower §6" + block.getBlockPower());
-        for (BlockFace face : BlockFace.values())
-            if (!(!face.isCartesian() && face != BlockFace.SELF))
-                try {
-                    sender.sendMessage("getBlockPower " + face.name() + " §6" + block.getBlockPower(face));
-                    sender.sendMessage("isBlockFacePowered " + face.name() + " §6" + block.isBlockFacePowered(face));
-                    sender.sendMessage("isBlockFaceIndirectlyPowered " + face.name() + " §6" + block.isBlockFaceIndirectlyPowered(face));
-                } catch (Throwable ignored) {
-                }
     }
 
     private void start(CommandSender sender, String label, String[] args) {

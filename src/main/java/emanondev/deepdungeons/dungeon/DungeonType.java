@@ -277,12 +277,22 @@ public abstract class DungeonType extends DRegistryElement {
 
             @Override
             public void onPlayerInteractEntity(@NotNull PlayerInteractEntityEvent event) {
-                //TODO call room
+                for (RoomHandler room : this.getRooms()) {
+                    if (room.overlaps(event.getRightClicked())) {
+                        room.onPlayerInteractEntity(event);
+                        return;
+                    }
+                }
             }
 
             @Override
             public void onPlayerInteract(@NotNull PlayerInteractEvent event) {
-                //TODO call room
+                for (RoomHandler room : this.getRooms()) {
+                    if (room.overlaps(event.getPlayer())) {
+                        room.onPlayerInteract(event);
+                        return;
+                    }
+                }
             }
 
             public void onPlayerMove(@NotNull PlayerMoveEvent event) {

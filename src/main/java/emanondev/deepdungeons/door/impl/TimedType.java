@@ -53,7 +53,7 @@ public class TimedType extends DoorType {
 
         @Override
         protected void writeToImpl(@NotNull YMLSection section) {
-            section.set("timeToUnlock", "" + (timeToUnlock));
+            section.set("timeToUnlock", timeToUnlock);
         }
 
         @Override
@@ -64,10 +64,11 @@ public class TimedType extends DoorType {
                             1, getPlayer(), null, DeepDungeons.get());
 
                     mapGui.setButton(4, new NumberEditorFButton<>(mapGui, 1L, 1L, 10000L, () -> timeToUnlock,
-                            (time) -> timeToUnlock = Math.min(Math.max(1, time), 36000),//TODO lang
+                            (time) -> timeToUnlock = Math.min(Math.max(1, time), 36000),
                             () -> new ItemBuilder(Material.REPEATER).setDescription(new DMessage(DeepDungeons.get(), getPlayer())
-                                    .append("<gold>Time: <yellow>" + UtilsString.getTimeStringSeconds(getPlayer(), timeToUnlock), "%value_raw%", "" + timeToUnlock).newLine()
-                                    .append("<blue>How much time until door opens?")
+                                    .appendLang("doorbuilder.timed_door_gui_item",
+                                            "%value%" ,UtilsString.getTimeStringSeconds(getPlayer(), timeToUnlock),
+                                            "%value_raw%", String.valueOf(timeToUnlock))
                             ).setGuiProperty().build(), true));
                     mapGui.open(event.getPlayer());
                 }
@@ -132,14 +133,14 @@ public class TimedType extends DoorType {
             }
 
             @Override
-            public boolean canUse(Player player) {
+            public boolean canUse(@NotNull Player player) {
                 if (!super.canUse(player))
                     return false;
                 return unlocked;
             }
 
             @Override
-            public void onFirstPlayerEnter(Player player) {
+            public void onFirstPlayerEnter(@NotNull Player player) {
                 //entities.addAll(getRoom().getMonsters());
                 @NotNull World world = getRoom().getDungeonHandler().getWorld();
                 Vector center = this.getBoundingBox().getCenter();
@@ -150,7 +151,7 @@ public class TimedType extends DoorType {
                 tr.getScale().mul(1F, 1F, 0.1F);
                 item.setTransformation(tr);
                 item.setBrightness(new Display.Brightness(15, 15));
-                item.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.GROUND);
+                item.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.GUI);
                 text = (TextDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() - 0.5, center.getZ())
                         .setDirection(getDoorFace().getDirection()), EntityType.TEXT_DISPLAY);
                 text.setBrightness(new Display.Brightness(15, 15));

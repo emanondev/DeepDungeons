@@ -144,14 +144,14 @@ public class PressureType extends DoorType {
             }
 
             @Override
-            public boolean canUse(Player player) {
+            public boolean canUse(@NotNull Player player) {
                 if (!super.canUse(player))
                     return false;
                 return unlocked;
             }
 
             @Override
-            public void onFirstPlayerEnter(Player player) {
+            public void onFirstPlayerEnter(@NotNull Player player) {
                 //entities.addAll(getRoom().getMonsters());
                 @NotNull World world = getRoom().getDungeonHandler().getWorld();
                 Vector center = this.getBoundingBox().getCenter();
