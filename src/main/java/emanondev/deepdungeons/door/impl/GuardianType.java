@@ -7,8 +7,10 @@ import emanondev.core.gui.ResearchFButton;
 import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.door.DoorType;
-import emanondev.deepdungeons.dungeon.DungeonType;
-import emanondev.deepdungeons.room.RoomType;
+import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
+import emanondev.deepdungeons.room.RoomType.RoomInstance;
+import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
+import emanondev.deepdungeons.room.RoomType.RoomInstanceBuilder;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -31,14 +33,14 @@ public class GuardianType extends DoorType {
     }
 
     @Override
-    public @NotNull
-    GuardianInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
+    @NotNull
+    public GuardianInstance read(@NotNull RoomInstance room, @NotNull YMLSection section) {
         return new GuardianInstance(room, section);
     }
 
     @Override
-    public @NotNull
-    GuardianInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+    @NotNull
+    public GuardianInstanceBuilder getBuilder(@NotNull RoomInstanceBuilder room) {
         return new GuardianInstanceBuilder(room);
     }
 
@@ -47,7 +49,7 @@ public class GuardianType extends DoorType {
         private final HashSet<EntityType> entityTypes = new HashSet<>();
         private boolean completedConfiguration = false;
 
-        public GuardianInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+        public GuardianInstanceBuilder(@NotNull RoomInstanceBuilder room) {
             super(room);
         }
 
@@ -139,14 +141,14 @@ public class GuardianType extends DoorType {
 
         private final HashSet<EntityType> entityTypes = new HashSet<>();
 
-        public GuardianInstance(@NotNull RoomType.RoomInstance roomInstance, @NotNull YMLSection section) {
+        public GuardianInstance(@NotNull RoomInstance roomInstance, @NotNull YMLSection section) {
             super(roomInstance, section);
             this.entityTypes.addAll(section.loadEntityTypeList("filtered_types", Collections.emptyList()));
         }
 
         @Override
-        public @NotNull
-        DoorHandler createDoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
+        @NotNull
+        public DoorHandler createDoorHandler(@NotNull RoomHandler roomHandler) {
             return new GuardianHandler(roomHandler);
         }
 
@@ -156,7 +158,7 @@ public class GuardianType extends DoorType {
             private ItemDisplay item;
             private TextDisplay text;
 
-            public GuardianHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
+            public GuardianHandler(@NotNull RoomHandler roomHandler) {
                 super(roomHandler);
             }
 
@@ -190,7 +192,7 @@ public class GuardianType extends DoorType {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if (getRoom().getDungeonHandler().getState() != DungeonType.DungeonInstance.DungeonHandler.State.STARTED) {
+                        if (getRoom().getDungeonHandler().getState() != DungeonHandler.State.STARTED) {
                             text.remove();
                             item.remove();
                             this.cancel();

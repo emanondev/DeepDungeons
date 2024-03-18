@@ -7,8 +7,10 @@ import emanondev.core.util.ParticleUtility;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Util;
 import emanondev.deepdungeons.door.DoorType;
-import emanondev.deepdungeons.dungeon.DungeonType;
-import emanondev.deepdungeons.room.RoomType;
+import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
+import emanondev.deepdungeons.room.RoomType.RoomInstance;
+import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
+import emanondev.deepdungeons.room.RoomType.RoomInstanceBuilder;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Powerable;
@@ -31,14 +33,14 @@ public class PressureType extends DoorType {
     }
 
     @Override
-    public @NotNull
-    PressureInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
+    @NotNull
+    public PressureInstance read(@NotNull RoomInstance room, @NotNull YMLSection section) {
         return new PressureInstance(room, section);
     }
 
     @Override
-    public @NotNull
-    PressureInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+    @NotNull
+    public PressureInstanceBuilder getBuilder(@NotNull RoomInstanceBuilder room) {
         return new PressureInstanceBuilder(room);
     }
 
@@ -48,7 +50,7 @@ public class PressureType extends DoorType {
         private boolean completedPressurePlates = false;
 
 
-        public PressureInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+        public PressureInstanceBuilder(@NotNull RoomInstanceBuilder room) {
             super(room);
         }
 
@@ -115,14 +117,14 @@ public class PressureType extends DoorType {
 
         private final List<BlockVector> pressurePlates = new ArrayList<>();
 
-        public PressureInstance(@NotNull RoomType.RoomInstance roomInstance, @NotNull YMLSection section) {
+        public PressureInstance(@NotNull RoomInstance roomInstance, @NotNull YMLSection section) {
             super(roomInstance, section);
             section.getKeys("pressureplates").forEach((key) -> this.pressurePlates.add(Util.toBlockVector(section.getString("pressureplates." + key))));
         }
 
         @Override
-        public @NotNull
-        PressureHandler createDoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
+        @NotNull
+        public PressureHandler createDoorHandler(@NotNull RoomHandler roomHandler) {
             return new PressureHandler(roomHandler);
         }
 
@@ -133,7 +135,7 @@ public class PressureType extends DoorType {
             private ItemDisplay item;
             private TextDisplay text;
 
-            public PressureHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
+            public PressureHandler(@NotNull RoomHandler roomHandler) {
                 super(roomHandler);
             }
 
@@ -169,7 +171,7 @@ public class PressureType extends DoorType {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if (getRoom().getDungeonHandler().getState() != DungeonType.DungeonInstance.DungeonHandler.State.STARTED) {
+                        if (getRoom().getDungeonHandler().getState() != DungeonHandler.State.STARTED) {
                             text.remove();
                             item.remove();
                             this.cancel();

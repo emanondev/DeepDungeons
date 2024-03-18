@@ -3,6 +3,7 @@ package emanondev.deepdungeons.spawner;
 import emanondev.core.Hooks;
 import emanondev.core.util.DRegistry;
 import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.spawner.MonsterSpawnerType.MonsterSpawnerInstanceBuilder;
 import emanondev.deepdungeons.spawner.impl.MythicMobsType;
 import emanondev.deepdungeons.spawner.impl.VanillaMobsType;
 import org.bukkit.Material;
@@ -26,14 +27,14 @@ public class MonsterSpawnerTypeManager extends DRegistry<MonsterSpawnerType> {
             this.register(new MythicMobsType());
     }
 
-    public static @NotNull
-    MonsterSpawnerTypeManager getInstance() {
+    @NotNull
+    public static MonsterSpawnerTypeManager getInstance() {
         return instance;
     }
 
     @Contract("null -> null")
-    public @Nullable
-    MonsterSpawnerType getMonsterSpawnerType(@Nullable ItemStack itemStack) {
+    @Nullable
+    public MonsterSpawnerType getMonsterSpawnerType(@Nullable ItemStack itemStack) {
         if (itemStack == null)
             return null;
         if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
@@ -42,8 +43,8 @@ public class MonsterSpawnerTypeManager extends DRegistry<MonsterSpawnerType> {
     }
 
     @Contract("null -> null")
-    public @Nullable
-    MonsterSpawnerType getMonsterSpawnerType(@Nullable ItemMeta meta) {
+    @Nullable
+    public MonsterSpawnerType getMonsterSpawnerType(@Nullable ItemMeta meta) {
         if (meta == null)
             return null;
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))
@@ -55,7 +56,7 @@ public class MonsterSpawnerTypeManager extends DRegistry<MonsterSpawnerType> {
     }
 
     @Contract("null -> null")
-    public MonsterSpawnerType.MonsterSpawnerInstanceBuilder getMonsterSpawnerInstance(@Nullable ItemStack itemStack) {
+    public MonsterSpawnerInstanceBuilder getMonsterSpawnerInstance(@Nullable ItemStack itemStack) {
         if (itemStack == null)
             return null;
         if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
@@ -64,7 +65,7 @@ public class MonsterSpawnerTypeManager extends DRegistry<MonsterSpawnerType> {
     }
 
     @Contract("null -> null")
-    public MonsterSpawnerType.MonsterSpawnerInstanceBuilder getMonsterSpawnerInstance(@Nullable ItemMeta meta) {
+    public MonsterSpawnerInstanceBuilder getMonsterSpawnerInstance(@Nullable ItemMeta meta) {
         if (meta == null)
             return null;
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))

@@ -11,8 +11,8 @@ public class DInstance<T extends DRegistryElement> {
         this.type = type;
     }
 
-    public final @NotNull
-    T getType() {
+    @NotNull
+    public final T getType() {
         return type;
     }
 }

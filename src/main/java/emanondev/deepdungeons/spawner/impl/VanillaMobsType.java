@@ -8,7 +8,7 @@ import emanondev.core.gui.PagedMapGui;
 import emanondev.core.gui.ResearchFButton;
 import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.DeepDungeons;
-import emanondev.deepdungeons.room.RoomType;
+import emanondev.deepdungeons.room.RoomType.RoomInstance;
 import emanondev.deepdungeons.spawner.MonsterSpawnerType;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -29,14 +29,14 @@ public class VanillaMobsType extends MonsterSpawnerType {
     }
 
     @Override
-    public @NotNull
-    VanillaMobsInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection sub) {
+    @NotNull
+    public VanillaMobsInstance read(@NotNull RoomInstance room, @NotNull YMLSection sub) {
         return new VanillaMobsInstance(room, sub);
     }
 
     @Override
-    public @NotNull
-    VanillaMobsInstanceBuilder getBuilder() {
+    @NotNull
+    public VanillaMobsInstanceBuilder getBuilder() {
         return new VanillaMobsInstanceBuilder();
     }
 
@@ -48,8 +48,8 @@ public class VanillaMobsType extends MonsterSpawnerType {
         private double chance = 1;
 
         @Override
-        protected @NotNull
-        List<String> toItemLinesImpl() {
+        @NotNull
+        protected List<String> toItemLinesImpl() {
             List<String> list = new ArrayList<>();
             list.add("&9MobType:&6 " + type.name());
             list.add("&9Min:&6 " + min);
@@ -198,7 +198,7 @@ public class VanillaMobsType extends MonsterSpawnerType {
         private final int max;
         private final double chance;
 
-        public VanillaMobsInstance(RoomType.RoomInstance room, @NotNull YMLSection section) {
+        public VanillaMobsInstance(RoomInstance room, @NotNull YMLSection section) {
             super(room, section);
             entityType = section.getEntityType("mobtype", EntityType.ZOMBIE);
             min = section.getInt("min");
@@ -221,6 +221,7 @@ public class VanillaMobsType extends MonsterSpawnerType {
             return chance;
         }
 
+        @NotNull
         @Override
         public Collection<Entity> spawnMobs(@NotNull Random random, @NotNull Location location, @Nullable Player who) {
             List<Entity> entities = new ArrayList<>();
@@ -243,8 +244,8 @@ public class VanillaMobsType extends MonsterSpawnerType {
             return entities;
         }
 
-        public @NotNull
-        EntityType getEntityType() {
+        @NotNull
+        public EntityType getEntityType() {
             return entityType;
         }
     }

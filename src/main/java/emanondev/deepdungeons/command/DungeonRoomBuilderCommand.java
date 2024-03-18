@@ -6,6 +6,7 @@ import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Perms;
 import emanondev.deepdungeons.room.RoomInstanceManager;
 import emanondev.deepdungeons.room.RoomType;
+import emanondev.deepdungeons.room.RoomType.RoomInstanceBuilder;
 import emanondev.deepdungeons.room.RoomTypeManager;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
@@ -89,7 +90,7 @@ public class DungeonRoomBuilderCommand extends CoreCommand {
             sender.sendMessage("Message not implemented yet (id already used)");//TODO
             return;
         }
-        RoomType.RoomInstanceBuilder builder = type.getBuilder(name, player);
+        RoomInstanceBuilder builder = type.getBuilder(name, player);
         if (!BuilderMode.getInstance().enterBuilderMode(player, builder)) {
             sender.sendMessage("Message not implemented yet (can't start, already on builder mode or on pause (do /droom continue)?)");//TODO
             return;
@@ -97,8 +98,8 @@ public class DungeonRoomBuilderCommand extends CoreCommand {
     }
 
     @Override
-    public @Nullable
-    List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
+    @Nullable
+    public List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
         if (!(sender instanceof Player player)) return Collections.emptyList();
 
 

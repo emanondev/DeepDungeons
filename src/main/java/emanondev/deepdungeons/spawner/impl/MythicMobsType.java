@@ -30,19 +30,20 @@ public class MythicMobsType extends MonsterSpawnerType {
     }
 
     @Override
-    public @NotNull
-    MythicMobsInstance read(@NotNull RoomInstance room, @NotNull YMLSection sub) {
+    @NotNull
+    public MythicMobsInstance read(@NotNull RoomInstance room, @NotNull YMLSection sub) {
         return new MythicMobsInstance(room, sub);
     }
 
     @Override
-    public @NotNull
-    MythicMobsInstanceBuilder getBuilder() {
+    @NotNull
+    public MythicMobsInstanceBuilder getBuilder() {
         return new MythicMobsInstanceBuilder();
     }
 
     private class MythicMobsInstanceBuilder extends MonsterSpawnerInstanceBuilder {
 
+        @Nullable
         private MythicMob type = null;
         private int min = 1;
         private int max = 1;
@@ -51,8 +52,8 @@ public class MythicMobsType extends MonsterSpawnerType {
         private double chance = 1;
 
         @Override
-        protected @NotNull
-        List<String> toItemLinesImpl() {
+        @NotNull
+        protected List<String> toItemLinesImpl() {
             List<String> list = new ArrayList<>();
             list.add("&9MobType:&6 " + (type == null ? "null" : type.getInternalName()));
             list.add("&9Min:&6 " + min);
@@ -91,7 +92,7 @@ public class MythicMobsType extends MonsterSpawnerType {
             gui.addButton(new ResearchFButton<>(gui, () -> new ItemBuilder(Material.SPAWNER).setDescription(
                     new DMessage(DeepDungeons.get(), gui.getTargetPlayer())
                             .append("<!i><gold><b>MobType</b>").newLine()
-                            .append("<gold><blue>Type:</blue> " + (type.getInternalName()))).setGuiProperty().build(),
+                            .append("<gold><blue>Type:</blue> " + (type == null ? "null" : type.getInternalName()))).setGuiProperty().build(),
                     (String text, MythicMob type) -> {
                         String[] split = text.split(" ");
                         for (String s : split) {
@@ -236,11 +237,6 @@ public class MythicMobsType extends MonsterSpawnerType {
             this.chance = chance;
         }
 
-        @NotNull
-        public MythicMob getEntityType() {
-            return type;
-        }
-
         public void setEntityType(@NotNull MythicMob type) {
             this.type = type;
         }
@@ -255,7 +251,7 @@ public class MythicMobsType extends MonsterSpawnerType {
         private final int levelMin;
         private final int levelMax;
 
-        public MythicMobsInstance(RoomInstance room, @NotNull YMLSection section) {
+        public MythicMobsInstance(@NotNull RoomInstance room, @NotNull YMLSection section) {
             super(room, section);
             entityType = MythicBukkit.inst().getMobManager().getMythicMob(section.getString("mobtype", "null")).orElse(null);
             min = section.getInt("min", 1);
@@ -280,6 +276,7 @@ public class MythicMobsType extends MonsterSpawnerType {
             return chance;
         }
 
+        @NotNull
         @Override
         public Collection<Entity> spawnMobs(@NotNull Random random, @NotNull Location location, @Nullable Player who) {
             List<Entity> entities = new ArrayList<>();

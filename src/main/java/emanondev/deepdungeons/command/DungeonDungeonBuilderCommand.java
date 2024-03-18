@@ -97,8 +97,8 @@ public class DungeonDungeonBuilderCommand extends CoreCommand {
     }
 
     @Override
-    public @Nullable
-    List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
+    @Nullable
+    public List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
         if (!(sender instanceof Player player)) return Collections.emptyList();
 
 

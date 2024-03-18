@@ -1,7 +1,7 @@
 package emanondev.deepdungeons.party;
 
 import emanondev.core.PlayerSnapshot;
-import emanondev.deepdungeons.door.DoorType;
+import emanondev.deepdungeons.door.DoorType.DoorInstance.DoorHandler;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,7 +12,7 @@ import java.util.List;
 
 public class DungeonPlayer {
     private static final int MAX_INVITES = 10;
-    private final HashMap<DoorType.DoorInstance.DoorHandler, DoorType.DoorInstance.DoorHandler> history = new HashMap<>();
+    private final HashMap<DoorHandler, DoorHandler> history = new HashMap<>();
     private final List<PartyManager.Party> invites = new LinkedList<>();
     private PlayerSnapshot preEnterSnapshot = null;
     private PlayerSnapshot logoutSnapshot = null;
@@ -25,13 +25,13 @@ public class DungeonPlayer {
         preEnterSnapshot = snapshot == null ? null : snapshot.clone();
     }
 
-    public @Nullable
-    PlayerSnapshot getPreEnterSnapshot() {
+    @Nullable
+    public PlayerSnapshot getPreEnterSnapshot() {
         return preEnterSnapshot;
     }
 
-    public @Nullable
-    PlayerSnapshot getAndDeletePreEnterSnapshot() {
+    @Nullable
+    public PlayerSnapshot getAndDeletePreEnterSnapshot() {
         PlayerSnapshot value = preEnterSnapshot;
         preEnterSnapshot = null;
         return value;
@@ -45,13 +45,13 @@ public class DungeonPlayer {
         logoutSnapshot = snapshot == null ? null : snapshot.clone();
     }
 
-    public @Nullable
-    PlayerSnapshot getLogoutSnapshot() {
+    @Nullable
+    public PlayerSnapshot getLogoutSnapshot() {
         return logoutSnapshot;
     }
 
-    public @Nullable
-    PlayerSnapshot getAndDeleteLogoutSnapshot() {
+    @Nullable
+    public PlayerSnapshot getAndDeleteLogoutSnapshot() {
         PlayerSnapshot value = logoutSnapshot;
         logoutSnapshot = null;
         return value;
@@ -71,12 +71,12 @@ public class DungeonPlayer {
         history.clear();
     }
 
-    public void addDoorHistory(@NotNull DoorType.DoorInstance.DoorHandler from, @NotNull DoorType.DoorInstance.DoorHandler to) {
+    public void addDoorHistory(@NotNull DoorHandler from, @NotNull DoorHandler to) {
         history.put(to, from);
     }
 
-    public @Nullable
-    DoorType.DoorInstance.DoorHandler getBackRoute(@NotNull DoorType.DoorInstance.DoorHandler from) {
+    @Nullable
+    public DoorHandler getBackRoute(@NotNull DoorHandler from) {
         return history.get(from);
     }
 

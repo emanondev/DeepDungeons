@@ -2,7 +2,9 @@ package emanondev.deepdungeons.door.impl;
 
 import emanondev.core.YMLSection;
 import emanondev.deepdungeons.door.DoorType;
-import emanondev.deepdungeons.room.RoomType;
+import emanondev.deepdungeons.room.RoomType.RoomInstance;
+import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
+import emanondev.deepdungeons.room.RoomType.RoomInstanceBuilder;
 import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -14,20 +16,20 @@ public class StandardType extends DoorType {
     }
 
     @Override
-    public @NotNull
-    StandardInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
+    @NotNull
+    public StandardInstance read(@NotNull RoomInstance room, @NotNull YMLSection section) {
         return new StandardInstance(room, section);
     }
 
     @Override
-    public @NotNull
-    StandardInstanceBuilder getBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+    @NotNull
+    public StandardInstanceBuilder getBuilder(@NotNull RoomInstanceBuilder room) {
         return new StandardInstanceBuilder(room);
     }
 
     public final class StandardInstanceBuilder extends DoorInstanceBuilder {
 
-        public StandardInstanceBuilder(@NotNull RoomType.RoomInstanceBuilder room) {
+        public StandardInstanceBuilder(@NotNull RoomInstanceBuilder room) {
             super(room);
         }
 
@@ -55,19 +57,19 @@ public class StandardType extends DoorType {
 
     public class StandardInstance extends DoorInstance {
 
-        public StandardInstance(@NotNull RoomType.RoomInstance roomInstance, @NotNull YMLSection section) {
+        public StandardInstance(@NotNull RoomInstance roomInstance, @NotNull YMLSection section) {
             super(roomInstance, section);
         }
 
         @Override
-        public @NotNull
-        DoorHandler createDoorHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
+        @NotNull
+        public DoorHandler createDoorHandler(@NotNull RoomHandler roomHandler) {
             return new StandardHandler(roomHandler);
         }
 
         public class StandardHandler extends DoorHandler {
 
-            public StandardHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler) {
+            public StandardHandler(@NotNull RoomHandler roomHandler) {
                 super(roomHandler);
             }
 

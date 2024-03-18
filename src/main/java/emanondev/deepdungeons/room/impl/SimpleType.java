@@ -1,7 +1,7 @@
 package emanondev.deepdungeons.room.impl;
 
 import emanondev.core.YMLSection;
-import emanondev.deepdungeons.dungeon.DungeonType;
+import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
 import emanondev.deepdungeons.room.RoomType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -13,14 +13,14 @@ public class SimpleType extends RoomType {
     }
 
     @Override
-    public @NotNull
-    RoomInstanceBuilder getBuilder(@NotNull String id, @NotNull Player player) {
+    @NotNull
+    public RoomInstanceBuilder getBuilder(@NotNull String id, @NotNull Player player) {
         return new SimpleInstanceBuilder(id, player);
     }
 
     @Override
-    protected @NotNull
-    SimpleInstance readImpl(@NotNull String id, @NotNull YMLSection section) {
+    @NotNull
+    protected SimpleInstance readImpl(@NotNull String id, @NotNull YMLSection section) {
         return new SimpleInstance(id, section);
     }
 
@@ -43,7 +43,6 @@ public class SimpleType extends RoomType {
         @Override
         public void handleInteractImpl(@NotNull PlayerInteractEvent event) {
 
-
         }
 
         @Override
@@ -59,8 +58,8 @@ public class SimpleType extends RoomType {
         }
 
         @Override
-        public @NotNull
-        RoomHandler createRoomHandler(DungeonType.DungeonInstance.DungeonHandler dungeonHandler) {
+        @NotNull
+        public RoomHandler createRoomHandler(DungeonHandler dungeonHandler) {
             return new RoomHandler(dungeonHandler);
         }
     }

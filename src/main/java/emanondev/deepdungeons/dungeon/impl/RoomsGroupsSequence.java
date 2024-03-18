@@ -42,14 +42,14 @@ public class RoomsGroupsSequence extends DungeonType {
     }
 
     @Override
-    public @NotNull
-    DungeonType.DungeonInstanceBuilder getBuilder(@NotNull String id, @NotNull Player player) {
+    @NotNull
+    public DungeonInstanceBuilder getBuilder(@NotNull String id, @NotNull Player player) {
         return new RoomsGroupsSequenceBuilder(id, player);
     }
 
     @Override
-    protected @NotNull
-    DungeonType.DungeonInstance readImpl(@NotNull String id, @NotNull YMLSection section) {
+    @NotNull
+    protected DungeonInstance readImpl(@NotNull String id, @NotNull YMLSection section) {
         return new RoomsGroupsSequenceInstance(id, section);
     }
 
@@ -306,7 +306,7 @@ public class RoomsGroupsSequence extends DungeonType {
                                                                     "%type%", (inst == null ? "?" : inst.getType().getId()),
                                                                     "%weight%", String.valueOf(rooms.get(key)),
                                                                     "%full_weight%", String.valueOf(fullWeight[0]),
-                                                                    "%perc_weight%", UtilsString.formatOptional2Digit(rooms.get(key) / fullWeight[0])))
+                                                                    "%perc_weight%", UtilsString.formatOptional2Digit(rooms.get(key) * 100 / fullWeight[0])))
                                                     .setGuiProperty().build();
                                         }, true));
                             }
@@ -319,6 +319,7 @@ public class RoomsGroupsSequence extends DungeonType {
                 return mapGui;
             }
 
+            @NotNull
             public Set<String> getRooms() {
                 return Collections.unmodifiableSet(rooms.keySet());
             }
@@ -342,8 +343,8 @@ public class RoomsGroupsSequence extends DungeonType {
 
         @Override
         @Contract(value = "_ -> new", pure = true)
-        public @NotNull
-        DungeonHandler createHandler(@Nullable World world) {
+        @NotNull
+        public DungeonHandler createHandler(@Nullable World world) {
             return new Handler(world);
         }
 
@@ -473,34 +474,34 @@ public class RoomsGroupsSequence extends DungeonType {
 
             @Override
             @Contract(pure = true)
-            public @NotNull
-            DoorHandler getEntrance() {
+            @NotNull
+            public DoorHandler getEntrance() {
                 return start;
             }
 
             @Override
             @Contract(value = "-> new", pure = true)
-            public @NotNull
-            Location getLocation() {
+            @NotNull
+            public Location getLocation() {
                 return location.clone();
             }
 
             @Override
             @Contract(value = "-> new", pure = true)
-            public @NotNull
-            BoundingBox getBoundingBox() {
+            @NotNull
+            public BoundingBox getBoundingBox() {
                 return boundingBox;
             }
 
             @Override
-            public @NotNull
-            State getState() {
+            @NotNull
+            public State getState() {
                 return this.state;
             }
 
             @Override
-            public @NotNull
-            World getWorld() {
+            @NotNull
+            public World getWorld() {
                 return location.getWorld();
             }
 

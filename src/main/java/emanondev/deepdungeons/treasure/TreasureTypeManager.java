@@ -3,6 +3,7 @@ package emanondev.deepdungeons.treasure;
 import emanondev.core.Hooks;
 import emanondev.core.util.DRegistry;
 import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.treasure.TreasureType.TreasureInstanceBuilder;
 import emanondev.deepdungeons.treasure.impl.LootTableType;
 import emanondev.deepdungeons.treasure.impl.MythicMobsDropTableType;
 import org.bukkit.Material;
@@ -30,8 +31,8 @@ public class TreasureTypeManager extends DRegistry<TreasureType> {
     }
 
     @Contract("null -> null")
-    public @Nullable
-    TreasureType getTreasureType(@Nullable ItemStack itemStack) {
+    @Nullable
+    public TreasureType getTreasureType(@Nullable ItemStack itemStack) {
         if (itemStack == null)
             return null;
         if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
@@ -40,8 +41,8 @@ public class TreasureTypeManager extends DRegistry<TreasureType> {
     }
 
     @Contract("null -> null")
-    public @Nullable
-    TreasureType getTreasureType(@Nullable ItemMeta meta) {
+    @Nullable
+    public TreasureType getTreasureType(@Nullable ItemMeta meta) {
         if (meta == null)
             return null;
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))
@@ -53,8 +54,8 @@ public class TreasureTypeManager extends DRegistry<TreasureType> {
     }
 
     @Contract("null -> null")
-    public @Nullable
-    TreasureType.TreasureInstanceBuilder getTreasureInstance(@Nullable ItemStack itemStack) {
+    @Nullable
+    public TreasureInstanceBuilder getTreasureInstance(@Nullable ItemStack itemStack) {
         if (itemStack == null)
             return null;
         if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
@@ -63,8 +64,8 @@ public class TreasureTypeManager extends DRegistry<TreasureType> {
     }
 
     @Contract("null -> null")
-    public @Nullable
-    TreasureType.TreasureInstanceBuilder getTreasureInstance(@Nullable ItemMeta meta) {
+    @Nullable
+    public TreasureInstanceBuilder getTreasureInstance(@Nullable ItemMeta meta) {
         if (meta == null)
             return null;
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))

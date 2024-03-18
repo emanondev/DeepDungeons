@@ -17,8 +17,8 @@ public class DungeonInstanceManager extends DRegistry<DungeonInstance> {
         super(DeepDungeons.get(), "DungeonInstanceManager", true);
     }
 
-    public static @NotNull
-    DungeonInstanceManager getInstance() {
+    @NotNull
+    public static DungeonInstanceManager getInstance() {
         return instance;
     }
 
@@ -43,9 +43,8 @@ public class DungeonInstanceManager extends DRegistry<DungeonInstance> {
         }
     }
 
-
-    public @NotNull
-    File getFolder() {
+    @NotNull
+    public File getFolder() {
         return new File(DeepDungeons.get().getDataFolder(), "dungeons");
     }
 

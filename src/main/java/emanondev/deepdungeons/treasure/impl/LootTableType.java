@@ -6,7 +6,7 @@ import emanondev.core.gui.PagedMapGui;
 import emanondev.core.gui.ResearchFButton;
 import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.DeepDungeons;
-import emanondev.deepdungeons.room.RoomType;
+import emanondev.deepdungeons.room.RoomType.RoomInstance;
 import emanondev.deepdungeons.treasure.TreasureType;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -31,14 +31,14 @@ public class LootTableType extends TreasureType {
     }
 
     @Override
-    public @NotNull
-    LootTableType.LootTableInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection sub) {
+    @NotNull
+    public LootTableInstance read(@NotNull RoomInstance room, @NotNull YMLSection sub) {
         return new LootTableInstance(room, sub);
     }
 
     @Override
-    public @NotNull
-    LootTableType.LootTableInstanceBuilder getBuilder() {
+    @NotNull
+    public LootTableInstanceBuilder getBuilder() {
         return new LootTableInstanceBuilder();
     }
 
@@ -51,8 +51,8 @@ public class LootTableType extends TreasureType {
             super();
         }
 
-        public @NotNull
-        LootTable getTable() {
+        @NotNull
+        public LootTable getTable() {
             return table;
         }
 
@@ -61,8 +61,8 @@ public class LootTableType extends TreasureType {
         }
 
         @Override
-        protected @NotNull
-        List<String> toItemLinesImpl() {
+        @NotNull
+        protected List<String> toItemLinesImpl() {
             return List.of("&9LootTable:&6 " + table.getKey());
         }
 
@@ -127,7 +127,7 @@ public class LootTableType extends TreasureType {
 
         private final LootTable table;
 
-        private LootTableInstance(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
+        private LootTableInstance(@NotNull RoomInstance room, @NotNull YMLSection section) {
             super(room, section);
             String[] args = section.getString("table").split(":");
             table = Bukkit.getLootTable(new NamespacedKey(args[0], args[1]));
@@ -138,8 +138,8 @@ public class LootTableType extends TreasureType {
         }
 
         @Override
-        public @NotNull
-        Collection<ItemStack> getTreasure(@NotNull Random random, @NotNull Location location, @Nullable Player who) {
+        @NotNull
+        public Collection<ItemStack> getTreasure(@NotNull Random random, @NotNull Location location, @Nullable Player who) {
             if (table == null)
                 return Collections.emptyList();
             return table.populateLoot(random, new LootContext.Builder(location).killer(who).lootingModifier(0).build());

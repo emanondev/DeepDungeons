@@ -4,7 +4,8 @@ import emanondev.core.ItemBuilder;
 import emanondev.core.YMLSection;
 import emanondev.core.util.DRegistryElement;
 import emanondev.deepdungeons.DInstance;
-import emanondev.deepdungeons.room.RoomType;
+import emanondev.deepdungeons.room.RoomType.RoomInstance;
+import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -21,12 +22,11 @@ public abstract class TrapType extends DRegistryElement {
         super(id);
     }
 
-    public abstract @NotNull
-    TrapType.TrapInstance read(@NotNull RoomType.RoomInstance instance, @NotNull YMLSection sub);
+    @NotNull
+    public abstract TrapInstance read(@NotNull RoomInstance instance, @NotNull YMLSection sub);
 
-
-    public abstract @NotNull
-    TrapType.TrapInstanceBuilder getBuilder();
+    @NotNull
+    public abstract TrapInstanceBuilder getBuilder();
 
     public abstract class TrapInstanceBuilder extends DInstance<TrapType> {
 
@@ -34,8 +34,8 @@ public abstract class TrapType extends DRegistryElement {
             super(TrapType.this);
         }
 
-        public @NotNull
-        ItemStack toItem() {
+        @NotNull
+        public ItemStack toItem() {
             return new ItemBuilder(Material.PAPER).setDescription(toItemLines()).build();
         }
 
@@ -44,14 +44,14 @@ public abstract class TrapType extends DRegistryElement {
          *
          * @return Trap info readable by TrapType
          */
-        protected abstract @NotNull
-        List<String> toItemLinesImpl();
+        @NotNull
+        protected abstract List<String> toItemLinesImpl();
 
         /**
          * @return a mutable list with prefilled first two lines
          */
-        public final @NotNull
-        List<String> toItemLines() {
+        @NotNull
+        public final List<String> toItemLines() {
             ArrayList<String> list = new ArrayList<>();
             list.add(TrapTypeManager.LINE_ONE);
             list.add("&9Type:&6 " + getType().getId());
@@ -67,24 +67,24 @@ public abstract class TrapType extends DRegistryElement {
         protected abstract void writeToImpl(@NotNull YMLSection section);
 
         @Contract("_ -> this")
-        public abstract @NotNull
-        TrapType.TrapInstanceBuilder fromItemLines(@NotNull List<String> lines);
+        @NotNull
+        public abstract TrapInstanceBuilder fromItemLines(@NotNull List<String> lines);
     }
 
     public abstract class TrapInstance extends DInstance<TrapType> {
 
 
-        private final RoomType.RoomInstance room;
+        private final RoomInstance room;
 
-        public TrapInstance(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
+        public TrapInstance(@NotNull RoomInstance room, @NotNull YMLSection section) {
             super(TrapType.this);
             this.room = room;
         }
 
-        public abstract TrapHandler createTrapHandler(@NotNull RoomType.RoomInstance.RoomHandler roomHandler);
+        public abstract TrapHandler createTrapHandler(@NotNull RoomHandler roomHandler);
 
-        public @NotNull
-        RoomType.RoomInstance getRoomInstance() {
+        @NotNull
+        public RoomInstance getRoomInstance() {
             return room;
         }
 

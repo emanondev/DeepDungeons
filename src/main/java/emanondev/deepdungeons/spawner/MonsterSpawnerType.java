@@ -8,7 +8,7 @@ import emanondev.core.util.DRegistryElement;
 import emanondev.deepdungeons.DInstance;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Util;
-import emanondev.deepdungeons.room.RoomType;
+import emanondev.deepdungeons.room.RoomType.RoomInstance;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -31,15 +31,14 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
         super(id);
     }
 
-    public abstract @NotNull
-    MonsterSpawnerType.MonsterSpawnerInstance read(@NotNull RoomType.RoomInstance instance, @NotNull YMLSection sub);
+    @NotNull
+    public abstract MonsterSpawnerInstance read(@NotNull RoomInstance instance, @NotNull YMLSection sub);
 
+    @NotNull
+    public abstract MonsterSpawnerInstanceBuilder getBuilder();
 
-    public abstract @NotNull
-    MonsterSpawnerType.MonsterSpawnerInstanceBuilder getBuilder();
-
-    public @NotNull
-    DMessage getDescription(Player player) {
+    @NotNull
+    public DMessage getDescription(Player player) {
         return new DMessage(DeepDungeons.get(), player).append("<red>Description of <gold>" + getId() + "</gold> not implemented</red>");//TODO
     }
 
@@ -52,8 +51,8 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
             super(MonsterSpawnerType.this);
         }
 
-        public @NotNull
-        ItemStack toItem() {
+        @NotNull
+        public ItemStack toItem() {
             return new ItemBuilder(Material.PAPER).setDescription(toItemLines()).build();
         }
 
@@ -62,14 +61,14 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
          *
          * @return MonsterSpawner info readable by MonsterSpawnerType
          */
-        protected abstract @NotNull
-        List<String> toItemLinesImpl();
+        @NotNull
+        protected abstract List<String> toItemLinesImpl();
 
         /**
          * @return a mutable list with prefilled first two lines
          */
-        public final @NotNull
-        List<String> toItemLines() {
+        @NotNull
+        public final List<String> toItemLines() {
             ArrayList<String> list = new ArrayList<>();
             list.add(MonsterSpawnerTypeManager.LINE_ONE);
             list.add("&9Type:&6 " + getType().getId());
@@ -77,8 +76,8 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
             return list;
         }
 
-        public @Nullable
-        Vector getOffset() {
+        @Nullable
+        public Vector getOffset() {
             return offset;
         }
 
@@ -86,8 +85,8 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
             this.offset = offset;
         }
 
-        public @NotNull
-        Vector getDirection() {
+        @NotNull
+        public Vector getDirection() {
             return direction;
         }
 
@@ -107,7 +106,7 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
         protected abstract void writeToImpl(@NotNull YMLSection section);
 
         @Contract("_ -> this")
-        public abstract MonsterSpawnerType.MonsterSpawnerInstanceBuilder fromItemLines(@NotNull List<String> lines);
+        public abstract MonsterSpawnerInstanceBuilder fromItemLines(@NotNull List<String> lines);
 
         public void openGui(Player player) {
             craftGui(player).open(player);
@@ -127,11 +126,11 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
     public abstract class MonsterSpawnerInstance extends DInstance<MonsterSpawnerType> {
 
 
-        private final RoomType.RoomInstance room;
+        private final RoomInstance room;
         private final Vector offset;
         private final Vector direction;
 
-        public MonsterSpawnerInstance(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
+        public MonsterSpawnerInstance(@NotNull RoomInstance room, @NotNull YMLSection section) {
             super(MonsterSpawnerType.this);
             this.room = room;
             this.offset = Util.toVector(section.getString("offset"));
@@ -139,22 +138,23 @@ public abstract class MonsterSpawnerType extends DRegistryElement {
         }
 
         @Contract("-> new")
-        public @NotNull
-        Vector getOffset() {
+        @NotNull
+        public Vector getOffset() {
             return offset.clone();
         }
 
         @Contract("-> new")
-        public @NotNull
-        Vector getDirection() {
+        @NotNull
+        public Vector getDirection() {
             return direction.clone();
         }
 
-        public @NotNull
-        RoomType.RoomInstance getRoomInstance() {
+        @NotNull
+        public RoomInstance getRoomInstance() {
             return room;
         }
 
+        @NotNull
         public abstract Collection<Entity> spawnMobs(@NotNull Random random, @NotNull Location location, @Nullable Player who);
 
     }

@@ -13,8 +13,8 @@ public class RoomTypeManager extends DRegistry<RoomType> {
         super(DeepDungeons.get(), "RoomTypeManager", true);
     }
 
-    public static @NotNull
-    RoomTypeManager getInstance() {
+    @NotNull
+    public static RoomTypeManager getInstance() {
         return instance;
     }
 

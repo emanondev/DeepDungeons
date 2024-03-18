@@ -4,7 +4,7 @@ import emanondev.core.util.DRegistry;
 import emanondev.core.util.DRegistryElement;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.area.AreaManager;
-import emanondev.deepdungeons.dungeon.DungeonType;
+import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -27,20 +27,20 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
         getPlugin().registerListener(this);
     }
 
-    public static @NotNull
-    PartyManager getInstance() {
+    @NotNull
+    public static PartyManager getInstance() {
         return instance;
     }
 
-    public @NotNull
-    Party createParty(@NotNull Player leader) {
+    @NotNull
+    public Party createParty(@NotNull Player leader) {
         if (parties.containsKey(leader.getUniqueId()))
             throw new IllegalStateException();
         return new Party(leader);
     }
 
-    public void startDungeon(@NotNull Party party, @NotNull DungeonType.DungeonInstance.DungeonHandler dungeon) {
-        if (dungeon.getState() != DungeonType.DungeonInstance.DungeonHandler.State.READY)
+    public void startDungeon(@NotNull Party party, @NotNull DungeonHandler dungeon) {
+        if (dungeon.getState() != DungeonHandler.State.READY)
             throw new IllegalStateException();
         if (party.getLeader() == null)
             throw new IllegalStateException();
@@ -50,8 +50,8 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
         party.start(dungeon);
     }
 
-    public @Nullable
-    Party getParty(OfflinePlayer player) {
+    @Nullable
+    public Party getParty(OfflinePlayer player) {
         return parties.get(player.getUniqueId());
     }
 
@@ -71,13 +71,13 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
         party.onPlayerJoin(event.getPlayer());
     }
 
-    public @NotNull
-    DungeonPlayer getDungeonPlayer(@NotNull OfflinePlayer player) {
+    @NotNull
+    public DungeonPlayer getDungeonPlayer(@NotNull OfflinePlayer player) {
         return getDungeonPlayer(player.getUniqueId());
     }
 
-    public @NotNull
-    DungeonPlayer getDungeonPlayer(@NotNull UUID uuid) {
+    @NotNull
+    public DungeonPlayer getDungeonPlayer(@NotNull UUID uuid) {
         DungeonPlayer value = dungeonPlayers.get(uuid);
         if (value != null)
             return value;
@@ -90,7 +90,7 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
 
         private final HashSet<UUID> users = new HashSet<>();
         private UUID leader;
-        private DungeonType.DungeonInstance.DungeonHandler dungeon;
+        private DungeonHandler dungeon;
         private boolean isPartyPublic = true;
 
         Party(@NotNull Player leader) {
@@ -108,8 +108,8 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
             isPartyPublic = !isPartyPublic;
         }
 
-        public @NotNull
-        Set<Player> getPlayers() {
+        @NotNull
+        public Set<Player> getPlayers() {
             HashSet<Player> players = new HashSet<>();
             this.users.forEach(uuid -> {
                 Player p = Bukkit.getPlayer(uuid);
@@ -124,12 +124,12 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
 
         }
 
-        public @NotNull
-        Set<UUID> getPlayersUUID() {
+        @NotNull
+        public Set<UUID> getPlayersUUID() {
             return Collections.unmodifiableSet(users);
         }
 
-        public boolean start(@NotNull DungeonType.DungeonInstance.DungeonHandler dungeon) {
+        public boolean start(@NotNull DungeonHandler dungeon) {
             if (getLeader() == null)
                 return false;
             if (isExploringDungeon())
@@ -199,23 +199,23 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
             return PartyManager.getInstance().getDungeonPlayer(player).hasPreEnterSnapshot();
         }
 
-        public @NotNull
-        UUID getLeaderUUID() {
+        @NotNull
+        public UUID getLeaderUUID() {
             return leader;
         }
 
-        public @Nullable
-        Player getLeader() {
+        @Nullable
+        public Player getLeader() {
             return Bukkit.getPlayer(leader);
         }
 
-        public @NotNull
-        OfflinePlayer getOfflineLeader() {
+        @NotNull
+        public OfflinePlayer getOfflineLeader() {
             return Bukkit.getOfflinePlayer(leader);
         }
 
-        public @Nullable
-        DungeonType.DungeonInstance.DungeonHandler getDungeon() {
+        @Nullable
+        public DungeonHandler getDungeon() {
             return dungeon;
         }
 

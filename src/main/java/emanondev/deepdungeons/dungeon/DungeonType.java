@@ -45,17 +45,16 @@ public abstract class DungeonType extends DRegistryElement {
         super(id);
     }
 
-
-    public final @NotNull
-    DungeonInstance read(@NotNull String id, @NotNull YMLSection section) {
+    @NotNull
+    public final DungeonInstance read(@NotNull String id, @NotNull YMLSection section) {
         return readImpl(id, section);
     }
 
-    public abstract @NotNull
-    DungeonInstanceBuilder getBuilder(@NotNull String id, @NotNull Player player);
+    @NotNull
+    public abstract DungeonInstanceBuilder getBuilder(@NotNull String id, @NotNull Player player);
 
-    protected abstract @NotNull
-    DungeonInstance readImpl(@NotNull String id, @NotNull YMLSection section);
+    @NotNull
+    protected abstract DungeonInstance readImpl(@NotNull String id, @NotNull YMLSection section);
 
     public abstract class DungeonInstanceBuilder extends DRInstance<DungeonType> implements ActiveBuilder {
         private final CompletableFuture<DungeonInstanceBuilder> completableFuture = new CompletableFuture<>();
@@ -67,13 +66,13 @@ public abstract class DungeonType extends DRegistryElement {
             this.playerUuid = player.getUniqueId();
         }
 
-        public @NotNull
-        UUID getPlayerUuid() {
+        @NotNull
+        public UUID getPlayerUuid() {
             return playerUuid;
         }
 
-        public @Nullable
-        Player getPlayer() {
+        @Nullable
+        public Player getPlayer() {
             return Bukkit.getPlayer(playerUuid);
         }
 
@@ -107,8 +106,8 @@ public abstract class DungeonType extends DRegistryElement {
         private void timerTickImpl() {
         }
 
-        public @NotNull
-        CompletableFuture<DungeonInstanceBuilder> getCompletableFuture() {
+        @NotNull
+        public CompletableFuture<DungeonInstanceBuilder> getCompletableFuture() {
             return completableFuture;
         }
 
@@ -143,13 +142,12 @@ public abstract class DungeonType extends DRegistryElement {
             super(id, DungeonType.this);
         }
 
-        public abstract @NotNull
-        DungeonHandler createHandler(@Nullable World world);
+        @NotNull
+        public abstract DungeonHandler createHandler(@Nullable World world);
 
         public abstract class DungeonHandler implements MoveListener, InteractListener, InteractEntityListener, BlockPlaceListener, BlockBreakListener, AreaHolder {
-
-            public @NotNull
-            DungeonInstance getInstance() {
+            @NotNull
+            public DungeonInstance getInstance() {
                 return DungeonInstance.this;
             }
 
@@ -157,20 +155,20 @@ public abstract class DungeonType extends DRegistryElement {
             public abstract List<RoomHandler> getRooms();
 
             @Contract(pure = true)
-            public abstract @NotNull
-            DoorHandler getEntrance();
+            @NotNull
+            public abstract DoorHandler getEntrance();
 
             @Contract(value = "-> new", pure = true)
-            public abstract @NotNull
-            Location getLocation();
+            @NotNull
+            public abstract Location getLocation();
 
             @Contract(value = "-> new", pure = true)
-            public abstract @NotNull
-            BoundingBox getBoundingBox();
+            @NotNull
+            public abstract BoundingBox getBoundingBox();
 
             @Contract(pure = true)
-            public abstract @NotNull
-            State getState();
+            @NotNull
+            public abstract State getState();
 
             public void onEntityTeleportTo(@NotNull EntityTeleportEvent event) {
             }

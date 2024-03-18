@@ -46,6 +46,9 @@ public class AreaManager implements Listener {
         return area;
     }
 
+    /**
+     * @return manager instance
+     */
     public static AreaManager getInstance() {
         return areaManager;
     }
@@ -60,8 +63,8 @@ public class AreaManager implements Listener {
      * @param holder  who holds the area
      * @return location on min corner where the boxArea could be pasted
      */
-    public @NotNull
-    Location findLocation(@Nullable World world, @NotNull BoundingBox boxArea, @NotNull DungeonHandler holder) {
+    @NotNull
+    public Location findLocation(@Nullable World world, @NotNull BoundingBox boxArea, @NotNull DungeonHandler holder) {
         if (!boxArea.getMin().isZero())
             throw new IllegalArgumentException("box must be zeroed on min");
         if (world == null)
@@ -115,32 +118,50 @@ public class AreaManager implements Listener {
      * @return default world to use when none is specified on {@link #findLocation(World, BoundingBox, DungeonHandler) findLocation(World, BoundingBox, DungeonHandler)}
      */
     @Contract(pure = true)
-    public @NotNull
-    World getStandardWorld() {
+    @NotNull
+    public World getStandardWorld() {
         return Bukkit.getWorlds().get(0);//TODO configurable default world
     }
 
+    /**
+     * Should be called by DungeonHandler when it's ready to use
+     *
+     * @param handler who
+     */
     public void flagReady(@NotNull DungeonHandler handler) {
         this.ready.putIfAbsent(handler.getInstance(), new ArrayList<>());
         this.ready.get(handler.getInstance()).add(handler);
     }
 
-    public boolean flagStarted(@NotNull DungeonHandler handler) {
+    /**
+     * Should be called by dungeonhandler when a party starts it
+     *
+     * @param handler who
+     */
+    public void flagStarted(@NotNull DungeonHandler handler) {
         this.ready.get(handler.getInstance()).remove(handler);
         this.started.putIfAbsent(handler.getWorld(), new ArrayList<>());
         this.started.get(handler.getWorld()).add(handler);
-        return true;
         //TODO generate cache?
     }
 
+    /**
+     * Should be called by party when dungeon has been completed
+     *
+     * @param handler who
+     */
     public void flagComplete(@NotNull DungeonHandler handler) {
         handler.flagCompleted();
         this.started.get(handler.getWorld()).remove(handler);
     }
 
+    /**
+     * @param instance what kind
+     * @return an usable DungeonHandler for selected instance, if any
+     */
     @Contract(pure = true)
-    public @Nullable
-    DungeonHandler getReady(DungeonInstance instance) {
+    @Nullable
+    public DungeonHandler getReady(@NotNull DungeonInstance instance) {
         List<DungeonHandler> handlers = ready.get(instance);
         return handlers == null ? null : handlers.isEmpty() ? null : handlers.get(0);
     }

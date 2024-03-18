@@ -6,7 +6,8 @@ import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Perms;
 import emanondev.deepdungeons.area.AreaManager;
 import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
-import emanondev.deepdungeons.dungeon.DungeonType;
+import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance;
+import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
 import emanondev.deepdungeons.party.PartyManager;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
@@ -53,8 +54,8 @@ public class DungeonCreatorCommand extends CoreCommand {
             return;
         }
         String id = args[1];
-        DungeonType.DungeonInstance dungeon = DungeonInstanceManager.getInstance().get(id);
-        DungeonType.DungeonInstance.DungeonHandler handler = AreaManager.getInstance().getReady(dungeon);
+        DungeonInstance dungeon = DungeonInstanceManager.getInstance().get(id);
+        DungeonHandler handler = AreaManager.getInstance().getReady(dungeon);
         PartyManager.Party party = PartyManager.getInstance().getParty(player);
         if (party == null)
             party = PartyManager.getInstance().createParty(player);
@@ -67,7 +68,7 @@ public class DungeonCreatorCommand extends CoreCommand {
             return;
         }
         String id = args[1];
-        DungeonType.DungeonInstance dungeon = DungeonInstanceManager.getInstance().get(id);
+        DungeonInstance dungeon = DungeonInstanceManager.getInstance().get(id);
         if (dungeon == null) {
             sender.sendMessage("Help Message not implemented");
             return;
@@ -76,7 +77,7 @@ public class DungeonCreatorCommand extends CoreCommand {
             sender.sendMessage("Help Message not implemented");
             return;
         }
-        DungeonType.DungeonInstance.DungeonHandler handler = dungeon.createHandler(player.getLocation().getWorld());
+        DungeonHandler handler = dungeon.createHandler(player.getLocation().getWorld());
         Vector loc = handler.getBoundingBox().getCenter();
         new DMessage(DeepDungeons.get(), sender).append("<blue>Dungeon created at " + loc.getBlockX() + " "
                 + loc.getBlockY() + " " + loc.getBlockZ() + " ").append("<click:run_command:'/tp "
@@ -86,8 +87,8 @@ public class DungeonCreatorCommand extends CoreCommand {
     }
 
     @Override
-    public @Nullable
-    List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
+    @Nullable
+    public List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
         return switch (args.length) {
             case 1 -> this.complete(args[0], new String[]{"create", "start"});
             case 2 -> this.complete(args[1], DungeonInstanceManager.getInstance().getIds());

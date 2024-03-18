@@ -8,7 +8,7 @@ import emanondev.core.gui.NumberEditorFButton;
 import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.door.DoorType;
-import emanondev.deepdungeons.dungeon.DungeonType;
+import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
 import emanondev.deepdungeons.room.RoomType.RoomInstance;
 import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
 import emanondev.deepdungeons.room.RoomType.RoomInstanceBuilder;
@@ -31,14 +31,14 @@ public class TimedType extends DoorType {
     }
 
     @Override
-    public @NotNull
-    TimedDoorInstance read(@NotNull RoomInstance room, @NotNull YMLSection section) {
+    @NotNull
+    public TimedDoorInstance read(@NotNull RoomInstance room, @NotNull YMLSection section) {
         return new TimedDoorInstance(room, section);
     }
 
     @Override
-    public @NotNull
-    TimedDoorInstanceBuilder getBuilder(@NotNull RoomInstanceBuilder room) {
+    @NotNull
+    public TimedDoorInstanceBuilder getBuilder(@NotNull RoomInstanceBuilder room) {
         return new TimedDoorInstanceBuilder(room);
     }
 
@@ -112,8 +112,8 @@ public class TimedType extends DoorType {
         }
 
         @Override
-        public @NotNull
-        TimeDoorHandler createDoorHandler(@NotNull RoomHandler roomHandler) {
+        @NotNull
+        public TimeDoorHandler createDoorHandler(@NotNull RoomHandler roomHandler) {
             return new TimeDoorHandler(roomHandler);
         }
 
@@ -142,7 +142,7 @@ public class TimedType extends DoorType {
             @Override
             public void onFirstPlayerEnter(@NotNull Player player) {
                 //entities.addAll(getRoom().getMonsters());
-                @NotNull World world = getRoom().getDungeonHandler().getWorld();
+                World world = getRoom().getDungeonHandler().getWorld();
                 Vector center = this.getBoundingBox().getCenter();
                 item = (ItemDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() + 0.5, center.getZ())
                         .setDirection(getDoorFace().getOppositeFace().getDirection()), EntityType.ITEM_DISPLAY);
@@ -159,7 +159,7 @@ public class TimedType extends DoorType {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if (getRoom().getDungeonHandler().getState() != DungeonType.DungeonInstance.DungeonHandler.State.STARTED) {
+                        if (getRoom().getDungeonHandler().getState() != DungeonHandler.State.STARTED) {
                             text.remove();
                             item.remove();
                             this.cancel();

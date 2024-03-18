@@ -17,14 +17,21 @@ import emanondev.deepdungeons.ActiveBuilder;
 import emanondev.deepdungeons.DRInstance;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.door.DoorType;
+import emanondev.deepdungeons.door.DoorType.DoorInstance;
+import emanondev.deepdungeons.door.DoorType.DoorInstance.DoorHandler;
+import emanondev.deepdungeons.door.DoorType.DoorInstanceBuilder;
 import emanondev.deepdungeons.door.DoorTypeManager;
-import emanondev.deepdungeons.dungeon.DungeonType;
+import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
 import emanondev.deepdungeons.interfaces.*;
-import emanondev.deepdungeons.spawner.MonsterSpawnerType;
+import emanondev.deepdungeons.spawner.MonsterSpawnerType.MonsterSpawnerInstance;
+import emanondev.deepdungeons.spawner.MonsterSpawnerType.MonsterSpawnerInstanceBuilder;
 import emanondev.deepdungeons.spawner.MonsterSpawnerTypeManager;
-import emanondev.deepdungeons.trap.TrapType;
+import emanondev.deepdungeons.trap.TrapType.TrapInstance;
+import emanondev.deepdungeons.trap.TrapType.TrapInstance.TrapHandler;
+import emanondev.deepdungeons.trap.TrapType.TrapInstanceBuilder;
 import emanondev.deepdungeons.trap.TrapTypeManager;
-import emanondev.deepdungeons.treasure.TreasureType;
+import emanondev.deepdungeons.treasure.TreasureType.TreasureInstance;
+import emanondev.deepdungeons.treasure.TreasureType.TreasureInstanceBuilder;
 import emanondev.deepdungeons.treasure.TreasureTypeManager;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -63,29 +70,29 @@ public abstract class RoomType extends DRegistryElement {
         super(id);
     }
 
-    public final @NotNull
-    RoomInstance read(@NotNull String id, @NotNull YMLSection section) {
+    @NotNull
+    public final RoomInstance read(@NotNull String id, @NotNull YMLSection section) {
         return readImpl(id, section);
     }
 
-    public abstract @NotNull
-    RoomInstanceBuilder getBuilder(@NotNull String id, @NotNull Player player);
+    @NotNull
+    public abstract RoomInstanceBuilder getBuilder(@NotNull String id, @NotNull Player player);
 
-    protected abstract @NotNull
-    RoomInstance readImpl(@NotNull String id, @NotNull YMLSection section);
+    @NotNull
+    protected abstract RoomInstance readImpl(@NotNull String id, @NotNull YMLSection section);
 
 
     public abstract class RoomInstanceBuilder extends DRInstance<RoomType> implements ActiveBuilder {
 
-        private final List<DoorType.DoorInstanceBuilder> exits = new ArrayList<>();
-        private final List<TreasureType.TreasureInstanceBuilder> treasures = new ArrayList<>();
-        private final List<TrapType.TrapInstanceBuilder> traps = new ArrayList<>();
-        private final List<MonsterSpawnerType.MonsterSpawnerInstanceBuilder> monsterSpawners = new ArrayList<>();
+        private final List<DoorInstanceBuilder> exits = new ArrayList<>();
+        private final List<TreasureInstanceBuilder> treasures = new ArrayList<>();
+        private final List<TrapInstanceBuilder> traps = new ArrayList<>();
+        private final List<MonsterSpawnerInstanceBuilder> monsterSpawners = new ArrayList<>();
         private final HashSet<Material> breakableBlocks = new HashSet<>();
         private final HashSet<Material> placeableBlocks = new HashSet<>();
-        private final CompletableFuture<RoomType.RoomInstanceBuilder> completableFuture = new CompletableFuture<>();
+        private final CompletableFuture<RoomInstanceBuilder> completableFuture = new CompletableFuture<>();
         private final UUID playerUuid;
-        private DoorType.DoorInstanceBuilder entrance;
+        private DoorInstanceBuilder entrance;
         private String schematicName;
         //private Clipboard clipboard;
         private World world;
@@ -100,62 +107,26 @@ public abstract class RoomType extends DRegistryElement {
             schematicName = this.getId() + ".schem";
         }
 
-        public @NotNull
-        CompletableFuture<RoomInstanceBuilder> getCompletableFuture() {
+        @NotNull
+        public CompletableFuture<RoomInstanceBuilder> getCompletableFuture() {
             return completableFuture;
         }
 
-        public final @NotNull
-        UUID getPlayerUUID() {
+        @NotNull
+        public final UUID getPlayerUUID() {
             return playerUuid;
         }
 
-        public final @Nullable
-        Player getPlayer() {
+        @Nullable
+        public final Player getPlayer() {
             return Bukkit.getPlayer(playerUuid);
         }
 
 
-        public void setEntrance(DoorType.DoorInstanceBuilder entrance) {
+        public void setEntrance(DoorInstanceBuilder entrance) {
             this.entrance = entrance;
         }
 
-        /*
-        public final DoorType.DoorInstanceBuilder getEntrance() {
-            return entrance;
-        }
-
-        public @NotNull List<DoorType.DoorInstanceBuilder> getExits() {
-            return exits;
-        }
-
-        public @NotNull List<TreasureType.TreasureInstanceBuilder> getTreasures() {
-            return treasures;
-        }
-
-        public @NotNull List<TrapType.TrapInstanceBuilder> getTraps() {
-            return traps;
-        }
-
-        public @NotNull List<MonsterSpawnerType.MonsterSpawnerInstanceBuilder> getMonsterSpawners() {
-            return monsterSpawners;
-        }
-
-        public @NotNull Set<Material> getBreakableBlocks() {
-            return breakableBlocks;
-        }
-
-        public @NotNull Set<Material> getPlaceableBlocks() {
-            return placeableBlocks;
-        }
-
-        public String getSchematicName() {
-            return schematicName;
-        }
-
-        public void setSchematicName(String schematicName) {
-            this.schematicName = schematicName;
-        }*/
 
         public final void write() throws Exception {
             if (!getCompletableFuture().isDone() || getCompletableFuture().isCompletedExceptionally())
@@ -169,7 +140,7 @@ public abstract class RoomType extends DRegistryElement {
             entrance.writeTo(tmp);
             tmp = section.loadSection("exits");
             for (int i = 0; i < exits.size(); i++) {
-                @NotNull YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
+                YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
                 exits.get(i).writeTo(sub);
             }
             //remove itemStack & Drops
@@ -195,7 +166,7 @@ public abstract class RoomType extends DRegistryElement {
                         boolean hasTreasures = false;
                         boolean hasMonsters = false;
                         for (int i = 0; i < inv.getSize(); i++) {
-                            TreasureType.TreasureInstanceBuilder treasure = TreasureTypeManager
+                            TreasureInstanceBuilder treasure = TreasureTypeManager
                                     .getInstance().getTreasureInstance(inv.getItem(i));
                             if (treasure != null) {
                                 hasTreasures = true;
@@ -203,7 +174,7 @@ public abstract class RoomType extends DRegistryElement {
                                 treasures.add(treasure);
                                 inv.setItem(i, null);
                             } else {
-                                MonsterSpawnerType.MonsterSpawnerInstanceBuilder monster = MonsterSpawnerTypeManager
+                                MonsterSpawnerInstanceBuilder monster = MonsterSpawnerTypeManager
                                         .getInstance().getMonsterSpawnerInstance(inv.getItem(i));
                                 if (monster != null) {
                                     hasMonsters = true;
@@ -228,7 +199,7 @@ public abstract class RoomType extends DRegistryElement {
             for (Entity entity : entities) {
                 if (!(entity instanceof Item item))
                     continue;
-                TreasureType.TreasureInstanceBuilder treasure = TreasureTypeManager.getInstance()
+                TreasureInstanceBuilder treasure = TreasureTypeManager.getInstance()
                         .getTreasureInstance(item.getItemStack());
                 if (treasure != null) {
                     treasure.setOffset(item.getLocation().toVector().subtract(getOffset()));
@@ -238,7 +209,7 @@ public abstract class RoomType extends DRegistryElement {
                     continue;
                 }
 
-                MonsterSpawnerType.MonsterSpawnerInstanceBuilder monster = MonsterSpawnerTypeManager.getInstance()
+                MonsterSpawnerInstanceBuilder monster = MonsterSpawnerTypeManager.getInstance()
                         .getMonsterSpawnerInstance(item.getItemStack());
                 if (monster != null) {
                     monster.setOffset(item.getLocation().toVector().subtract(getOffset()));
@@ -310,8 +281,8 @@ public abstract class RoomType extends DRegistryElement {
 
         protected abstract void writeToImpl(@NotNull YMLSection section);
 
-        public final @Nullable
-        BlockVector getSize() {
+        @Nullable
+        public final BlockVector getSize() {
             return area == null ? null : new BlockVector(area.getWidthX(), area.getHeight(), area.getWidthZ());
         }
 
@@ -379,7 +350,7 @@ public abstract class RoomType extends DRegistryElement {
                             return true;
                         },
                                 (evt, type) -> {
-                                    DoorType.DoorInstanceBuilder door = type.getBuilder(this);
+                                    DoorInstanceBuilder door = type.getBuilder(this);
                                     exits.add(door);
                                     door.getCompletableFuture().whenComplete((b, t) -> {
                                         if (t != null) {
@@ -569,7 +540,7 @@ public abstract class RoomType extends DRegistryElement {
                 if (exits.isEmpty())
                     return;
                 for (int i = 0; i < exits.size(); i++) {
-                    DoorType.DoorInstanceBuilder exit = exits.get(i);
+                    DoorInstanceBuilder exit = exits.get(i);
                     exit.timerTick(player, switch (i % 5) {
                         case 0 -> Color.RED;
                         case 1 -> Color.ORANGE;
@@ -612,8 +583,8 @@ public abstract class RoomType extends DRegistryElement {
             area = box.clone();
         }
 
-        public @Nullable
-        World getWorld() {
+        @Nullable
+        public World getWorld() {
             return world;
         }
     }
@@ -621,11 +592,11 @@ public abstract class RoomType extends DRegistryElement {
 
     public abstract class RoomInstance extends DRInstance<RoomType> {
 
-        private final DoorType.DoorInstance entrance;
-        private final List<DoorType.DoorInstance> exits = new ArrayList<>();
-        private final List<TreasureType.TreasureInstance> treasures = new ArrayList<>();
-        private final List<TrapType.TrapInstance> traps = new ArrayList<>();
-        private final List<MonsterSpawnerType.MonsterSpawnerInstance> monsterSpawners = new ArrayList<>();
+        private final DoorInstance entrance;
+        private final List<DoorInstance> exits = new ArrayList<>();
+        private final List<TreasureInstance> treasures = new ArrayList<>();
+        private final List<TrapInstance> traps = new ArrayList<>();
+        private final List<MonsterSpawnerInstance> monsterSpawners = new ArrayList<>();
 
         private final Set<Material> breakableBlocks = new HashSet<>();
         private final Set<Material> placeableBlocks = new HashSet<>();
@@ -637,26 +608,26 @@ public abstract class RoomType extends DRegistryElement {
         public RoomInstance(@NotNull String id, @NotNull YMLSection section) {
             super(id, RoomType.this);
             //this.section = section;
-            @NotNull YMLSection tmp = section.loadSection("entrance");
+            YMLSection tmp = section.loadSection("entrance");
             this.entrance = DoorTypeManager.getInstance().get(tmp.getString("type")).read(this, tmp);
             tmp = section.loadSection("exits");
             for (String key : tmp.getKeys(false)) {
-                @NotNull YMLSection sub = tmp.loadSection(key);
+                YMLSection sub = tmp.loadSection(key);
                 exits.add(DoorTypeManager.getInstance().get(sub.getString("type")).read(this, sub));
             }
             tmp = section.loadSection("treasures");
             for (String key : tmp.getKeys(false)) {
-                @NotNull YMLSection sub = tmp.loadSection(key);
+                YMLSection sub = tmp.loadSection(key);
                 treasures.add(TreasureTypeManager.getInstance().get(sub.getString("type")).read(this, sub));
             }
             tmp = section.loadSection("traps");
             for (String key : tmp.getKeys(false)) {
-                @NotNull YMLSection sub = tmp.loadSection(key);
+                YMLSection sub = tmp.loadSection(key);
                 traps.add(TrapTypeManager.getInstance().get(sub.getString("type")).read(this, sub));
             }
             tmp = section.loadSection("monsterspawners");
             for (String key : tmp.getKeys(false)) {
-                @NotNull YMLSection sub = tmp.loadSection(key);
+                YMLSection sub = tmp.loadSection(key);
                 monsterSpawners.add(MonsterSpawnerTypeManager.getInstance().get(sub.getString("type")).read(this, sub));
             }
             this.schematicName = section.getString("schematic");
@@ -672,58 +643,58 @@ public abstract class RoomType extends DRegistryElement {
             this.size = new BlockVector(dim.getBlockX(), dim.getBlockY(), dim.getBlockZ());
         }
 
-        public @NotNull
-        BlockVector getSize() {
+        @NotNull
+        public BlockVector getSize() {
             return size.clone();
         }
 
-        public @NotNull
-        Set<Material> getBreakableBlocks() {
+        @NotNull
+        public Set<Material> getBreakableBlocks() {
             return Collections.unmodifiableSet(breakableBlocks);
         }
 
-        public @NotNull
-        Set<Material> getPlaceableBlocks() {
+        @NotNull
+        public Set<Material> getPlaceableBlocks() {
             return Collections.unmodifiableSet(placeableBlocks);
         }
 
-        public @NotNull
-        DoorType.DoorInstance getEntrance() {
+        @NotNull
+        public DoorInstance getEntrance() {
             return this.entrance;
         }
 
-        public @NotNull
-        List<DoorType.DoorInstance> getExits() {
+        @NotNull
+        public List<DoorInstance> getExits() {
             return Collections.unmodifiableList(this.exits);
         }
 
-        public @NotNull
-        List<MonsterSpawnerType.MonsterSpawnerInstance> getMonsterSpawners() {
+        @NotNull
+        public List<MonsterSpawnerInstance> getMonsterSpawners() {
             return Collections.unmodifiableList(this.monsterSpawners);
         }
 
-        public @NotNull
-        List<TreasureType.TreasureInstance> getTreasures() {
+        @NotNull
+        public List<TreasureInstance> getTreasures() {
             return Collections.unmodifiableList(this.treasures);
         }
 
-        public @NotNull
-        List<TrapType.TrapInstance> getTraps() {
+        @NotNull
+        public List<TrapInstance> getTraps() {
             return Collections.unmodifiableList(this.traps);
         }
 
-        public @NotNull
-        File getSchematic() {
+        @NotNull
+        public File getSchematic() {
             return new File(DeepDungeons.get().getDataFolder(), "schematics" + File.separator + getSchematicName());
         }
 
-        private @NotNull
-        String getSchematicName() {
+        @NotNull
+        private String getSchematicName() {
             return this.schematicName;
         }
 
-        public @NotNull
-        CompletableFuture<Clipboard> getClipboard(boolean async) {
+        @NotNull
+        public CompletableFuture<Clipboard> getClipboard(boolean async) {
             Clipboard clip = clipboard == null ? null : clipboard.get();
             if (clip != null)
                 return CompletableFuture.completedFuture(clip);
@@ -736,93 +707,93 @@ public abstract class RoomType extends DRegistryElement {
             return result;
         }
 
-        private @NotNull
-        CompletableFuture<EditSession> paste(@NotNull RoomHandler handler, boolean async) {
+        @NotNull
+        private CompletableFuture<EditSession> paste(@NotNull RoomHandler handler, boolean async) {
             return paste(handler.getLocation(), async);
         }
 
-        public @NotNull
-        CompletableFuture<EditSession> paste(@NotNull Location location, boolean async) {
+        @NotNull
+        public CompletableFuture<EditSession> paste(@NotNull Location location, boolean async) {
             return getClipboard(async).thenCompose(value -> WorldEditUtility.paste(location, value, async,
                     DeepDungeons.get(), false, true, true, false));
         }
 
         @Contract("_->new")
-        public abstract @NotNull
-        RoomHandler createRoomHandler(DungeonType.DungeonInstance.DungeonHandler dungeonHandler);
+        @NotNull
+        public abstract RoomHandler createRoomHandler(DungeonHandler dungeonHandler);
 
 
         public class RoomHandler implements MoveListener, InteractListener, InteractEntityListener, BlockPlaceListener, BlockBreakListener, AreaHolder {
 
-            private final DungeonType.DungeonInstance.DungeonHandler dungeonHandler;
-            private final DoorType.DoorInstance.DoorHandler entranceHandler;
-            private final List<DoorType.DoorInstance.DoorHandler> exits = new ArrayList<>();
-            private final List<TrapType.TrapInstance.TrapHandler> traps = new ArrayList<>();
+            private final DungeonHandler dungeonHandler;
+            private final DoorHandler entranceHandler;
+            private final List<DoorHandler> exits = new ArrayList<>();
+            private final List<TrapHandler> traps = new ArrayList<>();
             private final List<Entity> monsters = new ArrayList<>();
             private Location location = null;
             private BoundingBox boundingBox = null;
             private boolean firstEnter = false;
 
-            public RoomHandler(@NotNull DungeonType.DungeonInstance.DungeonHandler dungeonHandler) {
+            public RoomHandler(@NotNull DungeonHandler dungeonHandler) {
                 this.dungeonHandler = dungeonHandler;
                 this.entranceHandler = getRoomInstance().getEntrance().createDoorHandler(this);
-                for (DoorType.DoorInstance exit : getRoomInstance().getExits())
+                for (DoorInstance exit : getRoomInstance().getExits())
                     this.exits.add(exit.createDoorHandler(this));
-                for (TrapType.TrapInstance trap : getRoomInstance().getTraps())
+                for (TrapInstance trap : getRoomInstance().getTraps())
                     this.traps.add(trap.createTrapHandler(this));
             }
 
             @Contract(pure = true)
             @NotNull
-            public final DoorType.DoorInstance.DoorHandler getEntrance() {
+            public final DoorHandler getEntrance() {
                 return entranceHandler;
             }
 
             @Contract(pure = true)
             @NotNull
-            public final List<DoorType.DoorInstance.DoorHandler> getExits() {
+            public final List<DoorHandler> getExits() {
                 return Collections.unmodifiableList(exits);
             }
 
             @Contract(pure = true)
             @NotNull
-            public final List<TrapType.TrapInstance.TrapHandler> getTraps() {
+            public final List<TrapHandler> getTraps() {
                 return Collections.unmodifiableList(traps);
             }
 
             @Contract(pure = true)
-            public @NotNull
-            CompletableFuture<EditSession> paste(boolean async) {
+            @NotNull
+            public CompletableFuture<EditSession> paste(boolean async) {
                 return RoomInstance.this.paste(this, async);
             }
 
             @Contract(pure = true)
-            public final @NotNull
-            DungeonType.DungeonInstance.DungeonHandler getDungeonHandler() {
+            @NotNull
+            public final DungeonHandler getDungeonHandler() {
                 return dungeonHandler;
             }
 
             @Contract(pure = true, value = "-> new")
-            public @NotNull
-            Location getLocation() {
+            @NotNull
+            public Location getLocation() {
                 return location.clone();
             }
 
             @Contract(pure = true, value = "-> new")
-            public @NotNull
-            BoundingBox getBoundingBox() {
+            @NotNull
+            public BoundingBox getBoundingBox() {
                 return boundingBox.clone();
             }
 
             @Contract(pure = true)
-            public @NotNull
-            RoomType.RoomInstance getRoomInstance() {
+            @NotNull
+            public RoomInstance getRoomInstance() {
                 return RoomInstance.this;
             }
 
             @Contract(pure = true)
-            public @NotNull
-            BlockVector getSize() {
+            @NotNull
+            public BlockVector getSize() {
                 return getRoomInstance().getSize();
             }
 
@@ -832,8 +803,8 @@ public abstract class RoomType extends DRegistryElement {
                 this.location = getDungeonHandler().getLocation().add(roomOffset);
                 this.boundingBox = BoundingBox.of(location.toVector(), location.toVector().add(getSize()));
                 getEntrance().setupOffset();
-                this.exits.forEach(DoorType.DoorInstance.DoorHandler::setupOffset);
-                this.traps.forEach(TrapType.TrapInstance.TrapHandler::setupOffset);
+                this.exits.forEach(DoorHandler::setupOffset);
+                this.traps.forEach(TrapHandler::setupOffset);
             }
 
             public void onPlayerMove(@NotNull PlayerMoveEvent event) {
@@ -841,18 +812,18 @@ public abstract class RoomType extends DRegistryElement {
                     entranceHandler.onPlayerMove(event);
                     return;
                 }
-                for (DoorType.DoorInstance.DoorHandler exit : this.exits)
+                for (DoorHandler exit : this.exits)
                     if (exit.contains(event.getTo())) {
                         exit.onPlayerMove(event);
                         break;
                     }
-                for (TrapType.TrapInstance.TrapHandler trap : this.traps)
+                for (TrapHandler trap : this.traps)
                     if (trap instanceof MoveListener iTrap)
                         iTrap.onPlayerMove(event);
             }
 
-            public @NotNull
-            World getWorld() {
+            @NotNull
+            public World getWorld() {
                 return this.dungeonHandler.getWorld();
             }
 
@@ -899,7 +870,7 @@ public abstract class RoomType extends DRegistryElement {
             }
 
             public void onBlockPlace(@NotNull BlockPlaceEvent event) {
-                for (TrapType.TrapInstance.TrapHandler trap : this.traps)
+                for (TrapHandler trap : this.traps)
                     if (trap instanceof BlockPlaceListener iTrap)
                         iTrap.onBlockPlace(event);
                 if (!event.isCancelled() && !getRoomInstance().getPlaceableBlocks().contains(event.getBlock().getType()))
@@ -907,7 +878,7 @@ public abstract class RoomType extends DRegistryElement {
             }
 
             public void onBlockBreak(@NotNull BlockBreakEvent event) {
-                for (TrapType.TrapInstance.TrapHandler trap : this.traps)
+                for (TrapHandler trap : this.traps)
                     if (trap instanceof BlockBreakListener iTrap)
                         iTrap.onBlockBreak(event);
                 if (!event.isCancelled() && !getRoomInstance().getBreakableBlocks().contains(event.getBlock().getType()))
@@ -922,9 +893,8 @@ public abstract class RoomType extends DRegistryElement {
                 event.setCancelled(true);
             }
 
-
-            public @NotNull
-            List<Entity> getMonsters() {
+            @NotNull
+            public List<Entity> getMonsters() {
                 monsters.removeIf(entity -> !entity.isValid() || !overlaps(entity));
                 return Collections.unmodifiableList(monsters);
             }
@@ -935,14 +905,14 @@ public abstract class RoomType extends DRegistryElement {
 
             @Override
             public void onPlayerInteractEntity(@NotNull PlayerInteractEntityEvent event) {
-                for (TrapType.TrapInstance.TrapHandler trap : this.traps)
+                for (TrapHandler trap : this.traps)
                     if (trap instanceof InteractEntityListener iTrap)
                         iTrap.onPlayerInteractEntity(event);
             }
 
             @Override
             public void onPlayerInteract(@NotNull PlayerInteractEvent event) {
-                for (TrapType.TrapInstance.TrapHandler trap : this.traps)
+                for (TrapHandler trap : this.traps)
                     if (trap instanceof InteractListener iTrap)
                         iTrap.onPlayerInteract(event);
             }

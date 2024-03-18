@@ -13,7 +13,7 @@ import emanondev.core.util.WorldEditUtility;
 import emanondev.deepdungeons.DInstance;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Util;
-import emanondev.deepdungeons.dungeon.DungeonType;
+import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
 import emanondev.deepdungeons.interfaces.AreaHolder;
 import emanondev.deepdungeons.interfaces.MoveListener;
 import emanondev.deepdungeons.party.PartyManager;
@@ -49,11 +49,11 @@ public abstract class DoorType extends DRegistryElement {
         super(id);
     }
 
-    public abstract @NotNull
-    DoorInstance read(@NotNull RoomInstance instance, @NotNull YMLSection section);
+    @NotNull
+    public abstract DoorInstance read(@NotNull RoomInstance instance, @NotNull YMLSection section);
 
-    public abstract @NotNull
-    DoorInstanceBuilder getBuilder(@NotNull RoomInstanceBuilder room);
+    @NotNull
+    public abstract DoorInstanceBuilder getBuilder(@NotNull RoomInstanceBuilder room);
 
     public abstract class DoorInstanceBuilder extends DInstance<DoorType> {
 
@@ -86,8 +86,8 @@ public abstract class DoorType extends DRegistryElement {
             this.doorFace = doorFace;
         }
 
-        public @NotNull
-        CompletableFuture<DoorInstanceBuilder> getCompletableFuture() {
+        @NotNull
+        public CompletableFuture<DoorInstanceBuilder> getCompletableFuture() {
             return completableFuture;
         }
 
@@ -99,8 +99,8 @@ public abstract class DoorType extends DRegistryElement {
             completableFuture.complete(this);
         }
 
-        public @NotNull
-        RoomInstanceBuilder getRoomBuilder() {
+        @NotNull
+        public RoomInstanceBuilder getRoomBuilder() {
             return roomBuilder;
         }
 
@@ -115,8 +115,8 @@ public abstract class DoorType extends DRegistryElement {
             writeToImpl(section);
         }
 
-        public @Nullable
-        Vector getSpawnOffset() {
+        @Nullable
+        public Vector getSpawnOffset() {
             return spawnOffset == null ? null : spawnOffset.clone();
         }
 
@@ -254,8 +254,8 @@ public abstract class DoorType extends DRegistryElement {
             this.handleInteractImpl(event);
         }
 
-        private @NotNull
-        BlockFace guessFace() {
+        @NotNull
+        private BlockFace guessFace() {
             Vector v = roomBuilder.getArea().shift(roomBuilder.getOffset().multiply(-1)).getCenter();
             if (area.getWidthX() < area.getWidthZ()) {
                 if (v.distanceSquared(area.getMin()) > v.distanceSquared(area.getMin().add(new Vector(area.getWidthX(), 0, 0))))
@@ -267,8 +267,8 @@ public abstract class DoorType extends DRegistryElement {
             return BlockFace.NORTH;
         }
 
-        public @Nullable
-        Player getPlayer() {
+        @Nullable
+        public Player getPlayer() {
             return roomBuilder.getPlayer();
         }
 
@@ -397,8 +397,8 @@ public abstract class DoorType extends DRegistryElement {
         }
 
         @Contract(pure = true)
-        public @NotNull
-        RoomInstance getRoomInstance() {
+        @NotNull
+        public RoomInstance getRoomInstance() {
             return this.roomInstance;
         }
 
@@ -406,8 +406,8 @@ public abstract class DoorType extends DRegistryElement {
          * @return a bounding box with offset relative to the room
          */
         @Contract("-> new")
-        public @NotNull
-        BoundingBox getBoundingBox() {
+        @NotNull
+        public BoundingBox getBoundingBox() {
             return this.box.clone();
         }
 
@@ -416,8 +416,8 @@ public abstract class DoorType extends DRegistryElement {
          * @return spawn location yaw and picth included
          */
         @Contract("_ -> new")
-        public @NotNull
-        Location getSpawnLocation(@NotNull Location roomOffset) {
+        @NotNull
+        public Location getSpawnLocation(@NotNull Location roomOffset) {
             Location loc = roomOffset.clone().add(spawnOffset);
             loc.setYaw(spawnYaw);
             loc.setPitch(spawnPitch);
@@ -428,8 +428,8 @@ public abstract class DoorType extends DRegistryElement {
          * @return offset relative to the room
          */
         @Contract("-> new")
-        public @NotNull
-        Vector getSpawnOffset() {
+        @NotNull
+        public Vector getSpawnOffset() {
             return this.spawnOffset.clone();
         }
 
@@ -441,11 +441,11 @@ public abstract class DoorType extends DRegistryElement {
             return this.spawnPitch;
         }
 
-        public abstract @NotNull
-        DoorHandler createDoorHandler(@NotNull RoomHandler roomHandler);
+        @NotNull
+        public abstract DoorHandler createDoorHandler(@NotNull RoomHandler roomHandler);
 
-        public @NotNull
-        BlockFace getDoorFace() {
+        @NotNull
+        public BlockFace getDoorFace() {
             return this.doorFace;
         }
 
@@ -475,8 +475,8 @@ public abstract class DoorType extends DRegistryElement {
             }
 
             @Override
-            public @NotNull
-            World getWorld() {
+            @NotNull
+            public World getWorld() {
                 return roomHandler.getWorld();
             }
 
@@ -487,7 +487,7 @@ public abstract class DoorType extends DRegistryElement {
                     cooldowns.put(player.getUniqueId(), cooldownSeconds * 1000L + System.currentTimeMillis());
                 else
                     blocked.add(player.getUniqueId());
-                @NotNull World world = getRoom().getDungeonHandler().getWorld();
+                World world = getRoom().getDungeonHandler().getWorld();
                 Vector center = this.getBoundingBox().getCenter();
                 ItemDisplay item = (ItemDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() + 0.25, center.getZ())
                         .setDirection(getDoorFace().getDirection()), EntityType.ITEM_DISPLAY);
@@ -516,7 +516,7 @@ public abstract class DoorType extends DRegistryElement {
                 cooldownTask = new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if (getRoom().getDungeonHandler().getState() != DungeonType.DungeonInstance.DungeonHandler.State.STARTED) {
+                        if (getRoom().getDungeonHandler().getState() != DungeonHandler.State.STARTED) {
                             cooldownItems.values().forEach(Entity::remove);
                             cooldownText.values().forEach(Entity::remove);
                             this.cancel();
@@ -551,14 +551,14 @@ public abstract class DoorType extends DRegistryElement {
             }
 
             @Contract(pure = true)
-            public final @NotNull
-            DoorInstance getInstance() {
+            @NotNull
+            public final DoorInstance getInstance() {
                 return DoorInstance.this;
             }
 
             @Contract(pure = true)
-            public @NotNull
-            RoomHandler getRoom() {
+            @NotNull
+            public RoomHandler getRoom() {
                 return this.roomHandler;
             }
 
@@ -567,8 +567,8 @@ public abstract class DoorType extends DRegistryElement {
             }
 
             @Contract(pure = true)
-            public @Nullable
-            DoorHandler getLink() {
+            @Nullable
+            public DoorHandler getLink() {
                 return this.link;
             }
 

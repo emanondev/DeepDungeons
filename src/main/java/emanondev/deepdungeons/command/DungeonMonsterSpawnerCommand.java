@@ -8,6 +8,7 @@ import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Perms;
 import emanondev.deepdungeons.spawner.MonsterSpawnerType;
+import emanondev.deepdungeons.spawner.MonsterSpawnerType.MonsterSpawnerInstanceBuilder;
 import emanondev.deepdungeons.spawner.MonsterSpawnerTypeManager;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -54,7 +55,7 @@ public class DungeonMonsterSpawnerCommand extends CoreCommand {
         ItemStack item = player.getInventory().getItemInMainHand();
         switch (args.length) {
             case 1 -> {
-                MonsterSpawnerType.MonsterSpawnerInstanceBuilder builder = MonsterSpawnerTypeManager.getInstance().getMonsterSpawnerInstance(item);
+                MonsterSpawnerInstanceBuilder builder = MonsterSpawnerTypeManager.getInstance().getMonsterSpawnerInstance(item);
                 if (builder == null && !UtilsInventory.isAirOrNull(item)) {
                     sender.sendMessage("Message not implemented yet (hand must be a monsterspawner blueprint or empty)");//TODO
                     return;
@@ -63,7 +64,7 @@ public class DungeonMonsterSpawnerCommand extends CoreCommand {
                     new PagedListFGui<>(new DMessage(DeepDungeons.get()).append("&9MonsterSpawner Type Selector").toLegacy(),
                             6, player, null, DeepDungeons.get(), false,
                             (InventoryClickEvent click, MonsterSpawnerType type) -> {
-                                MonsterSpawnerType.MonsterSpawnerInstanceBuilder bb = type.getBuilder();
+                                MonsterSpawnerInstanceBuilder bb = type.getBuilder();
                                 bb.openGui(player);
                                 player.getInventory().setItemInMainHand(bb.toItem());
                                 return false;
@@ -99,7 +100,7 @@ public class DungeonMonsterSpawnerCommand extends CoreCommand {
                     sender.sendMessage("Message not implemented yet (hand monsterspawner blueprint and argument monsterspawner mismatch)");//TODO
                     return;
                 }
-                MonsterSpawnerType.MonsterSpawnerInstanceBuilder builder = MonsterSpawnerTypeManager.getInstance().getMonsterSpawnerInstance(item);
+                MonsterSpawnerInstanceBuilder builder = MonsterSpawnerTypeManager.getInstance().getMonsterSpawnerInstance(item);
                 builder.openGui(player);
             }
         }
@@ -107,8 +108,8 @@ public class DungeonMonsterSpawnerCommand extends CoreCommand {
     }
 
     @Override
-    public @Nullable
-    List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
+    @Nullable
+    public List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
         return switch (args.length) {
             case 1 -> this.complete(args[0], new String[]{"create"});
             case 2 -> {

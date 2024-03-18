@@ -12,10 +12,17 @@ import emanondev.deepdungeons.spawner.MonsterSpawnerTypeManager;
 import emanondev.deepdungeons.trap.TrapTypeManager;
 import emanondev.deepdungeons.treasure.TreasureTypeManager;
 
+/**
+ * Plugin main class<br>
+ * for managers use getInstance static method on respective classes
+ */
 public class DeepDungeons extends CorePlugin {
 
     private static DeepDungeons instance;
 
+    /**
+     * @return instance of Plugin
+     */
     public static DeepDungeons get() {
         return instance;
     }

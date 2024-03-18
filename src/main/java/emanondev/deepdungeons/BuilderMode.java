@@ -3,9 +3,9 @@ package emanondev.deepdungeons;
 import emanondev.core.gui.Gui;
 import emanondev.core.message.SimpleMessage;
 import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
-import emanondev.deepdungeons.dungeon.DungeonType;
+import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstanceBuilder;
 import emanondev.deepdungeons.room.RoomInstanceManager;
-import emanondev.deepdungeons.room.RoomType;
+import emanondev.deepdungeons.room.RoomType.RoomInstanceBuilder;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.entity.Player;
@@ -30,6 +30,9 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * A class to manage {@link ActiveBuilder}, controlling events related to builders and granting calls to methods handled by ActiveBuilder
+ */
 public class BuilderMode implements Listener {
 
     private static final BuilderMode instance = new BuilderMode();
@@ -46,20 +49,36 @@ public class BuilderMode implements Listener {
         this.pauseListener = new PauseListener();
     }
 
-    public static @NotNull
-    BuilderMode getInstance() {
+    /**
+     * @return BuilderMode instance
+     */
+    @NotNull
+    public static BuilderMode getInstance() {
         return instance;
     }
 
+    /**
+     * @param player who
+     * @return true if player is building something
+     */
     public boolean isOnEditorMode(@NotNull Player player) {
         return builderMode.containsKey(player);
     }
 
-    public @Nullable
-    ActiveBuilder getBuilderMode(@NotNull Player player) {
+    /**
+     * @param player who
+     * @return player's builder
+     */
+    @Nullable
+    public ActiveBuilder getBuilderMode(@NotNull Player player) {
         return builderMode.get(player);
     }
 
+    /**
+     * Kicks player out of builder mode (restore inventory)
+     *
+     * @param player who
+     */
     public void exitBuilderMode(@NotNull Player player) {
         if (!builderMode.containsKey(player))
             throw new IllegalArgumentException("not building");
@@ -80,6 +99,11 @@ public class BuilderMode implements Listener {
 
     }
 
+    /**
+     * @param player  who
+     * @param builder what
+     * @return true if player succesfully entered builder mode
+     */
     public boolean enterBuilderMode(@NotNull Player player, @NotNull ActiveBuilder builder) {
         if (builderMode.containsKey(player) || paused.containsKey(player.getUniqueId()))
             return false;
@@ -95,10 +119,10 @@ public class BuilderMode implements Listener {
             if (value != null) {
                 try {
                     value.write();
-                    if (builder instanceof RoomType.RoomInstanceBuilder) {
+                    if (builder instanceof RoomInstanceBuilder) {
                         RoomInstanceManager.getInstance().register(RoomInstanceManager.getInstance().readInstance(
                                 new File(RoomInstanceManager.getInstance().getFolder(), builder.getId() + ".yml")));
-                    } else if (builder instanceof DungeonType.DungeonInstanceBuilder) {
+                    } else if (builder instanceof DungeonInstanceBuilder) {
                         DungeonInstanceManager.getInstance().register(DungeonInstanceManager.getInstance().readInstance(
                                 new File(DungeonInstanceManager.getInstance().getFolder(), builder.getId() + ".yml")));
                     }
@@ -133,13 +157,13 @@ public class BuilderMode implements Listener {
     }
 
     @EventHandler
-    public void event(@NotNull EntityPickupItemEvent event) {
+    private void event(@NotNull EntityPickupItemEvent event) {
         if (event.getEntity() instanceof Player && isOnEditorMode((Player) event.getEntity()))
             event.setCancelled(true);
     }
 
     @EventHandler
-    public void event(@NotNull PlayerTeleportEvent event) {//if change world
+    private void event(@NotNull PlayerTeleportEvent event) {//if change world
         if (!isOnEditorMode(event.getPlayer()))
             return;
         if (event.getTo() == null || Objects.equals(event.getFrom().getWorld(), event.getTo().getWorld())) {
@@ -148,33 +172,33 @@ public class BuilderMode implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void event(@NotNull InventoryClickEvent event) {
+    private void event(@NotNull InventoryClickEvent event) {
         if (event.getWhoClicked() instanceof Player && isOnEditorMode((Player) event.getWhoClicked())
                 && !(event.getWhoClicked().getOpenInventory().getTopInventory().getHolder() instanceof Gui))
             event.setCancelled(true);
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void event(@NotNull EntityDamageEvent event) {
+    private void event(@NotNull EntityDamageEvent event) {
         if (event.getEntity() instanceof Player p && isOnEditorMode(p))
             event.setCancelled(true);
         //TODO if EntityDamageByEntity && player notify him
     }
 
     @EventHandler
-    public void event(@NotNull EntityResurrectEvent event) {
+    private void event(@NotNull EntityResurrectEvent event) {
         if (event.isCancelled() && event.getEntity() instanceof Player p && isOnEditorMode(p))
             exitBuilderMode(p);
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void event(@NotNull PlayerDropItemEvent event) {
+    private void event(@NotNull PlayerDropItemEvent event) {
         if (isOnEditorMode(event.getPlayer()))
             event.setCancelled(true);
     }
 
     @EventHandler
-    public void event(@NotNull PlayerInteractEvent event) {
+    private void event(@NotNull PlayerInteractEvent event) {
         if (event.getAction() == Action.PHYSICAL)
             return;
         ActiveBuilder builder = getBuilderMode(event.getPlayer());
@@ -198,14 +222,24 @@ public class BuilderMode implements Listener {
     }
 
     @EventHandler
-    public void event(@NotNull PlayerQuitEvent event) {
+    private void event(@NotNull PlayerQuitEvent event) {
         pauseBuilder(event.getPlayer());
     }
 
+    /**
+     * @param player who
+     * @return true if player has a suspended builder
+     */
     public boolean isOnPausedEditorMode(@NotNull Player player) {
         return paused.containsKey(player.getUniqueId());
     }
 
+    /**
+     * Suspend current player builder
+     *
+     * @param player who
+     * @return true if operation was successful
+     */
     public boolean pauseBuilder(@NotNull Player player) {
         ActiveBuilder builder = builderMode.get(player);
         if (builder == null)
@@ -217,6 +251,12 @@ public class BuilderMode implements Listener {
         return true;
     }
 
+    /**
+     * Resume player suspended builder
+     *
+     * @param player who
+     * @return true if operation was successful
+     */
     public boolean unpauseBuilder(@NotNull Player player) {
         ActiveBuilder builder = paused.remove(player.getUniqueId());
         if (builder == null)
@@ -227,6 +267,9 @@ public class BuilderMode implements Listener {
         return true;
     }
 
+    /**
+     * Kicks builders out of Builder mode
+     */
     public void disable() {
         for (Player player : new ArrayList<>(builderMode.keySet()))
             exitBuilderMode(player);
@@ -234,7 +277,7 @@ public class BuilderMode implements Listener {
 
     private class PauseListener implements Listener {
         @EventHandler
-        public void event(PlayerJoinEvent event) {
+        private void event(PlayerJoinEvent event) {
             unpauseBuilder(event.getPlayer());
         }
     }

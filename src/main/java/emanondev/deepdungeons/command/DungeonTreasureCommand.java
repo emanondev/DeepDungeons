@@ -8,6 +8,7 @@ import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Perms;
 import emanondev.deepdungeons.treasure.TreasureType;
+import emanondev.deepdungeons.treasure.TreasureType.TreasureInstanceBuilder;
 import emanondev.deepdungeons.treasure.TreasureTypeManager;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -54,7 +55,7 @@ public class DungeonTreasureCommand extends CoreCommand {
         ItemStack item = player.getInventory().getItemInMainHand();
         switch (args.length) {
             case 1 -> {
-                TreasureType.TreasureInstanceBuilder builder = TreasureTypeManager.getInstance().getTreasureInstance(item);
+                TreasureInstanceBuilder builder = TreasureTypeManager.getInstance().getTreasureInstance(item);
                 if (builder == null && !UtilsInventory.isAirOrNull(item)) {
                     sender.sendMessage("Message not implemented yet (hand must be a treasure blueprint or empty)");//TODO
                     return;
@@ -63,7 +64,7 @@ public class DungeonTreasureCommand extends CoreCommand {
                     new PagedListFGui<>(new DMessage(DeepDungeons.get()).append("&9Treasure Type Selector").toLegacy(),
                             6, player, null, DeepDungeons.get(), false,
                             (InventoryClickEvent click, TreasureType type) -> {
-                                TreasureType.TreasureInstanceBuilder bb = type.getBuilder();
+                                TreasureInstanceBuilder bb = type.getBuilder();
                                 bb.openGui(player);
                                 player.getInventory().setItemInMainHand(bb.toItem());
                                 return false;
@@ -99,7 +100,7 @@ public class DungeonTreasureCommand extends CoreCommand {
                     sender.sendMessage("Message not implemented yet (hand treasure blueprint and argument treasure mismatch)");//TODO
                     return;
                 }
-                TreasureType.TreasureInstanceBuilder builder = TreasureTypeManager.getInstance().getTreasureInstance(item);
+                TreasureInstanceBuilder builder = TreasureTypeManager.getInstance().getTreasureInstance(item);
                 builder.openGui(player);
             }
         }
@@ -107,8 +108,8 @@ public class DungeonTreasureCommand extends CoreCommand {
     }
 
     @Override
-    public @Nullable
-    List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
+    @Nullable
+    public List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
         return switch (args.length) {
             case 1 -> this.complete(args[0], new String[]{"create"});
             case 2 -> {

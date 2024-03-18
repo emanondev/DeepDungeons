@@ -8,7 +8,7 @@ import emanondev.core.util.DRegistryElement;
 import emanondev.deepdungeons.DInstance;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Util;
-import emanondev.deepdungeons.room.RoomType;
+import emanondev.deepdungeons.room.RoomType.RoomInstance;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -29,15 +29,14 @@ public abstract class TreasureType extends DRegistryElement {
         super(id);
     }
 
-    public abstract @NotNull
-    TreasureInstance read(@NotNull RoomType.RoomInstance instance, @NotNull YMLSection sub);
+    @NotNull
+    public abstract TreasureInstance read(@NotNull RoomInstance instance, @NotNull YMLSection sub);
 
+    @NotNull
+    public abstract TreasureInstanceBuilder getBuilder();
 
-    public abstract @NotNull
-    TreasureInstanceBuilder getBuilder();
-
-    public @NotNull
-    DMessage getDescription(Player player) {
+    @NotNull
+    public DMessage getDescription(Player player) {
         return new DMessage(DeepDungeons.get(), player).append("<red>Description of <gold>" + getId() + "</gold> not implemented</red>");//TODO
     }
 
@@ -53,8 +52,8 @@ public abstract class TreasureType extends DRegistryElement {
             return offset;
         }
 
-        public @NotNull
-        ItemStack toItem() {
+        @NotNull
+        public ItemStack toItem() {
             return new ItemBuilder(Material.PAPER).setDescription(toItemLines()).build();
         }
 
@@ -63,14 +62,14 @@ public abstract class TreasureType extends DRegistryElement {
          *
          * @return Treasure info readable by TreasureType
          */
-        protected abstract @NotNull
-        List<String> toItemLinesImpl();
+        @NotNull
+        protected abstract List<String> toItemLinesImpl();
 
         /**
          * @return a mutable list with prefilled first two lines
          */
-        public final @NotNull
-        List<String> toItemLines() {
+        @NotNull
+        public final List<String> toItemLines() {
             ArrayList<String> list = new ArrayList<>();
             list.add(TreasureTypeManager.LINE_ONE);
             list.add("&9Type:&6 " + getType().getId());
@@ -111,23 +110,23 @@ public abstract class TreasureType extends DRegistryElement {
 
     public abstract class TreasureInstance extends DInstance<TreasureType> {
 
-        private final RoomType.RoomInstance room;
+        private final RoomInstance room;
         private final Vector offset;
 
-        public TreasureInstance(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
+        public TreasureInstance(@NotNull RoomInstance room, @NotNull YMLSection section) {
             super(TreasureType.this);
             this.room = room;
             this.offset = Util.toVector(section.getString("offset"));
         }
 
         @Contract("-> new")
-        public @NotNull
-        Vector getOffset() {
+        @NotNull
+        public Vector getOffset() {
             return offset.clone();
         }
 
-        public @NotNull
-        RoomType.RoomInstance getRoomInstance() {
+        @NotNull
+        public RoomInstance getRoomInstance() {
             return room;
         }
 
@@ -140,8 +139,8 @@ public abstract class TreasureType extends DRegistryElement {
          * @param who      optional who's getting the treasure
          * @return A collection of not null ItemStacks, collection may be empty
          */
-        public abstract @NotNull
-        Collection<ItemStack> getTreasure(@NotNull Random random, @NotNull Location location, @Nullable Player who);
+        @NotNull
+        public abstract Collection<ItemStack> getTreasure(@NotNull Random random, @NotNull Location location, @Nullable Player who);
 
     }
 }

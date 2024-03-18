@@ -6,7 +6,7 @@ import emanondev.core.gui.PagedMapGui;
 import emanondev.core.gui.ResearchFButton;
 import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.DeepDungeons;
-import emanondev.deepdungeons.room.RoomType;
+import emanondev.deepdungeons.room.RoomType.RoomInstance;
 import emanondev.deepdungeons.treasure.TreasureType;
 import io.lumine.mythic.api.drops.IItemDrop;
 import io.lumine.mythic.bukkit.BukkitAdapter;
@@ -31,14 +31,14 @@ public class MythicMobsDropTableType extends TreasureType {
     }
 
     @Override
-    public @NotNull
-    MythicMobsDropTableType.MythicMobsDropTableInstance read(@NotNull RoomType.RoomInstance room, @NotNull YMLSection sub) {
+    @NotNull
+    public MythicMobsDropTableInstance read(@NotNull RoomInstance room, @NotNull YMLSection sub) {
         return new MythicMobsDropTableInstance(room, sub);
     }
 
     @Override
-    public @NotNull
-    MythicMobsDropTableType.MythicMobsDropTableInstanceBuilder getBuilder() {
+    @NotNull
+    public MythicMobsDropTableInstanceBuilder getBuilder() {
         return new MythicMobsDropTableInstanceBuilder();
     }
 
@@ -61,8 +61,8 @@ public class MythicMobsDropTableType extends TreasureType {
         }
 
         @Override
-        protected @NotNull
-        List<String> toItemLinesImpl() {
+        @NotNull
+        protected List<String> toItemLinesImpl() {
             return List.of("&9MythicMobsDropTable:&6 " + (table == null ? "null" : table.getInternalName()));
         }
 
@@ -125,7 +125,7 @@ public class MythicMobsDropTableType extends TreasureType {
 
         private final DropTable table;
 
-        private MythicMobsDropTableInstance(@NotNull RoomType.RoomInstance room, @NotNull YMLSection section) {
+        private MythicMobsDropTableInstance(@NotNull RoomInstance room, @NotNull YMLSection section) {
             super(room, section);
             table = MythicBukkit.inst().getDropManager().getDropTable(section.getString("table", "null")).orElse(null);
             if (table == null) {
@@ -135,8 +135,8 @@ public class MythicMobsDropTableType extends TreasureType {
         }
 
         @Override
-        public @NotNull
-        Collection<ItemStack> getTreasure(@NotNull Random random, @NotNull Location location, @Nullable Player who) {
+        @NotNull
+        public Collection<ItemStack> getTreasure(@NotNull Random random, @NotNull Location location, @Nullable Player who) {
             if (table == null)
                 return Collections.emptyList();
             ArrayList<ItemStack> list = new ArrayList<>();
