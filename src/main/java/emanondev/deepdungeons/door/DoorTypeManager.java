@@ -19,6 +19,7 @@ public class DoorTypeManager extends DRegistry<DoorType> {
         this.register(new RedstoneType());
     }
 
+    @NotNull
     public static DoorTypeManager getInstance() {
         return instance;
     }

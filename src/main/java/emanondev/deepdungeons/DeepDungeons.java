@@ -1,6 +1,7 @@
 package emanondev.deepdungeons;
 
 import emanondev.core.CorePlugin;
+import emanondev.deepdungeons.area.AreaManager;
 import emanondev.deepdungeons.command.*;
 import emanondev.deepdungeons.door.DoorTypeManager;
 import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
@@ -13,8 +14,16 @@ import emanondev.deepdungeons.trap.TrapTypeManager;
 import emanondev.deepdungeons.treasure.TreasureTypeManager;
 
 /**
- * Plugin main class<br>
- * for managers use getInstance static method on respective classes
+ * Plugin main class
+ * <p>
+ * For managers use getInstance() static method on respective classes
+ * @see DungeonTypeManager
+ * @see DungeonInstanceManager
+ * @see RoomTypeManager
+ * @see RoomInstanceManager
+ * @see DoorTypeManager
+ * @see TreasureTypeManager
+ * @see MonsterSpawnerTypeManager
  */
 public class DeepDungeons extends CorePlugin {
 
@@ -55,6 +64,7 @@ public class DeepDungeons extends CorePlugin {
         DungeonInstanceManager.getInstance().load();
         PartyManager.getInstance().load();
         BuilderMode.getInstance();
+        AreaManager.getInstance();
         this.registerCommand(new DungeonTreasureCommand());
         this.registerCommand(new DungeonMonsterSpawnerCommand());
         this.registerCommand(new DungeonRoomBuilderCommand());

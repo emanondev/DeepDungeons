@@ -132,7 +132,7 @@ public abstract class TreasureType extends DRegistryElement {
 
         /**
          * Return a collection of not null ItemStacks, collection may be empty
-         * <br><br>Implementation note: generated treasures should be consistent with given random
+         * <p>Implementation note: generated treasures should be consistent with given random
          *
          * @param random   seed for generation
          * @param location where the treasure is generated

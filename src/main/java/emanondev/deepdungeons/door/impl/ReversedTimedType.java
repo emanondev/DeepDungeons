@@ -93,11 +93,11 @@ public class ReversedTimedType extends DoorType {
                 PlayerInventory inv = player.getInventory();
                 inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
                         .appendLang("doorbuilder.reversed_timed_door_info")).build());
-                inv.setItem(1, new ItemBuilder(Material.CLOCK).setDescription(new DMessage(DeepDungeons.get(), player)
+                inv.setItem(1, new ItemBuilder(Material.CHAIN).setDescription(new DMessage(DeepDungeons.get(), player)
+                        .appendLang("doorbuilder.reversed_timed_door_selector", "%value%", UtilsString.getTimeStringSeconds(getPlayer(), timeToLock), "%value_raw%", "" + timeToLock)).build());
+                inv.setItem(2, new ItemBuilder(Material.CLOCK).setDescription(new DMessage(DeepDungeons.get(), player)
                         .appendLang("doorbuilder.reversed_timed_lock_selector",
                                 "%value%", String.valueOf(locksOpenIfPassThrough))).build());
-                inv.setItem(1, new ItemBuilder(Material.CLOCK).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.reversed_timed_door_selector", "%value%", UtilsString.getTimeStringSeconds(getPlayer(), timeToLock), "%value_raw%", "" + timeToLock)).build());
                 inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
                         .appendLang("doorbuilder.reversed_timed_door_confirm")).build());
                 return;

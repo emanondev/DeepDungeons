@@ -70,9 +70,10 @@ public class DungeonTreasureCommand extends CoreCommand {
                                 return false;
                             },
                             (TreasureType type) -> new ItemBuilder(Material.CHEST)
-                                    .setDescription(new DMessage(DeepDungeons.get(), player).append("<blue>Type: <gold>" + type.getId() + "</gold></blue>").newLine().append(
-                                            type.getDescription(player)
-                                    )).build());
+                                    .setDescription(new DMessage(DeepDungeons.get(), player).append("<blue>Type: <gold>"
+                                                    + type.getId() + "</gold></blue>").newLine()
+                                            .append(type.getDescription(player)
+                                            )).build());
                     return;
                 }
                 player.getInventory().setItemInMainHand(builder.toItem());

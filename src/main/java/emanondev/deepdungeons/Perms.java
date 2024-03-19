@@ -3,7 +3,15 @@ package emanondev.deepdungeons;
 import emanondev.core.PermissionBuilder;
 import org.bukkit.permissions.Permission;
 
+
+/**
+ * Container for Plugin permissions
+ */
 public class Perms {
+
+    private Perms(){
+        throw new AssertionError();
+    }
 
     public static final Permission DUNGEONTREASURE_COMMAND = PermissionBuilder.ofCommand(DeepDungeons.get(),
             "dungeontreasure").buildAndRegister(DeepDungeons.get());

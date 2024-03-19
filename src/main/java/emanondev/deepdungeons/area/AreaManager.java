@@ -1,10 +1,14 @@
 package emanondev.deepdungeons.area;
 
+import emanondev.core.UtilsWorld;
+import emanondev.core.YMLConfig;
 import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
 import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance;
 import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
 import emanondev.deepdungeons.party.PartyManager;
 import org.bukkit.Bukkit;
+import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -20,6 +24,7 @@ import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.world.PortalCreateEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -35,20 +40,40 @@ import java.util.WeakHashMap;
  */
 public class AreaManager implements Listener {
 
-    private static final AreaManager areaManager = init();
     private final HashMap<World, WeakHashMap<DungeonHandler, BoundingBox>> usedZones = new HashMap<>();
     private final HashMap<DungeonInstance, List<DungeonHandler>> ready = new HashMap<>();
     private final HashMap<World, List<DungeonHandler>> started = new HashMap<>();
+    private final HashMap<DungeonInstance, Integer> cacheSize = new HashMap<>();
+    private final HashMap<DungeonInstance, Integer> cacheDone = new HashMap<>();
+    private static final AreaManager areaManager = new AreaManager();
 
-    private static AreaManager init() {
-        AreaManager area = new AreaManager();
-        DeepDungeons.get().registerListener(area);
-        return area;
+    private AreaManager() {
+        DeepDungeons.get().registerListener(this);
+        YMLConfig cache = DeepDungeons.get().getConfig("dungeonCache.yml");
+        for (String id : DungeonInstanceManager.getInstance().getIds()) {
+            DungeonInstance dungeonInst = DungeonInstanceManager.getInstance().get(id);
+            if (dungeonInst != null)
+                cacheSize.put(dungeonInst, cache.loadInteger(dungeonInst.getId(), 3));
+        }
+        new BukkitRunnable() {
+
+            @Override
+            public void run() {
+                for (DungeonInstance dung:cacheSize.keySet()){
+                    if (ready.get(dung)==null||cacheDone.getOrDefault(dung,0)<cacheSize.get(dung)) {
+                        dung.createHandler(null);
+                        cacheDone.put(dung,cacheDone.getOrDefault(dung,0)+1);
+                        break;
+                    }
+                }
+            }
+        }.runTaskTimer(DeepDungeons.get(), 10L, 80L);
     }
 
     /**
      * @return manager instance
      */
+    @NotNull
     public static AreaManager getInstance() {
         return areaManager;
     }
@@ -120,7 +145,22 @@ public class AreaManager implements Listener {
     @Contract(pure = true)
     @NotNull
     public World getStandardWorld() {
-        return Bukkit.getWorlds().get(0);//TODO configurable default world
+        String name = DeepDungeons.get().getConfig().getString("dungeon.default_world", "DungeonsWorld");
+        World world = Bukkit.getWorld(name);
+        if (world != null)
+            return world;
+        UtilsWorld.create(name, null, null, false, 0L);//Void world
+        world = Bukkit.getWorld(name);
+        world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
+        world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
+        world.setGameRule(GameRule.DISABLE_RAIDS, true);
+        world.setGameRule(GameRule.DO_PATROL_SPAWNING, false);
+        world.setGameRule(GameRule.DO_INSOMNIA, false);
+        world.setGameRule(GameRule.DO_TRADER_SPAWNING, false);
+        world.setGameRule(GameRule.GLOBAL_SOUND_EVENTS, false);
+        world.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
+        world.setGameRule(GameRule.UNIVERSAL_ANGER, true);
+        return Bukkit.getWorld(name);
     }
 
     /**
@@ -143,6 +183,7 @@ public class AreaManager implements Listener {
         this.started.putIfAbsent(handler.getWorld(), new ArrayList<>());
         this.started.get(handler.getWorld()).add(handler);
         //TODO generate cache?
+        cacheDone.put(handler.getInstance(), cacheDone.getOrDefault(handler.getInstance(),0)-1);
     }
 
     /**

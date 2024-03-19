@@ -345,4 +345,4 @@ dungeonbuilder:
   rgs_weightgui_title: "<blue>Group #%index%  Weight editor"
   rgs_weightgui_roominfo:
     - "<gold>Room: <yellow>%id%"
-    - "<#7897ff>Weight: <yellow>%weight%</yellow>/<yellow>%full_weight%</yellow> = ~<yellow>%perc_weight%</yellow> %"
+    - "<#7897ff>Weight: <yellow>%weight%</yellow>/<yellow>%full_weight%</yellow> ≈ <yellow>%perc_weight%</yellow>%"

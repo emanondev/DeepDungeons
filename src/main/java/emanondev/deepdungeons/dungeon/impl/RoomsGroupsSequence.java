@@ -10,6 +10,7 @@ import emanondev.core.message.DMessage;
 import emanondev.core.message.SimpleMessage;
 import emanondev.core.util.WorldEditUtility;
 import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.Util;
 import emanondev.deepdungeons.area.AreaManager;
 import emanondev.deepdungeons.door.DoorType.DoorInstance.DoorHandler;
 import emanondev.deepdungeons.dungeon.DungeonType;
@@ -17,15 +18,13 @@ import emanondev.deepdungeons.party.PartyManager;
 import emanondev.deepdungeons.room.RoomInstanceManager;
 import emanondev.deepdungeons.room.RoomType.RoomInstance;
 import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
-import org.bukkit.Color;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BlockVector;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -37,6 +36,8 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class RoomsGroupsSequence extends DungeonType {
+    private static final int MAX_CHUNK_LOAD_PER_TICK = 5;
+
     public RoomsGroupsSequence() {
         super("roomsgroupssequence");
     }
@@ -306,7 +307,7 @@ public class RoomsGroupsSequence extends DungeonType {
                                                                     "%type%", (inst == null ? "?" : inst.getType().getId()),
                                                                     "%weight%", String.valueOf(rooms.get(key)),
                                                                     "%full_weight%", String.valueOf(fullWeight[0]),
-                                                                    "%perc_weight%", UtilsString.formatOptional2Digit(rooms.get(key) * 100 / fullWeight[0])))
+                                                                    "%perc_weight%", UtilsString.formatOptional2Digit(rooms.get(key) * 100D / fullWeight[0])))
                                                     .setGuiProperty().build();
                                         }, true));
                             }
@@ -364,7 +365,7 @@ public class RoomsGroupsSequence extends DungeonType {
 
         private class Handler extends DungeonHandler {
             private final static int ROOM_MARGIN = 5;
-            private final static int DUNGEON_MARGIN = 2;
+            private final static int DUNGEON_MARGIN = 16;
 
             private final Location location;
             private final DoorHandler start;
@@ -459,16 +460,61 @@ public class RoomsGroupsSequence extends DungeonType {
             }
 
             private void paste() {
+                //TODO debug
+                DeepDungeons.get().logInfo("Pasting &e"+this.getInstance().getId()+" &fat &e"+getWorld().getName()+" "+ Util.toString(location.toVector().toBlockVector()).replace(";"," "));
+                long before = System.currentTimeMillis();
+
                 getLocation().getWorld().getNearbyEntities(getBoundingBox(), (e) -> !(e instanceof Player)).forEach(Entity::remove);
                 CompletableFuture<EditSession> future = WorldEditUtility.pasteAir(getBoundingBox(), getLocation().getWorld(), true, DeepDungeons.get());
                 List<CompletableFuture<EditSession>> pasting = new ArrayList<>();
                 pasting.add(future);
+                future.whenComplete((session, t) -> {
+                    CompletableFuture<EditSession> removeEntity = new CompletableFuture<>();
+                    new BukkitRunnable() {
+                        private final List<Chunk> chunks = new ArrayList<>();
+                        boolean firstRun = true;
+                        @Override
+                        public void run() {
+                            if (firstRun){
+                                Vector min = getBoundingBox().getMin().multiply(1/16);
+                                Vector max = getBoundingBox().getMax().multiply(1/16);
+                                for (int x = min.getBlockX();x<=max.getBlockX()+1;x++)
+                                    for (int z = min.getBlockZ();z<=max.getBlockZ()+1;z++){
+                                        chunks.add(getWorld().getChunkAt(x,z));
+                                    }
+                                firstRun = false;
+                            }
+                            int counter = 0;
+                            List<Chunk> toRemove = new ArrayList<>();
+                            for (Chunk chunk:chunks){
+                                toRemove.add(chunk);
+                                if (!chunk.isLoaded()){
+                                    counter++;
+                                    chunk.load();
+                                }
+                                for (Entity en:chunk.getEntities())
+                                    if (!(en instanceof Player))
+                                        en.remove();
+                                if (counter>=MAX_CHUNK_LOAD_PER_TICK)
+                                    break;
+                            }
+                            chunks.removeAll(toRemove);
+                            if (chunks.isEmpty()){
+                                removeEntity.complete(null);
+                                this.cancel();
+                            }
+                        }
+                    }.runTaskTimer(DeepDungeons.get(),1L,1L);
+                    pasting.add(removeEntity);
+                });
                 for (RoomHandler room : rooms) {
                     pasting.get(pasting.size() - 1).whenComplete((session, t) -> pasting.add(room.paste(true)));
                 }
                 pasting.get(pasting.size() - 1).thenAccept((session) -> {
                     this.state = State.READY;
                     AreaManager.getInstance().flagReady(this);
+                    //TODO debug
+                    DeepDungeons.get().logInfo("Pasted &e"+this.getInstance().getId()+" &fat &e"+getWorld().getName()+" "+ Util.toString(location.toVector().toBlockVector()).replace(";"," ")+"&f took &e"+(System.currentTimeMillis()-before)+" &fms");
                 });
             }
 

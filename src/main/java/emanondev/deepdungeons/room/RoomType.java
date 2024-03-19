@@ -26,6 +26,7 @@ import emanondev.deepdungeons.interfaces.*;
 import emanondev.deepdungeons.spawner.MonsterSpawnerType.MonsterSpawnerInstance;
 import emanondev.deepdungeons.spawner.MonsterSpawnerType.MonsterSpawnerInstanceBuilder;
 import emanondev.deepdungeons.spawner.MonsterSpawnerTypeManager;
+import emanondev.deepdungeons.trap.TrapType;
 import emanondev.deepdungeons.trap.TrapType.TrapInstance;
 import emanondev.deepdungeons.trap.TrapType.TrapInstance.TrapHandler;
 import emanondev.deepdungeons.trap.TrapType.TrapInstanceBuilder;
@@ -99,6 +100,7 @@ public abstract class RoomType extends DRegistryElement {
         private BoundingBox area;
         private boolean hasCompletedBreakableMaterials = false;
         private boolean hasCompletedExitsCreation = false;
+        private boolean hasCompletedTrapsCreation = false;
         private int tickCounter = 0;
 
         protected RoomInstanceBuilder(@NotNull String id, @NotNull Player player) {
@@ -380,8 +382,60 @@ public abstract class RoomType extends DRegistryElement {
                 }
                 return;
             }
-            //TODO traps
-
+            if (!hasCompletedTrapsCreation) {
+                if (!(traps.isEmpty() || traps.get(traps.size() - 1).getCompletableFuture().isDone())) {
+                    traps.get(traps.size() - 1).handleInteract(event);
+                    return;
+                }
+                switch (heldSlot) {
+                    case 1 -> {
+                        ArrayList<TrapType> types = new ArrayList<>(TrapTypeManager.getInstance().getAll());
+                        types.sort(Comparator.comparing(DRegistryElement::getId));
+                        new AdvancedResearchFGui<>(
+                                new DMessage(DeepDungeons.get(), event.getPlayer()).appendLang("roombuilder.base_traps_guititle"),//TODO lang
+                                event.getPlayer(), null, DeepDungeons.get(),
+                                new ItemBuilder(Material.TRIPWIRE_HOOK).setDescription(
+                                        new DMessage(
+                                                DeepDungeons.get(), event.getPlayer()
+                                        ).append(">").newLine().appendLang("roombuilder.base_traps_guihelp")//TODO lang
+                                ).build(), (String text, TrapType type) -> {
+                            String[] split = text.split(" ");
+                            for (String s : split)
+                                if (!(type.getId().toLowerCase(Locale.ENGLISH).contains(s.toLowerCase(Locale.ENGLISH))))
+                                    return false;
+                            return true;
+                        },
+                                (evt, type) -> {
+                                    TrapInstanceBuilder trap = type.getBuilder(this);
+                                    traps.add(trap);
+                                    trap.getCompletableFuture().whenComplete((b, t) -> {
+                                        if (t != null) {
+                                            this.getCompletableFuture().completeExceptionally(t);
+                                        } else {
+                                            this.setupTools();
+                                        }
+                                    });
+                                    event.getPlayer().closeInventory();
+                                    setupTools();
+                                    return false;
+                                },
+                                (type) -> new ItemBuilder(Material.TRIPWIRE_HOOK).setDescription(
+                                        new DMessage(DeepDungeons.get(), event.getPlayer())
+                                                .appendLang("roombuilder.base_traps_guiitem", "%id%", type.getId()) //TODO lang
+                                ).build(),
+                                types
+                        ).open(event.getPlayer());
+                    }
+                    case 6 -> {
+                        if (!traps.isEmpty()) {
+                            hasCompletedTrapsCreation = true;
+                            setupTools();
+                            getPlayer().getInventory().setHeldItemSlot(0);
+                        }
+                    }
+                }
+                return;
+            }
             if (!hasCompletedBreakableMaterials) {
                 switch (heldSlot) {
                     case 1 -> {
@@ -500,7 +554,21 @@ public abstract class RoomType extends DRegistryElement {
                 }
                 return;
             }
-            //TODO traps
+
+
+            if (!hasCompletedTrapsCreation) {
+                if (traps.isEmpty() || traps.get(traps.size() - 1).getCompletableFuture().isDone()) {
+                    inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
+                            .appendLang("roombuilder.base_traps_info")).build());//TODO lang
+                    inv.setItem(1, new ItemBuilder(Material.SPRUCE_DOOR).setDescription(new DMessage(DeepDungeons.get(), player)
+                            .appendLang("roombuilder.base_traps_selector")).build());//TODO lang
+                    inv.setItem(6, new ItemBuilder(Material.LIGHT_BLUE_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
+                            .appendLang("roombuilder.base_traps_confirm", "%value%", String.valueOf(traps.size()))).build());//TODO lang
+                } else {
+                    traps.get(traps.size() - 1).setupTools();
+                }
+                return;
+            }
 
             if (!hasCompletedBreakableMaterials) {
                 inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
@@ -533,21 +601,35 @@ public abstract class RoomType extends DRegistryElement {
                 else
                     showWEBound(player);
 
-                if (entrance == null)
-                    return;
-                entrance.timerTick(player, Color.LIME);
+                if (!hasCompletedExitsCreation) {
+                    if (entrance == null)
+                        return;
+                    entrance.timerTick(player, Color.LIME);
 
-                if (exits.isEmpty())
-                    return;
-                for (int i = 0; i < exits.size(); i++) {
-                    DoorInstanceBuilder exit = exits.get(i);
-                    exit.timerTick(player, switch (i % 5) {
-                        case 0 -> Color.RED;
-                        case 1 -> Color.ORANGE;
-                        case 2 -> Color.YELLOW;
-                        case 3 -> Color.fromBGR(255, 0, 165);
-                        default -> Color.FUCHSIA;
-                    });
+                    if (exits.isEmpty())
+                        return;
+                    for (int i = 0; i < exits.size(); i++) {
+                        DoorInstanceBuilder exit = exits.get(i);
+                        exit.timerTick(player, switch (i % 5) {
+                            case 0 -> Color.RED;
+                            case 1 -> Color.ORANGE;
+                            case 2 -> Color.YELLOW;
+                            case 3 -> Color.fromBGR(255, 0, 165); //TODO rivedere colori
+                            default -> Color.FUCHSIA;
+                        });
+                    }
+                }
+                if (!hasCompletedTrapsCreation) {
+                    for (int i = 0; i < traps.size(); i++) {
+                        TrapInstanceBuilder trap = traps.get(i);
+                        trap.timerTick(player, switch (i % 5) {
+                            case 0 -> Color.RED;
+                            case 1 -> Color.ORANGE;
+                            case 2 -> Color.YELLOW;
+                            case 3 -> Color.fromBGR(255, 0, 165);
+                            default -> Color.FUCHSIA;
+                        });
+                    }
                 }
             }
             timerTickImpl();

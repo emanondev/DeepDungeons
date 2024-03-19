@@ -26,6 +26,7 @@ public class DungeonInstanceManager extends DRegistry<DungeonInstance> {
     public void load() {
         File dungeonsFolder = getFolder();
         if (!dungeonsFolder.isDirectory()) {
+            new IllegalStateException().printStackTrace();
             //TODO
             return;
         }
@@ -38,7 +39,6 @@ public class DungeonInstanceManager extends DRegistry<DungeonInstance> {
             } catch (Throwable t) {
                 t.printStackTrace();
                 logIssue("Can't read dungeon file &edungeons" + File.separator + file.getName() + "&f please report the above stack trace to the developer ( https://discord.com/invite/w5HVCDPtRp )");
-                continue;
             }
         }
     }

@@ -6,7 +6,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.text.DecimalFormat;
 
+/**
+ * Container for generic utility static methods
+ */
 public class Util {
+
+    private Util(){
+        throw new AssertionError();
+    }
 
     @NotNull
     public static String toString(@NotNull BlockVector vector) {

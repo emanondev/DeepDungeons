@@ -77,7 +77,7 @@ public class DungeonCreatorCommand extends CoreCommand {
             sender.sendMessage("Help Message not implemented");
             return;
         }
-        DungeonHandler handler = dungeon.createHandler(player.getLocation().getWorld());
+        DungeonHandler handler = dungeon.createHandler(null);
         Vector loc = handler.getBoundingBox().getCenter();
         new DMessage(DeepDungeons.get(), sender).append("<blue>Dungeon created at " + loc.getBlockX() + " "
                 + loc.getBlockY() + " " + loc.getBlockZ() + " ").append("<click:run_command:'/tp "
