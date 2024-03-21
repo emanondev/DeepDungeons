@@ -1,17 +1,18 @@
 package emanondev.deepdungeons.door.impl;
 
-import emanondev.core.ItemBuilder;
 import emanondev.core.YMLSection;
-import emanondev.core.message.DMessage;
-import emanondev.core.util.ParticleUtility;
+import emanondev.deepdungeons.CUtils;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Util;
 import emanondev.deepdungeons.door.DoorType;
 import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
+import emanondev.deepdungeons.room.RoomType.RoomBuilder;
 import emanondev.deepdungeons.room.RoomType.RoomInstance;
 import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
-import emanondev.deepdungeons.room.RoomType.RoomInstanceBuilder;
-import org.bukkit.*;
+import org.bukkit.Color;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.*;
@@ -41,18 +42,18 @@ public class RedstoneType extends DoorType {
 
     @Override
     @NotNull
-    public RedstoneInstanceBuilder getBuilder(@NotNull RoomInstanceBuilder room) {
-        return new RedstoneInstanceBuilder(room);
+    public RedstoneBuilder getBuilder(@NotNull RoomBuilder room) {
+        return new RedstoneBuilder(room);
     }
 
-    public final class RedstoneInstanceBuilder extends DoorInstanceBuilder {
+    public final class RedstoneBuilder extends DoorBuilder {
 
         private final List<BlockVector> blocks = new ArrayList<>();
         private boolean completedRedstonePlates = false;
         private boolean atSameTime = true;
 
 
-        public RedstoneInstanceBuilder(@NotNull RoomInstanceBuilder room) {
+        public RedstoneBuilder(@NotNull RoomBuilder room) {
             super(room);
         }
 
@@ -95,15 +96,13 @@ public class RedstoneType extends DoorType {
             if (!completedRedstonePlates) {
                 Player player = getPlayer();
                 PlayerInventory inv = player.getInventory();
-                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.redstone_blocks_info")).build());
-                inv.setItem(1, new ItemBuilder(Material.STICK).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.redstone_blocks_selector", "%value%", String.valueOf(blocks.size()))).build());
-                inv.setItem(2, new ItemBuilder(Material.CLOCK).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.redstone_blocks_atsametime", "%value%", String.valueOf(atSameTime))).build());
+                CUtils.setSlot(player, 0, inv, Material.PAPER, "doorbuilder.redstone_blocks_info");
+                CUtils.setSlot(player, 1, inv, Material.STICK, "doorbuilder.redstone_blocks_selector",
+                        "%value%", String.valueOf(blocks.size()));
+                CUtils.setSlot(player, 2, inv, Material.CLOCK, "doorbuilder.redstone_blocks_atsametime",
+                        "%value%", String.valueOf(atSameTime));
                 if (blocks.size() > 0)
-                    inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                            .appendLang("doorbuilder.redstone_blocks_confirm")).build());
+                    CUtils.setSlot(player, 6, inv, Material.LIME_DYE, "doorbuilder.redstone_blocks_confirm");
                 return;
             }
             this.getCompletableFuture().complete(this);
@@ -112,21 +111,7 @@ public class RedstoneType extends DoorType {
         @Override
         protected void tickTimerImpl(@NotNull Player player, @NotNull Color color) {
             if (getRoomBuilder().getTickCounter() % 2 == 0)
-                blocks.forEach((block) -> {
-                    Particle.DustOptions info = new Particle.DustOptions(color, 0.4F);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX(), block.getY(), block.getZ(), BlockFace.UP.getDirection(), 1, 0.25D, info);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX() + 1, block.getY(), block.getZ(), BlockFace.UP.getDirection(), 1, 0.25D, info);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX(), block.getY(), block.getZ() + 1, BlockFace.UP.getDirection(), 1, 0.25D, info);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX() + 1, block.getY(), block.getZ() + 1, BlockFace.UP.getDirection(), 1, 0.25D, info);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX(), block.getY(), block.getZ(), BlockFace.EAST.getDirection(), 1, 0.25D, info);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX(), block.getY(), block.getZ(), BlockFace.SOUTH.getDirection(), 1, 0.25D, info);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX(), block.getY() + 1, block.getZ(), BlockFace.EAST.getDirection(), 1, 0.25D, info);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX(), block.getY() + 1, block.getZ(), BlockFace.SOUTH.getDirection(), 1, 0.25D, info);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX() + 1, block.getY(), block.getZ() + 1, BlockFace.WEST.getDirection(), 1, 0.25D, info);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX() + 1, block.getY(), block.getZ() + 1, BlockFace.NORTH.getDirection(), 1, 0.25D, info);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX() + 1, block.getY() + 1, block.getZ() + 1, BlockFace.WEST.getDirection(), 1, 0.25D, info);
-                    ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX() + 1, block.getY() + 1, block.getZ() + 1, BlockFace.NORTH.getDirection(), 1, 0.25D, info);
-                });
+                blocks.forEach((block) -> CUtils.markBlock(player, block, color));
         }
 
     }
@@ -212,7 +197,7 @@ public class RedstoneType extends DoorType {
                                 return;
                             }
                             //TODO it's not player language specific
-                            text.setText(new DMessage(DeepDungeons.get(), null).appendLang("door.redstone_sametime_info",
+                            text.setText(CUtils.craftMsg(null, "door.redstone_sametime_info",
                                     "%current%", String.valueOf(counter[0]), "%max%", String.valueOf(poweredBlocksList.size())).toLegacy());
                         } else {
                             poweredBlocksList.removeIf(block -> block.isBlockFacePowered(BlockFace.SELF));
@@ -224,7 +209,7 @@ public class RedstoneType extends DoorType {
                                 return;
                             }
                             //TODO it's not player language specific
-                            text.setText(new DMessage(DeepDungeons.get(), null).appendLang("door.redstone_notsametime_info",
+                            text.setText(CUtils.craftMsg(null, "door.redstone_notsametime_info",
                                     "%value%", String.valueOf(poweredBlocksList.size())).toLegacy());
                         }
                     }

@@ -3,44 +3,38 @@ package emanondev.deepdungeons.room;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.math.BlockVector3;
-import emanondev.core.ItemBuilder;
 import emanondev.core.YMLConfig;
 import emanondev.core.YMLSection;
 import emanondev.core.gui.AdvancedResearchFGui;
 import emanondev.core.gui.Gui;
-import emanondev.core.message.DMessage;
-import emanondev.core.message.SimpleMessage;
 import emanondev.core.util.DRegistryElement;
 import emanondev.core.util.ParticleUtility;
 import emanondev.core.util.WorldEditUtility;
 import emanondev.deepdungeons.ActiveBuilder;
+import emanondev.deepdungeons.CUtils;
 import emanondev.deepdungeons.DRInstance;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.door.DoorType;
+import emanondev.deepdungeons.door.DoorType.DoorBuilder;
 import emanondev.deepdungeons.door.DoorType.DoorInstance;
 import emanondev.deepdungeons.door.DoorType.DoorInstance.DoorHandler;
-import emanondev.deepdungeons.door.DoorType.DoorInstanceBuilder;
 import emanondev.deepdungeons.door.DoorTypeManager;
 import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
 import emanondev.deepdungeons.interfaces.*;
-import emanondev.deepdungeons.spawner.MonsterSpawnerType.MonsterSpawnerInstance;
-import emanondev.deepdungeons.spawner.MonsterSpawnerType.MonsterSpawnerInstanceBuilder;
-import emanondev.deepdungeons.spawner.MonsterSpawnerTypeManager;
+import emanondev.deepdungeons.paperpopulator.PaperPopulatorType;
+import emanondev.deepdungeons.paperpopulator.PaperPopulatorType.PaperPopulatorBuilder;
+import emanondev.deepdungeons.paperpopulator.PopulatorTypeManager;
 import emanondev.deepdungeons.trap.TrapType;
+import emanondev.deepdungeons.trap.TrapType.TrapBuilder;
 import emanondev.deepdungeons.trap.TrapType.TrapInstance;
 import emanondev.deepdungeons.trap.TrapType.TrapInstance.TrapHandler;
-import emanondev.deepdungeons.trap.TrapType.TrapInstanceBuilder;
 import emanondev.deepdungeons.trap.TrapTypeManager;
-import emanondev.deepdungeons.treasure.TreasureType.TreasureInstance;
-import emanondev.deepdungeons.treasure.TreasureType.TreasureInstanceBuilder;
-import emanondev.deepdungeons.treasure.TreasureTypeManager;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Container;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntitySnapshot;
 import org.bukkit.entity.Item;
@@ -51,7 +45,6 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BlockVector;
 import org.bukkit.util.BoundingBox;
@@ -77,25 +70,22 @@ public abstract class RoomType extends DRegistryElement {
     }
 
     @NotNull
-    public abstract RoomInstanceBuilder getBuilder(@NotNull String id, @NotNull Player player);
+    public abstract RoomBuilder getBuilder(@NotNull String id, @NotNull Player player);
 
     @NotNull
     protected abstract RoomInstance readImpl(@NotNull String id, @NotNull YMLSection section);
 
 
-    public abstract class RoomInstanceBuilder extends DRInstance<RoomType> implements ActiveBuilder {
+    public abstract class RoomBuilder extends DRInstance<RoomType> implements ActiveBuilder {
 
-        private final List<DoorInstanceBuilder> exits = new ArrayList<>();
-        private final List<TreasureInstanceBuilder> treasures = new ArrayList<>();
-        private final List<TrapInstanceBuilder> traps = new ArrayList<>();
-        private final List<MonsterSpawnerInstanceBuilder> monsterSpawners = new ArrayList<>();
+        private final List<DoorBuilder> exits = new ArrayList<>();
+        private final List<TrapBuilder> traps = new ArrayList<>();
         private final HashSet<Material> breakableBlocks = new HashSet<>();
         private final HashSet<Material> placeableBlocks = new HashSet<>();
-        private final CompletableFuture<RoomInstanceBuilder> completableFuture = new CompletableFuture<>();
+        private final CompletableFuture<RoomBuilder> completableFuture = new CompletableFuture<>();
         private final UUID playerUuid;
-        private DoorInstanceBuilder entrance;
-        private String schematicName;
-        //private Clipboard clipboard;
+        private final String schematicName;
+        private DoorBuilder entrance;
         private World world;
         private BoundingBox area;
         private boolean hasCompletedBreakableMaterials = false;
@@ -103,14 +93,14 @@ public abstract class RoomType extends DRegistryElement {
         private boolean hasCompletedTrapsCreation = false;
         private int tickCounter = 0;
 
-        protected RoomInstanceBuilder(@NotNull String id, @NotNull Player player) {
+        protected RoomBuilder(@NotNull String id, @NotNull Player player) {
             super(id, RoomType.this);
             this.playerUuid = player.getUniqueId();
             schematicName = this.getId() + ".schem";
         }
 
         @NotNull
-        public CompletableFuture<RoomInstanceBuilder> getCompletableFuture() {
+        public CompletableFuture<RoomBuilder> getCompletableFuture() {
             return completableFuture;
         }
 
@@ -125,7 +115,7 @@ public abstract class RoomType extends DRegistryElement {
         }
 
 
-        public void setEntrance(DoorInstanceBuilder entrance) {
+        public void setEntrance(DoorBuilder entrance) {
             this.entrance = entrance;
         }
 
@@ -145,7 +135,6 @@ public abstract class RoomType extends DRegistryElement {
                 YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
                 exits.get(i).writeTo(sub);
             }
-            //remove itemStack & Drops
 
             HashMap<Block, Inventory> snapshotsInventories = new HashMap<>();
             HashMap<Block, BlockState> snapshotsStates = new HashMap<>();
@@ -155,6 +144,10 @@ public abstract class RoomType extends DRegistryElement {
             BoundingBox smallArea = getArea().expand(0, 0, 0, -1, -1, -1);
             BlockVector min = smallArea.getMin().toBlockVector();
             BlockVector max = smallArea.getMax().toBlockVector();
+
+
+            List<PaperPopulatorBuilder> populators = new ArrayList<>();
+
             for (int y = min.getBlockY(); y <= max.getBlockY(); y++)
                 for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++)
                     for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
@@ -165,34 +158,26 @@ public abstract class RoomType extends DRegistryElement {
                         snapshotsStates.put(b, b.getState());
                         snapshotsBlockData.put(b, b.getBlockData());
                         Inventory inv = container.getInventory();
-                        boolean hasTreasures = false;
-                        boolean hasMonsters = false;
+                        boolean preserveContainer = false;
+                        boolean hasSomething = false;
                         for (int i = 0; i < inv.getSize(); i++) {
-                            TreasureInstanceBuilder treasure = TreasureTypeManager
-                                    .getInstance().getTreasureInstance(inv.getItem(i));
-                            if (treasure != null) {
-                                hasTreasures = true;
-                                treasure.setOffset(new Vector(x, y, z).subtract(getOffset()).add(new Vector(0.5, 0, 0.5)));
-                                treasures.add(treasure);
+                            PaperPopulatorType.PaperPopulatorBuilder populator = PopulatorTypeManager
+                                    .getInstance().getPopulatorBuilder(inv.getItem(i));
+                            if (populator != null) {
+                                preserveContainer |= populator.preserveContainer();
+                                hasSomething = true;
+                                populator.setOffset(new Vector(x, y, z).subtract(getOffset()).add(new Vector(0.5, 0, 0.5)));
+                                if (b.getBlockData() instanceof Directional directional)
+                                    populator.setDirection(directional.getFacing().getDirection());
+                                populators.add(populator);
                                 inv.setItem(i, null);
-                            } else {
-                                MonsterSpawnerInstanceBuilder monster = MonsterSpawnerTypeManager
-                                        .getInstance().getMonsterSpawnerInstance(inv.getItem(i));
-                                if (monster != null) {
-                                    hasMonsters = true;
-                                    monster.setOffset(new Vector(x, y, z).subtract(getOffset()).add(new Vector(0.5, 0, 0.5)));
-                                    if (b.getBlockData() instanceof Directional directional)
-                                        monster.setDirection(directional.getFacing().getDirection());
-                                    monsterSpawners.add(monster);
-                                    inv.setItem(i, null);
-                                }
                             }
                         }
-                        if (hasMonsters && !hasTreasures) {
+                        if (hasSomething && !preserveContainer) {
                             container.getInventory().clear();
                             b.setType(Material.AIR);
                         }
-                        if (!hasMonsters && !hasTreasures) {
+                        if (!hasSomething) {
                             snapshotsBlockData.remove(b);
                             snapshotsStates.remove(b);
                             snapshotsInventories.remove(b);
@@ -201,33 +186,23 @@ public abstract class RoomType extends DRegistryElement {
             for (Entity entity : entities) {
                 if (!(entity instanceof Item item))
                     continue;
-                TreasureInstanceBuilder treasure = TreasureTypeManager.getInstance()
-                        .getTreasureInstance(item.getItemStack());
-                if (treasure != null) {
-                    treasure.setOffset(item.getLocation().toVector().subtract(getOffset()));
-                    treasures.add(treasure);
-                    entitiesSnapshots.put(item.createSnapshot(), item.getLocation());
-                    item.remove();
-                    continue;
-                }
-
-                MonsterSpawnerInstanceBuilder monster = MonsterSpawnerTypeManager.getInstance()
-                        .getMonsterSpawnerInstance(item.getItemStack());
-                if (monster != null) {
-                    monster.setOffset(item.getLocation().toVector().subtract(getOffset()));
-                    monster.setDirection(item.getLocation().getDirection());
-                    monsterSpawners.add(monster);
+                PaperPopulatorType.PaperPopulatorBuilder populator = PopulatorTypeManager
+                        .getInstance().getPopulatorBuilder(item.getItemStack());
+                if (populator != null) {
+                    populator.setOffset(item.getLocation().toVector().subtract(getOffset()));
+                    populator.setDirection(item.getLocation().getDirection());
+                    populators.add(populator);
                     entitiesSnapshots.put(item.createSnapshot(), item.getLocation());
                     item.remove();
                 }
             }
 
 
-            tmp = section.loadSection("treasures");
-            for (int i = 0; i < treasures.size(); i++) {
+            tmp = section.loadSection("populators");
+            for (int i = 0; i < populators.size(); i++) {
                 YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
                 try {
-                    treasures.get(i).writeTo(sub);
+                    populators.get(i).writeTo(sub);
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
@@ -238,16 +213,6 @@ public abstract class RoomType extends DRegistryElement {
                 YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
                 try {
                     traps.get(i).writeTo(sub);
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                }
-            }
-
-            tmp = section.loadSection("monsterspawners");
-            for (int i = 0; i < monsterSpawners.size(); i++) {
-                YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
-                try {
-                    monsterSpawners.get(i).writeTo(sub);
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
@@ -299,12 +264,12 @@ public abstract class RoomType extends DRegistryElement {
                     case 6 -> {
                         BoundingBox box = WorldEditUtility.getSelectionBoxExpanded(event.getPlayer());
                         if (box == null) {
-                            new SimpleMessage(DeepDungeons.get(), "roombuilder.base_msg_must_set_area").send(event.getPlayer());
+                            CUtils.sendMsg(event.getPlayer(), "roombuilder.base_msg_must_set_area");
                             return;
                         }
                         Vector volume = box.getMax().subtract(box.getMin());
                         if (volume.getX() < 5 || volume.getZ() < 5 || volume.getY() < 4) {
-                            new SimpleMessage(DeepDungeons.get(), "roombuilder.base_msg_too_small").send(event.getPlayer());
+                            CUtils.sendMsg(event.getPlayer(), "roombuilder.base_msg_too_small");
                             return;
                         }
                         setArea(event.getPlayer().getWorld(), box);
@@ -338,12 +303,10 @@ public abstract class RoomType extends DRegistryElement {
                         ArrayList<DoorType> types = new ArrayList<>(DoorTypeManager.getInstance().getAll());
                         types.sort(Comparator.comparing(DRegistryElement::getId));
                         new AdvancedResearchFGui<>(
-                                new DMessage(DeepDungeons.get(), event.getPlayer()).appendLang("roombuilder.base_exits_guititle"),
+                                CUtils.craftMsg(event.getPlayer(), "roombuilder.base_exits_guititle"),
                                 event.getPlayer(), null, DeepDungeons.get(),
-                                new ItemBuilder(Material.SPRUCE_DOOR).setDescription(
-                                        new DMessage(
-                                                DeepDungeons.get(), event.getPlayer()
-                                        ).append(">").newLine().appendLang("roombuilder.base_exits_guihelp")
+                                CUtils.emptyIBuilder(Material.SPRUCE_DOOR).setDescription(CUtils.emptyMsg(event.getPlayer())
+                                        .append(">").newLine().appendLang("roombuilder.base_exits_guihelp")
                                 ).build(), (String text, DoorType type) -> {
                             String[] split = text.split(" ");
                             for (String s : split)
@@ -352,7 +315,7 @@ public abstract class RoomType extends DRegistryElement {
                             return true;
                         },
                                 (evt, type) -> {
-                                    DoorInstanceBuilder door = type.getBuilder(this);
+                                    DoorBuilder door = type.getBuilder(this);
                                     exits.add(door);
                                     door.getCompletableFuture().whenComplete((b, t) -> {
                                         if (t != null) {
@@ -365,10 +328,8 @@ public abstract class RoomType extends DRegistryElement {
                                     setupTools();
                                     return false;
                                 },
-                                (type) -> new ItemBuilder(Material.SPRUCE_DOOR).setDescription(
-                                        new DMessage(DeepDungeons.get(), event.getPlayer())
-                                                .appendLang("roombuilder.base_exits_guiitem", "%id%", type.getId())
-                                ).build(),
+                                (type) -> CUtils.createItem(event.getPlayer(), Material.SPRUCE_DOOR,
+                                        "roombuilder.base_exits_guiitem", "%id%", type.getId()),
                                 types
                         ).open(event.getPlayer());
                     }
@@ -392,12 +353,10 @@ public abstract class RoomType extends DRegistryElement {
                         ArrayList<TrapType> types = new ArrayList<>(TrapTypeManager.getInstance().getAll());
                         types.sort(Comparator.comparing(DRegistryElement::getId));
                         new AdvancedResearchFGui<>(
-                                new DMessage(DeepDungeons.get(), event.getPlayer()).appendLang("roombuilder.base_traps_guititle"),//TODO lang
+                                CUtils.craftMsg(event.getPlayer(), "roombuilder.base_traps_guititle"),
                                 event.getPlayer(), null, DeepDungeons.get(),
-                                new ItemBuilder(Material.TRIPWIRE_HOOK).setDescription(
-                                        new DMessage(
-                                                DeepDungeons.get(), event.getPlayer()
-                                        ).append(">").newLine().appendLang("roombuilder.base_traps_guihelp")//TODO lang
+                                CUtils.emptyIBuilder(Material.TRIPWIRE_HOOK).setDescription(CUtils.emptyMsg(event.getPlayer())
+                                        .append(">").newLine().appendLang("roombuilder.base_traps_guihelp")
                                 ).build(), (String text, TrapType type) -> {
                             String[] split = text.split(" ");
                             for (String s : split)
@@ -406,7 +365,7 @@ public abstract class RoomType extends DRegistryElement {
                             return true;
                         },
                                 (evt, type) -> {
-                                    TrapInstanceBuilder trap = type.getBuilder(this);
+                                    TrapBuilder trap = type.getBuilder(this);
                                     traps.add(trap);
                                     trap.getCompletableFuture().whenComplete((b, t) -> {
                                         if (t != null) {
@@ -419,10 +378,8 @@ public abstract class RoomType extends DRegistryElement {
                                     setupTools();
                                     return false;
                                 },
-                                (type) -> new ItemBuilder(Material.TRIPWIRE_HOOK).setDescription(
-                                        new DMessage(DeepDungeons.get(), event.getPlayer())
-                                                .appendLang("roombuilder.base_traps_guiitem", "%id%", type.getId()) //TODO lang
-                                ).build(),
+                                (type) -> CUtils.createItem(event.getPlayer(), Material.TRIPWIRE_HOOK,
+                                        "roombuilder.base_traps_guiitem", "%id%", type.getId()),
                                 types
                         ).open(event.getPlayer());
                     }
@@ -443,11 +400,10 @@ public abstract class RoomType extends DRegistryElement {
                         types.removeIf((m) -> !m.isBlock() || m.isAir());
                         types.sort(Comparator.comparing(Material::name));
                         new AdvancedResearchFGui<>(
-                                new DMessage(DeepDungeons.get(), event.getPlayer()).appendLang("roombuilder.base_commondata_guibreaktitle"),
+                                CUtils.craftMsg(event.getPlayer(), "roombuilder.base_commondata_guibreaktitle"),
                                 event.getPlayer(), null, DeepDungeons.get(),
-                                new ItemBuilder(Material.SPRUCE_DOOR).setDescription(new DMessage(
-                                                DeepDungeons.get(), event.getPlayer()
-                                        ).append(">").newLine().appendLang("roombuilder.base_commondata_guibreakhelp")
+                                CUtils.emptyIBuilder(Material.SPRUCE_DOOR).setDescription(CUtils.emptyMsg(event.getPlayer())
+                                        .append(">").newLine().appendLang("roombuilder.base_commondata_guibreakhelp")
                                 ).build(), (String text, Material type) -> {
                             String[] split = text.split(" ");
                             for (String s : split)
@@ -462,12 +418,10 @@ public abstract class RoomType extends DRegistryElement {
                                         breakableBlocks.add(type);
                                     return true;
                                 },
-                                (type) -> new ItemBuilder(type.isItem() ? type : Material.BARRIER)
-                                        .addEnchantment(Enchantment.DURABILITY, breakableBlocks.contains(type) ? 1 : 0)
-                                        .setGuiProperty().setDescription(new DMessage(DeepDungeons.get(), event.getPlayer())
-                                                .appendLang("roombuilder.base_commondata_guibreaktitle", "%id%" + type.name(), "" +
-                                                        "%selected%", breakableBlocks.contains(type) ? ("<green>true</green>") : ("<red>false</red>"))
-                                        ).build(),
+                                (type) -> CUtils.createItem(event.getPlayer(), type.isItem() ? type : Material.BARRIER, 1,
+                                        breakableBlocks.contains(type), "roombuilder.base_commondata_guibreaktitle",
+                                        "%id%" + type.name(),
+                                        "%selected%", breakableBlocks.contains(type) ? ("<green>true</green>") : ("<red>false</red>")),
                                 types
                         ).open(event.getPlayer());
                     }
@@ -476,11 +430,11 @@ public abstract class RoomType extends DRegistryElement {
                         types.removeIf((m) -> !m.isBlock() || m.isAir());
                         types.sort(Comparator.comparing(Material::name));
                         new AdvancedResearchFGui<>(
-                                new DMessage(DeepDungeons.get(), event.getPlayer()).appendLang("roombuilder.base_commondata_guiplacetitle"),
+                                CUtils.craftMsg(event.getPlayer(), "roombuilder.base_commondata_guiplacetitle"),
                                 event.getPlayer(), null, DeepDungeons.get(),
-                                new ItemBuilder(Material.SPRUCE_DOOR).setDescription(new DMessage(
-                                                DeepDungeons.get(), event.getPlayer()
-                                        ).append(">").newLine().appendLang("roombuilder.base_commondata_guiplacehelp")
+                                CUtils.emptyIBuilder(Material.SPRUCE_DOOR).setDescription(
+                                        CUtils.emptyMsg(event.getPlayer()).append(">").newLine()
+                                                .appendLang("roombuilder.base_commondata_guiplacehelp")
                                 ).build(), (String text, Material type) -> {
                             String[] split = text.split(" ");
                             for (String s : split)
@@ -495,12 +449,10 @@ public abstract class RoomType extends DRegistryElement {
                                         placeableBlocks.add(type);
                                     return true;
                                 },
-                                (type) -> new ItemBuilder(type.isItem() ? type : Material.BARRIER)
-                                        .addEnchantment(Enchantment.DURABILITY, placeableBlocks.contains(type) ? 1 : 0)
-                                        .setGuiProperty().setDescription(new DMessage(DeepDungeons.get(), event.getPlayer())
-                                                .appendLang("roombuilder.base_commondata_guiplacetitle", "%id%" + type.name(), "" +
-                                                        "%selected%", placeableBlocks.contains(type) ? ("<green>true</green>") : ("<red>false</red>"))
-                                        ).build(),
+                                (type) -> CUtils.createItem(event.getPlayer(), type.isItem() ? type : Material.BARRIER,
+                                        1, placeableBlocks.contains(type),
+                                        "roombuilder.base_commondata_guiplacetitle", "%id%" + type.name(),
+                                        "%selected%", placeableBlocks.contains(type) ? ("<green>true</green>") : ("<red>false</red>")),
                                 types
                         ).open(event.getPlayer());
                     }
@@ -523,17 +475,12 @@ public abstract class RoomType extends DRegistryElement {
             Inventory inv = player.getInventory();
             for (int i = 0; i < 8; i++) //clear
                 inv.setItem(i, null);
-            inv.setItem(8, new ItemBuilder(Material.BARRIER).setDescription(new DMessage(DeepDungeons.get(), player)
-                    .append("Click to exit/abort building")).build());//TODO lang
+            CUtils.setSlot(player, 8, inv, Material.BARRIER, "roombuilder.exit_mode");
             if (getArea() == null) {
-                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("roombuilder.base_area_info")).build());
-                inv.setItem(1, new ItemBuilder(Material.WOODEN_AXE).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("roombuilder.base_area_axe")).build());
-                inv.setItem(2, new ItemBuilder(Material.BROWN_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("roombuilder.base_area_pos")).build());
-                inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("roombuilder.base_area_confirm")).build());
+                CUtils.setSlot(player, 0, inv, Material.PAPER, "roombuilder.base_area_info");
+                CUtils.setSlot(player, 1, inv, Material.WOODEN_AXE, "roombuilder.base_area_axe");
+                CUtils.setSlot(player, 2, inv, Material.BROWN_DYE, "roombuilder.base_area_pos");
+                CUtils.setSlot(player, 6, inv, Material.LIME_DYE, "roombuilder.base_area_confirm");
                 return;
             }
             if (!entrance.getCompletableFuture().isDone()) {
@@ -542,13 +489,11 @@ public abstract class RoomType extends DRegistryElement {
             }
             if (!hasCompletedExitsCreation) {
                 if (exits.isEmpty() || exits.get(exits.size() - 1).getCompletableFuture().isDone()) {
-                    inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
-                            .appendLang("roombuilder.base_exits_info")).build());
-                    inv.setItem(1, new ItemBuilder(Material.SPRUCE_DOOR).setDescription(new DMessage(DeepDungeons.get(), player)
-                            .appendLang("roombuilder.base_exits_selector")).build());
+                    CUtils.setSlot(player, 0, inv, Material.PAPER, "roombuilder.base_exits_info");
+                    CUtils.setSlot(player, 1, inv, Material.SPRUCE_DOOR, "roombuilder.base_exits_selector");
                     if (!exits.isEmpty())
-                        inv.setItem(6, new ItemBuilder(Material.LIGHT_BLUE_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                                .appendLang("roombuilder.base_exits_confirm", "%value%", String.valueOf(exits.size()))).build());
+                        CUtils.setSlot(player, 6, inv, Material.LIGHT_BLUE_DYE, "roombuilder.base_exits_confirm",
+                                "%value%", String.valueOf(exits.size()));
                 } else {
                     exits.get(exits.size() - 1).setupTools();
                 }
@@ -558,12 +503,10 @@ public abstract class RoomType extends DRegistryElement {
 
             if (!hasCompletedTrapsCreation) {
                 if (traps.isEmpty() || traps.get(traps.size() - 1).getCompletableFuture().isDone()) {
-                    inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
-                            .appendLang("roombuilder.base_traps_info")).build());//TODO lang
-                    inv.setItem(1, new ItemBuilder(Material.SPRUCE_DOOR).setDescription(new DMessage(DeepDungeons.get(), player)
-                            .appendLang("roombuilder.base_traps_selector")).build());//TODO lang
-                    inv.setItem(6, new ItemBuilder(Material.LIGHT_BLUE_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                            .appendLang("roombuilder.base_traps_confirm", "%value%", String.valueOf(traps.size()))).build());//TODO lang
+                    CUtils.setSlot(player, 0, inv, Material.PAPER, "roombuilder.base_traps_info");
+                    CUtils.setSlot(player, 1, inv, Material.SPRUCE_DOOR, "roombuilder.base_traps_selector");
+                    CUtils.setSlot(player, 6, inv, Material.LIGHT_BLUE_DYE, "roombuilder.base_traps_confirm",
+                            "%value%", String.valueOf(traps.size()));
                 } else {
                     traps.get(traps.size() - 1).setupTools();
                 }
@@ -571,14 +514,12 @@ public abstract class RoomType extends DRegistryElement {
             }
 
             if (!hasCompletedBreakableMaterials) {
-                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("roombuilder.base_commondata_info")).build());
-                inv.setItem(1, new ItemBuilder(Material.IRON_PICKAXE).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("roombuilder.base_commondata_break", "%value%", String.valueOf(breakableBlocks.size()))).build());
-                inv.setItem(2, new ItemBuilder(Material.BRICKS).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("roombuilder.base_commondata_place", "%value%", String.valueOf(placeableBlocks.size()))).build());
-                inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("roombuilder.base_commondata_confirm")).build());
+                CUtils.setSlot(player, 0, inv, Material.PAPER, "roombuilder.base_commondata_info");
+                CUtils.setSlot(player, 1, inv, Material.IRON_PICKAXE, "roombuilder.base_commondata_break",
+                        "%value%", String.valueOf(breakableBlocks.size()));
+                CUtils.setSlot(player, 2, inv, Material.BRICKS, "roombuilder.base_commondata_place",
+                        "%value%", String.valueOf(placeableBlocks.size()));
+                CUtils.setSlot(player, 6, inv, Material.LIME_DYE, "roombuilder.base_commondata_confirm");
                 return;
             }
 
@@ -599,7 +540,7 @@ public abstract class RoomType extends DRegistryElement {
                     ParticleUtility.spawnParticleBoxFaces(player, (tickCounter) / 6, 8, Particle.REDSTONE, area,
                             new Particle.DustOptions(Color.BLUE, 0.25F));
                 else
-                    showWEBound(player);
+                    CUtils.showWEBound(player, getTickCounter());
 
                 if (!hasCompletedExitsCreation) {
                     if (entrance == null)
@@ -609,26 +550,14 @@ public abstract class RoomType extends DRegistryElement {
                     if (exits.isEmpty())
                         return;
                     for (int i = 0; i < exits.size(); i++) {
-                        DoorInstanceBuilder exit = exits.get(i);
-                        exit.timerTick(player, switch (i % 5) {
-                            case 0 -> Color.RED;
-                            case 1 -> Color.ORANGE;
-                            case 2 -> Color.YELLOW;
-                            case 3 -> Color.fromBGR(255, 0, 165); //TODO rivedere colori
-                            default -> Color.FUCHSIA;
-                        });
+                        DoorBuilder exit = exits.get(i);
+                        exit.timerTick(player, CUtils.craftColorRedSpectrum(i));
                     }
                 }
                 if (!hasCompletedTrapsCreation) {
                     for (int i = 0; i < traps.size(); i++) {
-                        TrapInstanceBuilder trap = traps.get(i);
-                        trap.timerTick(player, switch (i % 5) {
-                            case 0 -> Color.RED;
-                            case 1 -> Color.ORANGE;
-                            case 2 -> Color.YELLOW;
-                            case 3 -> Color.fromBGR(255, 0, 165);
-                            default -> Color.FUCHSIA;
-                        });
+                        TrapBuilder trap = traps.get(i);
+                        trap.timerTick(player, CUtils.craftColorRedSpectrum(i));
                     }
                 }
             }
@@ -636,11 +565,6 @@ public abstract class RoomType extends DRegistryElement {
         }
 
         protected abstract void timerTickImpl();
-
-        protected void showWEBound(@NotNull Player player) {
-            ParticleUtility.spawnParticleBoxFaces(player, tickCounter / 6 + 6, 4, Particle.REDSTONE, WorldEditUtility.getSelectionBoxExpanded(player),
-                    new Particle.DustOptions(Color.WHITE, 0.3F));
-        }
 
         protected abstract void handleInteractImpl(PlayerInteractEvent event);
 
@@ -676,20 +600,17 @@ public abstract class RoomType extends DRegistryElement {
 
         private final DoorInstance entrance;
         private final List<DoorInstance> exits = new ArrayList<>();
-        private final List<TreasureInstance> treasures = new ArrayList<>();
         private final List<TrapInstance> traps = new ArrayList<>();
-        private final List<MonsterSpawnerInstance> monsterSpawners = new ArrayList<>();
-
         private final Set<Material> breakableBlocks = new HashSet<>();
         private final Set<Material> placeableBlocks = new HashSet<>();
         private final String schematicName;
         private final BlockVector size;
+        private final List<RoomPopulator> populators = new ArrayList<>();
         private SoftReference<Clipboard> clipboard = null;
         private CompletableFuture<Clipboard> futureClipboard;
 
         public RoomInstance(@NotNull String id, @NotNull YMLSection section) {
             super(id, RoomType.this);
-            //this.section = section;
             YMLSection tmp = section.loadSection("entrance");
             this.entrance = DoorTypeManager.getInstance().get(tmp.getString("type")).read(this, tmp);
             tmp = section.loadSection("exits");
@@ -697,20 +618,17 @@ public abstract class RoomType extends DRegistryElement {
                 YMLSection sub = tmp.loadSection(key);
                 exits.add(DoorTypeManager.getInstance().get(sub.getString("type")).read(this, sub));
             }
-            tmp = section.loadSection("treasures");
+            tmp = section.loadSection("populators");
+            List<RoomPopulator> pops = new ArrayList<>();
             for (String key : tmp.getKeys(false)) {
                 YMLSection sub = tmp.loadSection(key);
-                treasures.add(TreasureTypeManager.getInstance().get(sub.getString("type")).read(this, sub));
+                pops.add(PopulatorTypeManager.getInstance().get(sub.getString("type")).read(this, sub));
             }
+            this.addPopulators(pops);
             tmp = section.loadSection("traps");
             for (String key : tmp.getKeys(false)) {
                 YMLSection sub = tmp.loadSection(key);
                 traps.add(TrapTypeManager.getInstance().get(sub.getString("type")).read(this, sub));
-            }
-            tmp = section.loadSection("monsterspawners");
-            for (String key : tmp.getKeys(false)) {
-                YMLSection sub = tmp.loadSection(key);
-                monsterSpawners.add(MonsterSpawnerTypeManager.getInstance().get(sub.getString("type")).read(this, sub));
             }
             this.schematicName = section.getString("schematic");
             this.breakableBlocks.addAll(section.getMaterialList("breakableBlocks", Collections.emptyList()));
@@ -751,16 +669,6 @@ public abstract class RoomType extends DRegistryElement {
         }
 
         @NotNull
-        public List<MonsterSpawnerInstance> getMonsterSpawners() {
-            return Collections.unmodifiableList(this.monsterSpawners);
-        }
-
-        @NotNull
-        public List<TreasureInstance> getTreasures() {
-            return Collections.unmodifiableList(this.treasures);
-        }
-
-        @NotNull
         public List<TrapInstance> getTraps() {
             return Collections.unmodifiableList(this.traps);
         }
@@ -782,7 +690,8 @@ public abstract class RoomType extends DRegistryElement {
                 return CompletableFuture.completedFuture(clip);
             if (futureClipboard != null)
                 return futureClipboard; //TODO what a mess
-            CompletableFuture<Clipboard> result = CompletableFuture.completedFuture(WorldEditUtility.load(getSchematic(), DeepDungeons.get()));//.load(getSchematic(), DeepDungeons.get(), async);
+            CompletableFuture<Clipboard> result = CompletableFuture.completedFuture(WorldEditUtility
+                    .load(getSchematic(), DeepDungeons.get()));
             result.thenAccept(value -> this.clipboard = new SoftReference<>(value));
             this.futureClipboard = result;
             result.whenComplete((value, e) -> this.futureClipboard = null);
@@ -802,10 +711,24 @@ public abstract class RoomType extends DRegistryElement {
 
         @Contract("_->new")
         @NotNull
-        public abstract RoomHandler createRoomHandler(DungeonHandler dungeonHandler);
+        public abstract RoomHandler createRoomHandler(@NotNull DungeonHandler dungeonHandler);
 
+        public void addPopulator(@NotNull RoomPopulator populator) {
+            this.populators.add(populator);
+            this.populators.sort(Comparator.comparingInt(p -> p.getPriority().ordinal()));
+        }
 
-        public class RoomHandler implements MoveListener, InteractListener, InteractEntityListener, BlockPlaceListener, BlockBreakListener, AreaHolder {
+        public void addPopulators(@NotNull Collection<RoomPopulator> populators) {
+            this.populators.addAll(populators);
+            this.populators.sort(Comparator.comparingInt(p -> p.getPriority().ordinal()));
+        }
+
+        private List<RoomPopulator> getPopulators() {
+            return Collections.unmodifiableList(populators);
+        }
+
+        public class RoomHandler implements MoveListener, InteractListener, InteractEntityListener,
+                BlockPlaceListener, BlockBreakListener, AreaHolder {
 
             private final DungeonHandler dungeonHandler;
             private final DoorHandler entranceHandler;
@@ -930,22 +853,8 @@ public abstract class RoomType extends DRegistryElement {
 
             protected void onFirstPlayerEnter(@NotNull Player player) {
                 //TODO may generate treasures on chest opens instead
-                this.getRoomInstance().getTreasures().forEach((treasure -> {
-                    Location to = getLocation().add(treasure.getOffset());
-                    if (to.getBlock().getState() instanceof Container container) {
-                        Inventory inv = container.getInventory();
-                        inv.addItem(treasure.getTreasure(new Random(), to, player).toArray(new ItemStack[0]));
-                        ItemStack[] stacks = inv.getContents();
-                        List<ItemStack> contained = Arrays.asList(stacks);
-                        Collections.shuffle(contained);
-                        inv.setContents(contained.toArray(stacks));
-                    } else
-                        treasure.getTreasure(new Random(), to, player).forEach(itemStack -> to.getWorld().dropItem(to, itemStack));
-                }));
-                this.getRoomInstance().getMonsterSpawners().forEach((monsterSpawner) -> {
-                    Location to = getLocation().add(monsterSpawner.getOffset());
-                    addMonsters(monsterSpawner.spawnMobs(new Random(), to, player));
-                });
+                //TODO event
+                this.getRoomInstance().getPopulators().forEach(pop -> pop.populate(this, player));
                 this.entranceHandler.onFirstPlayerEnter(player);
                 this.exits.forEach(e -> e.onFirstPlayerEnter(player));
                 this.traps.forEach(e -> e.onFirstPlayerEnter(player));
@@ -981,8 +890,8 @@ public abstract class RoomType extends DRegistryElement {
                 return Collections.unmodifiableList(monsters);
             }
 
-            public void addMonsters(@NotNull Collection<Entity> monsters) {
-                this.monsters.addAll(monsters);
+            public void addGuardians(@NotNull Collection<Entity> guardians) {
+                this.monsters.addAll(guardians);
             }
 
             @Override

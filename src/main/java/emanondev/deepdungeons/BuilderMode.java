@@ -3,9 +3,9 @@ package emanondev.deepdungeons;
 import emanondev.core.gui.Gui;
 import emanondev.core.message.SimpleMessage;
 import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
-import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstanceBuilder;
+import emanondev.deepdungeons.dungeon.DungeonType.DungeonBuilder;
 import emanondev.deepdungeons.room.RoomInstanceManager;
-import emanondev.deepdungeons.room.RoomType.RoomInstanceBuilder;
+import emanondev.deepdungeons.room.RoomType.RoomBuilder;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.entity.Player;
@@ -119,10 +119,10 @@ public class BuilderMode implements Listener {
             if (value != null) {
                 try {
                     value.write();
-                    if (builder instanceof RoomInstanceBuilder) {
+                    if (builder instanceof RoomBuilder) {
                         RoomInstanceManager.getInstance().register(RoomInstanceManager.getInstance().readInstance(
                                 new File(RoomInstanceManager.getInstance().getFolder(), builder.getId() + ".yml")));
-                    } else if (builder instanceof DungeonInstanceBuilder) {
+                    } else if (builder instanceof DungeonBuilder) {
                         DungeonInstanceManager.getInstance().register(DungeonInstanceManager.getInstance().readInstance(
                                 new File(DungeonInstanceManager.getInstance().getFolder(), builder.getId() + ".yml")));
                     }

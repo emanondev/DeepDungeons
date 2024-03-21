@@ -1,12 +1,11 @@
 package emanondev.deepdungeons.dungeon;
 
-import emanondev.core.ItemBuilder;
 import emanondev.core.YMLConfig;
 import emanondev.core.YMLSection;
 import emanondev.core.gui.Gui;
-import emanondev.core.message.DMessage;
 import emanondev.core.util.DRegistryElement;
 import emanondev.deepdungeons.ActiveBuilder;
+import emanondev.deepdungeons.CUtils;
 import emanondev.deepdungeons.DRInstance;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.area.AreaManager;
@@ -51,17 +50,17 @@ public abstract class DungeonType extends DRegistryElement {
     }
 
     @NotNull
-    public abstract DungeonInstanceBuilder getBuilder(@NotNull String id, @NotNull Player player);
+    public abstract DungeonBuilder getBuilder(@NotNull String id, @NotNull Player player);
 
     @NotNull
     protected abstract DungeonInstance readImpl(@NotNull String id, @NotNull YMLSection section);
 
-    public abstract class DungeonInstanceBuilder extends DRInstance<DungeonType> implements ActiveBuilder {
-        private final CompletableFuture<DungeonInstanceBuilder> completableFuture = new CompletableFuture<>();
+    public abstract class DungeonBuilder extends DRInstance<DungeonType> implements ActiveBuilder {
+        private final CompletableFuture<DungeonBuilder> completableFuture = new CompletableFuture<>();
         private final UUID playerUuid;
         private int tickCounter = 0;
 
-        public DungeonInstanceBuilder(@NotNull String id, @NotNull Player player) {
+        public DungeonBuilder(@NotNull String id, @NotNull Player player) {
             super(id, DungeonType.this);
             this.playerUuid = player.getUniqueId();
         }
@@ -86,8 +85,7 @@ public abstract class DungeonType extends DRegistryElement {
             Inventory inv = player.getInventory();
             for (int i = 0; i < 8; i++) //clear
                 inv.setItem(i, null);
-            inv.setItem(8, new ItemBuilder(Material.BARRIER).setDescription(new DMessage(DeepDungeons.get(), player)
-                    .append("Click to exit/abort building")).build());//TODO configurable
+            CUtils.setSlot(player, 8, inv, Material.BARRIER, "dungeonbuilder.exit_mode");
 
             setupToolsImpl();
         }
@@ -107,7 +105,7 @@ public abstract class DungeonType extends DRegistryElement {
         }
 
         @NotNull
-        public CompletableFuture<DungeonInstanceBuilder> getCompletableFuture() {
+        public CompletableFuture<DungeonBuilder> getCompletableFuture() {
             return completableFuture;
         }
 

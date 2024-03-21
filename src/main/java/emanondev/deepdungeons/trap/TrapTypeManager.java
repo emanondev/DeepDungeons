@@ -2,7 +2,7 @@ package emanondev.deepdungeons.trap;
 
 import emanondev.core.util.DRegistry;
 import emanondev.deepdungeons.DeepDungeons;
-import emanondev.deepdungeons.trap.impl.FlameShootingChest;
+import emanondev.deepdungeons.trap.impl.FlameChestType;
 import org.jetbrains.annotations.NotNull;
 
 public class TrapTypeManager extends DRegistry<TrapType> {
@@ -11,7 +11,7 @@ public class TrapTypeManager extends DRegistry<TrapType> {
 
     private TrapTypeManager() {
         super(DeepDungeons.get(), "TreasureManager", true);
-        register(new FlameShootingChest());
+        register(new FlameChestType());
     }
 
     @NotNull

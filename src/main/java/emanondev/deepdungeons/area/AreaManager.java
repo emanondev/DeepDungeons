@@ -40,12 +40,12 @@ import java.util.WeakHashMap;
  */
 public class AreaManager implements Listener {
 
+    private static final AreaManager areaManager = new AreaManager();
     private final HashMap<World, WeakHashMap<DungeonHandler, BoundingBox>> usedZones = new HashMap<>();
     private final HashMap<DungeonInstance, List<DungeonHandler>> ready = new HashMap<>();
     private final HashMap<World, List<DungeonHandler>> started = new HashMap<>();
     private final HashMap<DungeonInstance, Integer> cacheSize = new HashMap<>();
     private final HashMap<DungeonInstance, Integer> cacheDone = new HashMap<>();
-    private static final AreaManager areaManager = new AreaManager();
 
     private AreaManager() {
         DeepDungeons.get().registerListener(this);
@@ -55,14 +55,15 @@ public class AreaManager implements Listener {
             if (dungeonInst != null)
                 cacheSize.put(dungeonInst, cache.loadInteger(dungeonInst.getId(), 3));
         }
+        //TODO cache is a bit raw
         new BukkitRunnable() {
 
             @Override
             public void run() {
-                for (DungeonInstance dung:cacheSize.keySet()){
-                    if (ready.get(dung)==null||cacheDone.getOrDefault(dung,0)<cacheSize.get(dung)) {
+                for (DungeonInstance dung : cacheSize.keySet()) {
+                    if (ready.get(dung) == null || cacheDone.getOrDefault(dung, 0) < cacheSize.get(dung)) {
                         dung.createHandler(null);
-                        cacheDone.put(dung,cacheDone.getOrDefault(dung,0)+1);
+                        cacheDone.put(dung, cacheDone.getOrDefault(dung, 0) + 1);
                         break;
                     }
                 }
@@ -132,6 +133,9 @@ public class AreaManager implements Listener {
                 }
             i++;
         }
+        //TODO may delete region file (entity region files) and cycle loaded chunks to remove entities without loading them all
+        //but what if file is open by another thread?
+        //if i can just delete the file (blocks) i could avoid worldedit set air,and have clean sky
         map.put(holder, regionBox.clone());//why clone?
         int x = (int) (regionBox.getCenter().getX() * 512 - (boxArea.getWidthX() / 2));
         int y = (int) (64 - boxArea.getHeight() / 2);
@@ -151,6 +155,8 @@ public class AreaManager implements Listener {
             return world;
         UtilsWorld.create(name, null, null, false, 0L);//Void world
         world = Bukkit.getWorld(name);
+        if (world == null)
+            throw new IllegalStateException("Unable to create/load world " + name);
         world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
         world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
         world.setGameRule(GameRule.DISABLE_RAIDS, true);
@@ -183,7 +189,7 @@ public class AreaManager implements Listener {
         this.started.putIfAbsent(handler.getWorld(), new ArrayList<>());
         this.started.get(handler.getWorld()).add(handler);
         //TODO generate cache?
-        cacheDone.put(handler.getInstance(), cacheDone.getOrDefault(handler.getInstance(),0)-1);
+        cacheDone.put(handler.getInstance(), cacheDone.getOrDefault(handler.getInstance(), 0) - 1);
     }
 
     /**

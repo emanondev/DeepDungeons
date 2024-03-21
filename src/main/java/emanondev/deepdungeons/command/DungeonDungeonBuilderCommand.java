@@ -89,7 +89,7 @@ public class DungeonDungeonBuilderCommand extends CoreCommand {
             sender.sendMessage("Message not implemented yet (id already used)");//TODO
             return;
         }
-        DungeonType.DungeonInstanceBuilder builder = type.getBuilder(name, player);
+        DungeonType.DungeonBuilder builder = type.getBuilder(name, player);
         if (!BuilderMode.getInstance().enterBuilderMode(player, builder)) {
             sender.sendMessage("Message not implemented yet (can't start, already on builder mode or on pause (do /ddungeon continue)?)");//TODO
             return;

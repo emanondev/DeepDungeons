@@ -1,4 +1,4 @@
-package emanondev.deepdungeons.spawner.impl;
+package emanondev.deepdungeons.paperpopulator.impl;
 
 import emanondev.core.ItemBuilder;
 import emanondev.core.UtilsString;
@@ -8,8 +8,10 @@ import emanondev.core.gui.PagedMapGui;
 import emanondev.core.gui.ResearchFButton;
 import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.interfaces.MobPopulator;
+import emanondev.deepdungeons.paperpopulator.PaperPopulatorType;
 import emanondev.deepdungeons.room.RoomType.RoomInstance;
-import emanondev.deepdungeons.spawner.MonsterSpawnerType;
+import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
 import io.lumine.mythic.api.mobs.MythicMob;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
@@ -23,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class MythicMobsType extends MonsterSpawnerType {
+public class MythicMobsType extends PaperPopulatorType {
 
     public MythicMobsType() {
         super("mythicmobs");
@@ -37,11 +39,11 @@ public class MythicMobsType extends MonsterSpawnerType {
 
     @Override
     @NotNull
-    public MythicMobsInstanceBuilder getBuilder() {
-        return new MythicMobsInstanceBuilder();
+    public MythicMobsBuilder getBuilder() {
+        return new MythicMobsBuilder();
     }
 
-    private class MythicMobsInstanceBuilder extends MonsterSpawnerInstanceBuilder {
+    private class MythicMobsBuilder extends PaperPopulatorBuilder {
 
         @Nullable
         private MythicMob type = null;
@@ -50,6 +52,11 @@ public class MythicMobsType extends MonsterSpawnerType {
         private int levelMin = 1;
         private int levelMax = 1;
         private double chance = 1;
+
+        @Override
+        public boolean preserveContainer() {
+            return false;
+        }
 
         @Override
         @NotNull
@@ -77,7 +84,7 @@ public class MythicMobsType extends MonsterSpawnerType {
         }
 
         @Override
-        public MonsterSpawnerInstanceBuilder fromItemLines(@NotNull List<String> lines) {
+        public PaperPopulatorBuilder fromItemLines(@NotNull List<String> lines) {
             type = MythicBukkit.inst().getMobManager().getMythicMob(lines.get(1).split(" ")[1]).orElse(null);
             min = Integer.parseInt(lines.get(2).split(" ")[1]);
             max = Integer.parseInt(lines.get(3).split(" ")[1]);
@@ -91,7 +98,7 @@ public class MythicMobsType extends MonsterSpawnerType {
         protected void craftGuiButtons(@NotNull PagedMapGui gui) {
             gui.addButton(new ResearchFButton<>(gui, () -> new ItemBuilder(Material.SPAWNER).setDescription(
                     new DMessage(DeepDungeons.get(), gui.getTargetPlayer())
-                            .append("<!i><gold><b>MobType</b>").newLine()
+                            .append("<!i><gold><b>MobType</b>").newLine()//TODO lang
                             .append("<gold><blue>Type:</blue> " + (type == null ? "null" : type.getInternalName()))).setGuiProperty().build(),
                     (String text, MythicMob type) -> {
                         String[] split = text.split(" ");
@@ -109,7 +116,7 @@ public class MythicMobsType extends MonsterSpawnerType {
                     },
                     (MythicMob type) -> new ItemBuilder(Material.ZOMBIE_HEAD).setDescription(
                             new DMessage(DeepDungeons.get(), gui.getTargetPlayer())
-                                    .append("<!i><gold><b>" + type.getInternalName() + "</b>").newLine()
+                                    .append("<!i><gold><b>" + type.getInternalName() + "</b>").newLine()//TODO lang
                                     .append("<gold><blue>Type:</blue> " + (type.getInternalName()))).setGuiProperty().build(),
                     () -> {
                         ArrayList<MythicMob> list = new ArrayList<>(MythicBukkit.inst().getMobManager().getMobTypes());
@@ -124,7 +131,7 @@ public class MythicMobsType extends MonsterSpawnerType {
             }, () ->
                     new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, min))
                             .setDescription(new DMessage(DeepDungeons.get(), gui.getTargetPlayer()).append("<gold>Minimum spawned Mobs").newLine()
-                                    .append("<gold><blue>Max: </blue>" + max).newLine()
+                                    .append("<gold><blue>Max: </blue>" + max).newLine()//TODO lang
                                     .append("<gold><blue>Min: </blue>" + min)).setGuiProperty().build(), true
             ));
             gui.addButton(new NumberEditorFButton<>(
@@ -132,7 +139,7 @@ public class MythicMobsType extends MonsterSpawnerType {
                 this.setMax(val);
                 gui.getTargetPlayer().getInventory().setItemInMainHand(this.toItem());
             }, () ->
-                    new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, max)).setDescription(
+                    new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, max)).setDescription(//TODO lang
                             new DMessage(DeepDungeons.get(), gui.getTargetPlayer()).append("<gold><b>Maximus spawned Mobs</b>").newLine()
                                     .append("<gold><blue>Max: </blue>" + max).newLine()
                                     .append("<gold><blue>Min: </blue>" + min)).setGuiProperty().build(), true));
@@ -142,7 +149,7 @@ public class MythicMobsType extends MonsterSpawnerType {
                 gui.getTargetPlayer().getInventory().setItemInMainHand(this.toItem());
             }, () ->
                     new ItemBuilder(Material.TRIPWIRE_HOOK).setAmount((int) Math.max(1, chance * 100))
-                            .setDescription(
+                            .setDescription(//TODO lang
                                     new DMessage(DeepDungeons.get(), gui.getTargetPlayer()).append("<gold><b>Chance to spawn Mobs</b>").newLine()
                                             .append("<gold><blue>Chance: </blue>" + UtilsString.formatOptional2Digit(getChance() * 100) + "%")
                             ).setGuiProperty().build(), true
@@ -152,7 +159,7 @@ public class MythicMobsType extends MonsterSpawnerType {
                 this.setLevelMin(val);
                 gui.getTargetPlayer().getInventory().setItemInMainHand(this.toItem());
             }, () ->
-                    new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, levelMin))
+                    new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, levelMin))//TODO lang
                             .setDescription(new DMessage(DeepDungeons.get(), gui.getTargetPlayer()).append("<gold>Minimum Level spawned Mobs").newLine()
                                     .append("<gold><blue>LevelMax: </blue>" + levelMax).newLine()
                                     .append("<gold><blue>LevelMin: </blue>" + levelMin)).setGuiProperty().build(), true
@@ -162,7 +169,7 @@ public class MythicMobsType extends MonsterSpawnerType {
                 this.setLevelMax(val);
                 gui.getTargetPlayer().getInventory().setItemInMainHand(this.toItem());
             }, () ->
-                    new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, levelMax)).setDescription(
+                    new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, levelMax)).setDescription(//TODO lang
                             new DMessage(DeepDungeons.get(), gui.getTargetPlayer()).append("<gold><b>Maximus Level spawned Mobs</b>").newLine()
                                     .append("<gold><blue>LevelMax: </blue>" + levelMax).newLine()
                                     .append("<gold><blue>LevelMin: </blue>" + levelMin)).setGuiProperty().build(), true));
@@ -242,7 +249,7 @@ public class MythicMobsType extends MonsterSpawnerType {
         }
     }
 
-    private class MythicMobsInstance extends MonsterSpawnerInstance {
+    private class MythicMobsInstance extends PaperPopulatorInstance implements MobPopulator {
 
         private final MythicMob entityType;
         private final int min;
@@ -278,7 +285,8 @@ public class MythicMobsType extends MonsterSpawnerType {
 
         @NotNull
         @Override
-        public Collection<Entity> spawnMobs(@NotNull Random random, @NotNull Location location, @Nullable Player who) {
+        public Collection<Entity> spawnMobs(@NotNull RoomHandler handler, @Nullable Player who, @NotNull Random random) {
+            Location location = handler.getLocation().add(getOffset());
             List<Entity> entities = new ArrayList<>();
             if (entityType == null)
                 return entities;
@@ -300,6 +308,11 @@ public class MythicMobsType extends MonsterSpawnerType {
                 }
             }
             return entities;
+        }
+
+        @Override
+        public boolean spawnGuardians() {
+            return true;
         }
     }
 }

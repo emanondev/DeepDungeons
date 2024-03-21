@@ -1,4 +1,4 @@
-package emanondev.deepdungeons.treasure.impl;
+package emanondev.deepdungeons.paperpopulator.impl;
 
 import emanondev.core.ItemBuilder;
 import emanondev.core.YMLSection;
@@ -6,8 +6,10 @@ import emanondev.core.gui.PagedMapGui;
 import emanondev.core.gui.ResearchFButton;
 import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.interfaces.ItemPopulator;
+import emanondev.deepdungeons.paperpopulator.PaperPopulatorType;
 import emanondev.deepdungeons.room.RoomType.RoomInstance;
-import emanondev.deepdungeons.treasure.TreasureType;
+import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
 import io.lumine.mythic.api.drops.IItemDrop;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
@@ -24,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class MythicMobsDropTableType extends TreasureType {
+public class MythicMobsDropTableType extends PaperPopulatorType {
 
     public MythicMobsDropTableType() {
         super("mythicmobs_loottable");
@@ -38,17 +40,22 @@ public class MythicMobsDropTableType extends TreasureType {
 
     @Override
     @NotNull
-    public MythicMobsDropTableInstanceBuilder getBuilder() {
-        return new MythicMobsDropTableInstanceBuilder();
+    public MythicMobsDropTableBuilder getBuilder() {
+        return new MythicMobsDropTableBuilder();
     }
 
 
-    public class MythicMobsDropTableInstanceBuilder extends TreasureInstanceBuilder {
+    public class MythicMobsDropTableBuilder extends PaperPopulatorBuilder {
 
         private DropTable table = null;
 
-        public MythicMobsDropTableInstanceBuilder() {
+        public MythicMobsDropTableBuilder() {
             super();
+        }
+
+        @Override
+        public boolean preserveContainer() {
+            return true;
         }
 
         @NotNull
@@ -81,7 +88,7 @@ public class MythicMobsDropTableType extends TreasureType {
          */
         @Override
         @Contract("_ -> this")
-        public TreasureInstanceBuilder fromItemLines(@NotNull List<String> lines) {
+        public PaperPopulatorBuilder fromItemLines(@NotNull List<String> lines) {
             if (lines.size() >= 2) {
                 table = MythicBukkit.inst().getDropManager().getDropTable(lines.get(1).split(" ")[1]).orElse(null);
             }
@@ -92,7 +99,7 @@ public class MythicMobsDropTableType extends TreasureType {
         @Override
         protected void craftGuiButtons(@NotNull PagedMapGui gui) {
             gui.addButton(new ResearchFButton<>(gui, () -> new ItemBuilder(Material.CHEST).setDescription(
-                    new DMessage(DeepDungeons.get(), gui.getTargetPlayer())
+                    new DMessage(DeepDungeons.get(), gui.getTargetPlayer()) //TODO
                             .append("<!i><gold><b>MythicMobsDropTable</b>").newLine()
                             .append("<gold>Type:<blue> " + (table == null ? "null" : table.getInternalName()) + "</blue>")).setGuiProperty().build(),
                     (String text, DropTable lootTable) -> {
@@ -121,7 +128,7 @@ public class MythicMobsDropTableType extends TreasureType {
         }
     }
 
-    public class MythicMobsDropTableInstance extends TreasureInstance {
+    public class MythicMobsDropTableInstance extends PaperPopulatorInstance implements ItemPopulator {
 
         private final DropTable table;
 
@@ -135,8 +142,7 @@ public class MythicMobsDropTableType extends TreasureType {
         }
 
         @Override
-        @NotNull
-        public Collection<ItemStack> getTreasure(@NotNull Random random, @NotNull Location location, @Nullable Player who) {
+        public Collection<ItemStack> getItems(@NotNull RoomHandler handler, @NotNull Location location, @Nullable Player who, @NotNull Random random) {
             if (table == null)
                 return Collections.emptyList();
             ArrayList<ItemStack> list = new ArrayList<>();

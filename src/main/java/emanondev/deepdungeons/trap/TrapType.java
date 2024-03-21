@@ -5,9 +5,9 @@ import emanondev.core.util.DRegistryElement;
 import emanondev.core.util.ParticleUtility;
 import emanondev.core.util.WorldEditUtility;
 import emanondev.deepdungeons.DInstance;
+import emanondev.deepdungeons.room.RoomType.RoomBuilder;
 import emanondev.deepdungeons.room.RoomType.RoomInstance;
 import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
-import emanondev.deepdungeons.room.RoomType.RoomInstanceBuilder;
 import org.bukkit.Color;
 import org.bukkit.Particle;
 import org.bukkit.World;
@@ -31,13 +31,13 @@ public abstract class TrapType extends DRegistryElement {
     public abstract TrapInstance read(@NotNull RoomInstance instance, @NotNull YMLSection sub);
 
     @NotNull
-    public abstract TrapInstanceBuilder getBuilder(@NotNull RoomInstanceBuilder room);
+    public abstract TrapBuilder getBuilder(@NotNull RoomBuilder room);
 
-    public abstract class TrapInstanceBuilder extends DInstance<TrapType> {
-        private final CompletableFuture<TrapInstanceBuilder> completableFuture = new CompletableFuture<>();
-        private final RoomInstanceBuilder roomBuilder;
+    public abstract class TrapBuilder extends DInstance<TrapType> {
+        private final CompletableFuture<TrapBuilder> completableFuture = new CompletableFuture<>();
+        private final RoomBuilder roomBuilder;
 
-        protected TrapInstanceBuilder(@NotNull RoomInstanceBuilder room) {
+        protected TrapBuilder(@NotNull RoomBuilder room) {
             super(TrapType.this);
             this.roomBuilder = room;
         }
@@ -50,7 +50,7 @@ public abstract class TrapType extends DRegistryElement {
         protected abstract void writeToImpl(@NotNull YMLSection section);
 
         @NotNull
-        public CompletableFuture<TrapInstanceBuilder> getCompletableFuture() {
+        public CompletableFuture<TrapBuilder> getCompletableFuture() {
             return completableFuture;
         }
 
@@ -63,9 +63,10 @@ public abstract class TrapType extends DRegistryElement {
         }
 
         @NotNull
-        public RoomInstanceBuilder getRoomBuilder() {
+        public RoomBuilder getRoomBuilder() {
             return roomBuilder;
         }
+
         public void setupTools() {
 
             this.setupToolsImpl();
@@ -78,6 +79,7 @@ public abstract class TrapType extends DRegistryElement {
         public void handleInteract(@NotNull PlayerInteractEvent event) {
             this.handleInteractImpl(event);
         }
+
         @Nullable
         public Player getPlayer() {
             return roomBuilder.getPlayer();
@@ -122,6 +124,12 @@ public abstract class TrapType extends DRegistryElement {
 
         public abstract class TrapHandler {
 
+            private final RoomHandler roomHandler;
+
+            public TrapHandler(@NotNull RoomHandler roomHandler) {
+                this.roomHandler = roomHandler;
+            }
+
             @NotNull
             public World getWorld() {
                 return roomHandler.getWorld();
@@ -131,12 +139,6 @@ public abstract class TrapType extends DRegistryElement {
             @NotNull
             public RoomHandler getRoom() {
                 return this.roomHandler;
-            }
-
-            private final RoomHandler roomHandler;
-
-            public TrapHandler(@NotNull RoomHandler roomHandler){
-                this.roomHandler = roomHandler;
             }
 
             public abstract void setupOffset();

@@ -6,6 +6,7 @@ import emanondev.deepdungeons.command.*;
 import emanondev.deepdungeons.door.DoorTypeManager;
 import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
 import emanondev.deepdungeons.dungeon.DungeonTypeManager;
+import emanondev.deepdungeons.paperpopulator.PopulatorTypeManager;
 import emanondev.deepdungeons.party.PartyManager;
 import emanondev.deepdungeons.room.RoomInstanceManager;
 import emanondev.deepdungeons.room.RoomTypeManager;
@@ -17,13 +18,16 @@ import emanondev.deepdungeons.treasure.TreasureTypeManager;
  * Plugin main class
  * <p>
  * For managers use getInstance() static method on respective classes
+ *
  * @see DungeonTypeManager
  * @see DungeonInstanceManager
  * @see RoomTypeManager
  * @see RoomInstanceManager
  * @see DoorTypeManager
+ * @see TrapTypeManager
  * @see TreasureTypeManager
  * @see MonsterSpawnerTypeManager
+ * @see AreaManager
  */
 public class DeepDungeons extends CorePlugin {
 
@@ -54,9 +58,10 @@ public class DeepDungeons extends CorePlugin {
     @Override
     public void enable() {
 
-        TreasureTypeManager.getInstance().load();
+        //TreasureTypeManager.getInstance().load();
         TrapTypeManager.getInstance().load();
-        MonsterSpawnerTypeManager.getInstance().load();
+        PopulatorTypeManager.getInstance().load();
+        //MonsterSpawnerTypeManager.getInstance().load();
         DoorTypeManager.getInstance().load();
         RoomTypeManager.getInstance().load();
         RoomInstanceManager.getInstance().load();
@@ -65,8 +70,9 @@ public class DeepDungeons extends CorePlugin {
         PartyManager.getInstance().load();
         BuilderMode.getInstance();
         AreaManager.getInstance();
-        this.registerCommand(new DungeonTreasureCommand());
-        this.registerCommand(new DungeonMonsterSpawnerCommand());
+        //this.registerCommand(new DungeonTreasureCommand());
+        //this.registerCommand(new DungeonMonsterSpawnerCommand());
+        this.registerCommand(new DungeonPopulatorCommand());
         this.registerCommand(new DungeonRoomBuilderCommand());
         this.registerCommand(new DungeonDungeonBuilderCommand());
         this.registerCommand(new DungeonCreatorCommand());

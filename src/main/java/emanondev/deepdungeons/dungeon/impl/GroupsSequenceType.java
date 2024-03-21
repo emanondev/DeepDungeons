@@ -1,14 +1,13 @@
 package emanondev.deepdungeons.dungeon.impl;
 
 import com.sk89q.worldedit.EditSession;
-import emanondev.core.ItemBuilder;
 import emanondev.core.RandomItemContainer;
 import emanondev.core.UtilsString;
 import emanondev.core.YMLSection;
 import emanondev.core.gui.*;
 import emanondev.core.message.DMessage;
-import emanondev.core.message.SimpleMessage;
 import emanondev.core.util.WorldEditUtility;
+import emanondev.deepdungeons.CUtils;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Util;
 import emanondev.deepdungeons.area.AreaManager;
@@ -19,7 +18,6 @@ import emanondev.deepdungeons.room.RoomInstanceManager;
 import emanondev.deepdungeons.room.RoomType.RoomInstance;
 import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
 import org.bukkit.*;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -35,33 +33,33 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-public class RoomsGroupsSequence extends DungeonType {
+public class GroupsSequenceType extends DungeonType {
     private static final int MAX_CHUNK_LOAD_PER_TICK = 5;
 
-    public RoomsGroupsSequence() {
+    public GroupsSequenceType() {
         super("roomsgroupssequence");
     }
 
     @Override
     @NotNull
-    public DungeonInstanceBuilder getBuilder(@NotNull String id, @NotNull Player player) {
-        return new RoomsGroupsSequenceBuilder(id, player);
+    public DungeonBuilder getBuilder(@NotNull String id, @NotNull Player player) {
+        return new GroupsSequenceBuilder(id, player);
     }
 
     @Override
     @NotNull
     protected DungeonInstance readImpl(@NotNull String id, @NotNull YMLSection section) {
-        return new RoomsGroupsSequenceInstance(id, section);
+        return new GroupsSequenceInstance(id, section);
     }
 
-    public class RoomsGroupsSequenceBuilder extends DungeonInstanceBuilder {
+    public class GroupsSequenceBuilder extends DungeonBuilder {
 
-        private final List<RoomsGroupBuilder> groups = new ArrayList<>();
+        private final List<Group> groups = new ArrayList<>();
         boolean[] resetButtons = new boolean[1];
 
-        public RoomsGroupsSequenceBuilder(@NotNull String id, @NotNull Player player) {
+        public GroupsSequenceBuilder(@NotNull String id, @NotNull Player player) {
             super(id, player);
-            groups.add(new RoomsGroupBuilder(1, 1));
+            groups.add(new Group(0, 1, 1));
             //groups.add(new RoomsGroup(1,1))
         }
 
@@ -69,13 +67,9 @@ public class RoomsGroupsSequence extends DungeonType {
         protected void setupToolsImpl() {
             Player player = getPlayer();
             Inventory inv = player.getInventory();
-            inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
-                    .appendLang("dungeonbuilder.rgs_base_info")).build());
-            inv.setItem(1, new ItemBuilder(Material.CHISELED_STONE_BRICKS).setGuiProperty()
-                    .setDescription(new DMessage(DeepDungeons.get(), player)
-                            .appendLang("dungeonbuilder.rgs_base_gui")).build());
-            inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                    .appendLang("dungeonbuilder.rgs_base_confirm")).build());
+            CUtils.setSlot(player, 0, inv, Material.PAPER, "dungeonbuilder.rgs_base_info");
+            CUtils.setSlot(player, 1, inv, Material.CHISELED_STONE_BRICKS, "dungeonbuilder.rgs_base_gui");
+            CUtils.setSlot(player, 6, inv, Material.LIME_DYE, "dungeonbuilder.rgs_base_confirm");
         }
 
         @Override
@@ -84,7 +78,7 @@ public class RoomsGroupsSequence extends DungeonType {
             switch (heldSlot) {
                 case 1 -> {
                     resetButtons[0] = true;
-                    PagedMapGui gui = new PagedMapGui(new DMessage(DeepDungeons.get(), event.getPlayer()).appendLang("dungeonbuilder.rgs_groupsgui_title"),
+                    PagedMapGui gui = new PagedMapGui(CUtils.craftMsg(event.getPlayer(), "dungeonbuilder.rgs_groupsgui_title"),
                             6, event.getPlayer(), null, DeepDungeons.get()) {
 
                         @Override
@@ -94,17 +88,15 @@ public class RoomsGroupsSequence extends DungeonType {
                                 this.clearButtons();
                                 HashMap<Integer, GuiButton> buttons = new HashMap<>();
                                 for (int i = 0; i < groups.size(); i++) {
-                                    RoomsGroupBuilder group = groups.get(i);
+                                    Group group = groups.get(i);
                                     int finalI = i;
-                                    buttons.put(finalI, new FButton(this, () -> new ItemBuilder(Material.LEATHER_CHESTPLATE).setGuiProperty().setColor(group.color)
-                                            .setAmount(Math.max(Math.min(100, group.getRooms().size()), 1))
-                                            .setDescription(new DMessage(DeepDungeons.get(), event.getPlayer())
-                                                    .appendLang("dungeonbuilder.rgs_groupsgui_groupdesc",
-                                                            "%index%", String.valueOf(finalI + 1),
-                                                            "%size%", String.valueOf(group.getRooms().size()),
-                                                            "%min_len%", String.valueOf(group.minLength),
-                                                            "%max_len%", String.valueOf(group.maxLength)))
-                                            .setGuiProperty().build(),
+                                    buttons.put(finalI, new FButton(this, () ->
+                                            CUtils.createIBuilder(event.getPlayer(), Material.LEATHER_CHESTPLATE, group.getRooms().size(),
+                                                    false, "dungeonbuilder.rgs_groupsgui_groupdesc",
+                                                    "%index%", String.valueOf(finalI + 1),
+                                                    "%size%", String.valueOf(group.getRooms().size()),
+                                                    "%min_len%", String.valueOf(group.minLength),
+                                                    "%max_len%", String.valueOf(group.maxLength)).setColor(group.color).build(),
                                             (event) -> switch (event.getClick()) {
                                                 case LEFT, RIGHT -> {
                                                     group.createGui(finalI, this).open(event.getWhoClicked());
@@ -137,11 +129,12 @@ public class RoomsGroupsSequence extends DungeonType {
                                                 default -> false;
                                             }));
                                 }
-                                buttons.put(groups.size(), new FButton(this, () -> new ItemBuilder(Material.LIGHT_BLUE_DYE)
-                                        .setDescription(new DMessage(DeepDungeons.get(), getPlayer())
-                                                .appendLang("dungeonbuilder.rgs_groupsgui_groupadd")).setGuiProperty().build(),
+                                buttons.put(groups.size(), new FButton(this, () ->
+                                        CUtils.createItem(getPlayer(), Material.LIGHT_BLUE_DYE, "dungeonbuilder.rgs_groupsgui_groupadd"),
                                         (event) -> {
-                                            groups.add(new RoomsGroupBuilder());
+                                            int[] max = new int[]{0};
+                                            groups.forEach(group -> max[0] = Math.max(max[0], group.createIndex));
+                                            groups.add(new Group(max[0] + 1));
                                             resetButtons[0] = true;
                                             return true;
                                         }));
@@ -153,9 +146,9 @@ public class RoomsGroupsSequence extends DungeonType {
                     gui.open(getPlayer());
                 }
                 case 6 -> {
-                    for (RoomsGroupBuilder group : groups)
+                    for (Group group : groups)
                         if (!group.isValid()) {
-                            new SimpleMessage(DeepDungeons.get(), "dungeonbuilder.rgs_msg_setup_incomplete").send(event.getPlayer());
+                            CUtils.sendMsg(event.getPlayer(), "dungeonbuilder.rgs_msg_setup_incomplete");
                             return;
                         }
                     this.getCompletableFuture().complete(this);
@@ -166,30 +159,34 @@ public class RoomsGroupsSequence extends DungeonType {
         @Override
         protected void writeToImpl(@NotNull YMLSection section) {
             int i = 0;
-            for (RoomsGroupBuilder group : groups) {
+            for (Group group : groups) {
                 i++;
                 group.write(section.loadSection("groups." + i));
             }
         }
 
-        public class RoomsGroupBuilder {
+        public class Group {
             private final HashMap<String, Integer> rooms = new HashMap<>();
             private final int MIN_LEN;
             private final int MAX_LEN;
-            private final Color color = Color.fromRGB((int) (Math.random() * 256), (int) (Math.random() * 256), (int) (Math.random() * 256));
+            private final Color color;
+
+            private final int createIndex;
             private int minLength = 1;
             private int maxLength = 1;
             //private int slot;
 
-            public RoomsGroupBuilder() {
-                this(0, Integer.MAX_VALUE);
+            public Group(int createIndex) {
+                this(createIndex, 0, Integer.MAX_VALUE);
             }
 
-            public RoomsGroupBuilder(int minLimit, int maxLimit) {
+            public Group(int createIndex, int minLimit, int maxLimit) {
                 if (minLimit > maxLimit)
                     throw new IllegalArgumentException();
                 this.MIN_LEN = Math.max(0, minLimit);
                 this.MAX_LEN = Math.max(1, maxLimit);
+                this.createIndex = createIndex;
+                this.color = CUtils.craftColorRainbow(createIndex);
             }
 
             public void setMinLength(int value) {
@@ -233,18 +230,18 @@ public class RoomsGroupsSequence extends DungeonType {
             }
 
             public Gui createGui(int slot, @NotNull Gui parent) {
-                Player p = RoomsGroupsSequence.RoomsGroupsSequenceBuilder.this.getPlayer();
+                Player p = GroupsSequenceBuilder.this.getPlayer();
                 //this.slot = slot;
-                PagedMapGui mapGui = new PagedMapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("dungeonbuilder.rgs_groupgui_title", "%index%", String.valueOf(slot + 1)),
+                PagedMapGui mapGui = new PagedMapGui(CUtils.craftMsg(p, "dungeonbuilder.rgs_groupgui_title",
+                        "%index%", String.valueOf(slot + 1)),
                         6, getPlayer(), parent, DeepDungeons.get());
                 mapGui.addButton(new ResearchFButton<>(mapGui,
                         () -> {
-                            DMessage msg = new DMessage(DeepDungeons.get(), p)
-                                    .appendLang("dungeonbuilder.rgs_groupgui_selectorbase",
-                                            "%size%", String.valueOf(rooms.size()));
+                            DMessage msg = CUtils.craftMsg(p, "dungeonbuilder.rgs_groupgui_selectorbase",
+                                    "%size%", String.valueOf(rooms.size()));
                             rooms.forEach((id, weight) -> msg.newLine().appendLang("dungeonbuilder.rgs_groupgui_selectorroominfo",
                                     "%id%", id, "%weight%", String.valueOf(weight)));
-                            return new ItemBuilder(Material.BRICKS).setAmount(Math.max(Math.min(100, rooms.size()), 1))
+                            return CUtils.emptyIBuilder(Material.BRICKS, rooms.size(), false)
                                     .setDescription(msg).build();
                         },
                         (String text, String roomId) -> {
@@ -265,34 +262,27 @@ public class RoomsGroupsSequence extends DungeonType {
                         },
                         (roomId) -> {
                             RoomInstance inst = RoomInstanceManager.getInstance().get(roomId);
-                            return new ItemBuilder(Material.BRICK).setDescription(new DMessage(DeepDungeons.get(), p)
-                                            .appendLang("dungeonbuilder.rgs_selectorgui_roominfo",
-                                                    "%id%", roomId, "%type%", (inst == null ? "?" : inst.getType().getId()),
-                                                    "%selected%", (rooms.containsKey(roomId) ? "<green>true</green>" : "<red>false</red>"))
-                                    ).addEnchantment(Enchantment.DURABILITY, rooms.containsKey(roomId) ? 1 : 0)
-                                    .setGuiProperty().build();
+                            return CUtils.createItem(p, Material.BRICK, 1, rooms.containsKey(roomId), "dungeonbuilder.rgs_selectorgui_roominfo",
+                                    "%id%", roomId, "%type%", (inst == null ? "?" : inst.getType().getId()),
+                                    "%selected%", rooms.containsKey(roomId) ? "<green>true</green>" : "<red>false</red>");
                         },
                         () -> RoomInstanceManager.getInstance().getIds()));
 
                 if (MIN_LEN != MAX_LEN) {
                     mapGui.addButton(new NumberEditorFButton<>(mapGui, 1, 1, 100, () -> minLength, this::setMinLength,
-                            () -> new ItemBuilder(Material.REPEATER).setDescription(new DMessage(DeepDungeons.get(), p)
-                                            .appendLang("dungeonbuilder.rgs_groupgui_min", "%min%", String.valueOf(minLength)
-                                                    , "%max%", String.valueOf(maxLength))
-                                    ).setAmount(Math.max(1, Math.min(100, minLength)))
-                                    .setGuiProperty().build(), true));
+                            () -> CUtils.createItem(p, Material.REPEATER, minLength, false,
+                                    "dungeonbuilder.rgs_groupgui_min", "%min%", String.valueOf(minLength)
+                                    , "%max%", String.valueOf(maxLength)), true));
                     mapGui.addButton(new NumberEditorFButton<>(mapGui, 1, 1, 100, () -> maxLength, this::setMaxLength,
-                            () -> new ItemBuilder(Material.REPEATER).setDescription(new DMessage(DeepDungeons.get(), p)
-                                            .appendLang("dungeonbuilder.rgs_groupgui_max", "%min%", String.valueOf(minLength)
-                                                    , "%max%", String.valueOf(maxLength))).setAmount(Math.max(1, Math.min(100, maxLength)))
-                                    .setGuiProperty().build(), true));
+                            () -> CUtils.createItem(p, Material.REPEATER, maxLength, false,
+                                    "dungeonbuilder.rgs_groupgui_max", "%min%", String.valueOf(minLength)
+                                    , "%max%", String.valueOf(maxLength)), true));
                 }
                 mapGui.addButton(new FButton(mapGui,
-                        () -> new ItemBuilder(Material.ANVIL).setDescription(new DMessage(DeepDungeons.get(), p)
-                                .appendLang("dungeonbuilder.rgs_groupgui_weighteditor")).build(),
+                        () -> CUtils.createItem(p, Material.ANVIL, "dungeonbuilder.rgs_groupgui_weighteditor"),
                         (event) -> {
-                            PagedMapGui weightGui = new PagedMapGui(new DMessage(DeepDungeons.get(), p)
-                                    .appendLang("dungeonbuilder.rgs_weightgui_title", "%index%", String.valueOf(slot + 1)),
+                            PagedMapGui weightGui = new PagedMapGui(
+                                    CUtils.craftMsg(p, "dungeonbuilder.rgs_weightgui_title", "%index%", String.valueOf(slot + 1)),
                                     6, getPlayer(), mapGui, DeepDungeons.get());
                             for (String key : rooms.keySet()) {
                                 weightGui.addButton(new NumberEditorFButton<>(mapGui, 10, 1, 10000, () ->
@@ -301,14 +291,12 @@ public class RoomsGroupsSequence extends DungeonType {
                                             final int[] fullWeight = {0};
                                             rooms.values().forEach((value) -> fullWeight[0] += value);
                                             RoomInstance inst = RoomInstanceManager.getInstance().get(key);
-                                            return new ItemBuilder(Material.BRICK).setDescription(new DMessage(DeepDungeons.get(), p)
-                                                            .appendLang("dungeonbuilder.rgs_weightgui_roominfo",
-                                                                    "%id%", key,
-                                                                    "%type%", (inst == null ? "?" : inst.getType().getId()),
-                                                                    "%weight%", String.valueOf(rooms.get(key)),
-                                                                    "%full_weight%", String.valueOf(fullWeight[0]),
-                                                                    "%perc_weight%", UtilsString.formatOptional2Digit(rooms.get(key) * 100D / fullWeight[0])))
-                                                    .setGuiProperty().build();
+                                            return CUtils.createItem(p, Material.BRICK, "dungeonbuilder.rgs_weightgui_roominfo",
+                                                    "%id%", key,
+                                                    "%type%", (inst == null ? "?" : inst.getType().getId()),
+                                                    "%weight%", String.valueOf(rooms.get(key)),
+                                                    "%full_weight%", String.valueOf(fullWeight[0]),
+                                                    "%perc_weight%", UtilsString.formatOptional2Digit(rooms.get(key) * 100D / fullWeight[0]));
                                         }, true));
                             }
                             weightGui.open(p);
@@ -333,11 +321,11 @@ public class RoomsGroupsSequence extends DungeonType {
         }
     }
 
-    public class RoomsGroupsSequenceInstance extends DungeonInstance {
+    public class GroupsSequenceInstance extends DungeonInstance {
 
         private final List<RoomGroup> groups = new ArrayList<>();
 
-        public RoomsGroupsSequenceInstance(@NotNull String id, @NotNull YMLSection section) {
+        public GroupsSequenceInstance(@NotNull String id, @NotNull YMLSection section) {
             super(id, section);
             section.getKeys("groups").forEach((key) -> groups.add(new RoomGroup(section.loadSection("groups." + key))));
         }
@@ -346,7 +334,7 @@ public class RoomsGroupsSequence extends DungeonType {
         @Contract(value = "_ -> new", pure = true)
         @NotNull
         public DungeonHandler createHandler(@Nullable World world) {
-            return new Handler(world);
+            return new GroupsSequenceHandler(world);
         }
 
         private static class RoomGroup {
@@ -363,7 +351,7 @@ public class RoomsGroupsSequence extends DungeonType {
             }
         }
 
-        private class Handler extends DungeonHandler {
+        private class GroupsSequenceHandler extends DungeonHandler {
             private final static int ROOM_MARGIN = 5;
             private final static int DUNGEON_MARGIN = 16;
 
@@ -373,7 +361,7 @@ public class RoomsGroupsSequence extends DungeonType {
             private final BoundingBox boundingBox;
             private State state = State.LOADING;
 
-            public Handler(@Nullable World world) {
+            public GroupsSequenceHandler(@Nullable World world) {
                 super();
                 RoomHandler startRoom = RoomInstanceManager.getInstance().get(groups.get(0).rooms.getItem()).createRoomHandler(this);
                 rooms.add(startRoom);
@@ -461,7 +449,7 @@ public class RoomsGroupsSequence extends DungeonType {
 
             private void paste() {
                 //TODO debug
-                DeepDungeons.get().logInfo("Pasting &e"+this.getInstance().getId()+" &fat &e"+getWorld().getName()+" "+ Util.toString(location.toVector().toBlockVector()).replace(";"," "));
+                DeepDungeons.get().logInfo("Pasting &e" + this.getInstance().getId() + " &fat &e" + getWorld().getName() + " " + Util.toString(location.toVector().toBlockVector()).replace(";", " "));
                 long before = System.currentTimeMillis();
 
                 getLocation().getWorld().getNearbyEntities(getBoundingBox(), (e) -> !(e instanceof Player)).forEach(Entity::remove);
@@ -473,38 +461,39 @@ public class RoomsGroupsSequence extends DungeonType {
                     new BukkitRunnable() {
                         private final List<Chunk> chunks = new ArrayList<>();
                         boolean firstRun = true;
+
                         @Override
                         public void run() {
-                            if (firstRun){
-                                Vector min = getBoundingBox().getMin().multiply(1/16);
-                                Vector max = getBoundingBox().getMax().multiply(1/16);
-                                for (int x = min.getBlockX();x<=max.getBlockX()+1;x++)
-                                    for (int z = min.getBlockZ();z<=max.getBlockZ()+1;z++){
-                                        chunks.add(getWorld().getChunkAt(x,z));
+                            if (firstRun) {
+                                Vector min = getBoundingBox().getMin().multiply(1 / 16);
+                                Vector max = getBoundingBox().getMax().multiply(1 / 16);
+                                for (int x = min.getBlockX(); x <= max.getBlockX() + 1; x++)
+                                    for (int z = min.getBlockZ(); z <= max.getBlockZ() + 1; z++) {
+                                        chunks.add(getWorld().getChunkAt(x, z));
                                     }
                                 firstRun = false;
                             }
                             int counter = 0;
                             List<Chunk> toRemove = new ArrayList<>();
-                            for (Chunk chunk:chunks){
+                            for (Chunk chunk : chunks) {
                                 toRemove.add(chunk);
-                                if (!chunk.isLoaded()){
+                                if (!chunk.isLoaded()) {
                                     counter++;
                                     chunk.load();
                                 }
-                                for (Entity en:chunk.getEntities())
+                                for (Entity en : chunk.getEntities())
                                     if (!(en instanceof Player))
                                         en.remove();
-                                if (counter>=MAX_CHUNK_LOAD_PER_TICK)
+                                if (counter >= MAX_CHUNK_LOAD_PER_TICK)
                                     break;
                             }
                             chunks.removeAll(toRemove);
-                            if (chunks.isEmpty()){
+                            if (chunks.isEmpty()) {
                                 removeEntity.complete(null);
                                 this.cancel();
                             }
                         }
-                    }.runTaskTimer(DeepDungeons.get(),1L,1L);
+                    }.runTaskTimer(DeepDungeons.get(), 1L, 1L);
                     pasting.add(removeEntity);
                 });
                 for (RoomHandler room : rooms) {
@@ -514,7 +503,7 @@ public class RoomsGroupsSequence extends DungeonType {
                     this.state = State.READY;
                     AreaManager.getInstance().flagReady(this);
                     //TODO debug
-                    DeepDungeons.get().logInfo("Pasted &e"+this.getInstance().getId()+" &fat &e"+getWorld().getName()+" "+ Util.toString(location.toVector().toBlockVector()).replace(";"," ")+"&f took &e"+(System.currentTimeMillis()-before)+" &fms");
+                    DeepDungeons.get().logInfo("Pasted &e" + this.getInstance().getId() + " &fat &e" + getWorld().getName() + " " + Util.toString(location.toVector().toBlockVector()).replace(";", " ") + "&f took &e" + (System.currentTimeMillis() - before) + " &fms");
                 });
             }
 
@@ -563,7 +552,6 @@ public class RoomsGroupsSequence extends DungeonType {
 
             @Override
             protected void startImpl(@NotNull PartyManager.Party party) {
-                //TODO
                 state = State.STARTED;
             }
 

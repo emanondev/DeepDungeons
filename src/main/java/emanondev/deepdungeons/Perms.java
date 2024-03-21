@@ -9,23 +9,16 @@ import org.bukkit.permissions.Permission;
  */
 public class Perms {
 
-    private Perms(){
-        throw new AssertionError();
-    }
-
     public static final Permission DUNGEONTREASURE_COMMAND = PermissionBuilder.ofCommand(DeepDungeons.get(),
             "dungeontreasure").buildAndRegister(DeepDungeons.get());
-
     public static final Permission DUNGEONMONSTERSPAWNER_COMMAND = PermissionBuilder.ofCommand(DeepDungeons.get(),
             "dungeonmonsterspawner").buildAndRegister(DeepDungeons.get());
     public static final Permission DUNGEONDUNGEON_COMMAND = PermissionBuilder.ofCommand(DeepDungeons.get(),
             "dungeondungeon").buildAndRegister(DeepDungeons.get());
     public static final Permission DUNGEONROOM_COMMAND = PermissionBuilder.ofCommand(DeepDungeons.get(),
             "dungeonroom").buildAndRegister(DeepDungeons.get());
-
     public static final Permission DUNGEONCREATOR_COMMAND = PermissionBuilder.ofCommand(DeepDungeons.get(),
             "dungeoncreator").buildAndRegister(DeepDungeons.get());
-
     public static final Permission PARTY_HELP = PermissionBuilder.ofCommand(DeepDungeons.get(),
             "dungeonparty", "help").buildAndRegister(DeepDungeons.get());
     public static final Permission PARTY_JOIN = PermissionBuilder.ofCommand(DeepDungeons.get(),
@@ -48,8 +41,6 @@ public class Perms {
             "dungeonparty", "list").addChild(PARTY_HELP, true).buildAndRegister(DeepDungeons.get());
     public static final Permission PARTY_INFO = PermissionBuilder.ofCommand(DeepDungeons.get(),
             "dungeonparty", "info").addChild(PARTY_HELP, true).buildAndRegister(DeepDungeons.get());
-
-
     public static final Permission PARTY_ALL = PermissionBuilder.ofCommand(DeepDungeons.get(),
                     "dungeonparty")
             .addChild(PARTY_HELP, true)
@@ -64,8 +55,6 @@ public class Perms {
             .addChild(PARTY_LIST, true)
             .addChild(PARTY_INFO, true)
             .buildAndRegister(DeepDungeons.get());
-    ;
-
     public static final Permission DUNGEONTREASURE_ADMIN = PermissionBuilder.ofPlugin(DeepDungeons.get(), "admin")
             .addChild(PARTY_ALL, true)
             .addChild(DUNGEONROOM_COMMAND, true)
@@ -73,4 +62,9 @@ public class Perms {
             .addChild(DUNGEONTREASURE_COMMAND, true)
             .addChild(DUNGEONCREATOR_COMMAND, true)
             .addChild(DUNGEONMONSTERSPAWNER_COMMAND, true).buildAndRegister(DeepDungeons.get());
+    ;
+
+    private Perms() {
+        throw new AssertionError();
+    }
 }

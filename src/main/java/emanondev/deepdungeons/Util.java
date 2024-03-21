@@ -11,7 +11,7 @@ import java.text.DecimalFormat;
  */
 public class Util {
 
-    private Util(){
+    private Util() {
         throw new AssertionError();
     }
 

@@ -9,16 +9,23 @@ import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
 import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance;
 import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
 import emanondev.deepdungeons.party.PartyManager;
-import org.bukkit.Location;
+import org.bukkit.*;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Display;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.MaterialData;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class DungeonCreatorCommand extends CoreCommand {
     public DungeonCreatorCommand() {
@@ -39,6 +46,86 @@ public class DungeonCreatorCommand extends CoreCommand {
             }
             case "start" -> {
                 start(sender, label, args);
+                return;
+            }
+            case "test" -> {
+                final List<Particle> particles = new ArrayList<>(List.of(Particle.values()));
+                particles.sort(Comparator.comparing(Enum::name));
+                final Player p = (Player) sender;
+                final Location loc = p.getLocation().add(0, 1, 2).setDirection(BlockFace.NORTH.getDirection());
+                final Location loc2 = p.getLocation().add(0, 2.5, 0).setDirection(BlockFace.NORTH.getDirection());
+                final Location loc3 = p.getLocation().add(0, 4, -2).setDirection(BlockFace.NORTH.getDirection());
+                TextDisplay text = (TextDisplay) p.getWorld().spawnEntity(loc.clone().add(0, 0.3, 0), EntityType.TEXT_DISPLAY, false);
+                text.setBillboard(Display.Billboard.CENTER);
+                text.setLineWidth(text.getLineWidth() * 3);
+                Transformation tr = text.getTransformation();
+                tr.getScale().mul(0.6F, 0.6F, 0.6F);
+                text.setTransformation(tr);
+                text.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
+                TextDisplay text2 = (TextDisplay) text.copy(loc2.clone().add(0, 0.3, 0));
+                TextDisplay text3 = (TextDisplay) text.copy(loc3.clone().add(0, 0.3, 0));
+                new BukkitRunnable() {
+                    int counter = 0;
+                    boolean even = true;
+
+                    @Override
+                    public void run() {
+                        counter++;
+                        if (counter / 50 >= particles.size()) {
+                            text.remove();
+                            text2.remove();
+                            text3.remove();
+                            this.cancel();
+                            return;
+                        }
+                        int tick = counter % 50;
+                        if (tick > 10)
+                            return;
+                        double speed1 = 0.1;
+                        double speed2 = 1;
+                        double speed3 = 10;
+                        Particle part = particles.get(counter / 50);
+                        if (tick == 0) {
+                            even = !even;
+                            text.setText("Particle: " + ChatColor.YELLOW + part.name() + ChatColor.WHITE + " (speed: " + ChatColor.YELLOW + speed1 + ChatColor.WHITE + ")");
+                            text2.setText("Particle: " + ChatColor.YELLOW + part.name() + ChatColor.WHITE + " (speed: " + ChatColor.YELLOW + speed2 + ChatColor.WHITE + ")");
+                            text3.setText("Particle: " + ChatColor.YELLOW + part.name() + ChatColor.WHITE + " (speed: " + ChatColor.YELLOW + speed3 + ChatColor.WHITE + ")");
+                        }
+                        Object data = null;
+                        if (part.getDataType() == BlockData.class)
+                            data = Bukkit.createBlockData(Material.OAK_LOG);
+                        if (part.getDataType() == ItemStack.class)
+                            data = new ItemStack(Material.OAK_LOG);
+                        if (part.getDataType() == MaterialData.class)
+                            data = new MaterialData(Material.OAK_LOG);
+                        if (part.getDataType() == Particle.DustOptions.class)
+                            data = new Particle.DustOptions(Color.RED, 1);
+                        if (part.getDataType() == Particle.DustTransition.class)
+                            data = new Particle.DustTransition(Color.RED, Color.BLUE, 1);
+                        if (part.getDataType() == Float.class)
+                            data = 1F;
+                        if (part.getDataType() == Integer.class)
+                            data = 1;
+                        if (part.getDataType() == Vibration.class)
+                            data = new Vibration(loc, new Vibration.Destination.BlockDestination(loc
+                                    .getBlock().getRelative(BlockFace.NORTH, 3)), 20);
+                        try {
+                            Vector dir = loc.getDirection().multiply(-1);
+                            p.spawnParticle(part, loc, 0, dir.getX(), dir.getY(), dir.getZ(), speed1, data);
+                            if (part.getDataType() == Vibration.class)
+                                data = new Vibration(loc2, new Vibration.Destination.BlockDestination(loc2
+                                        .getBlock().getRelative(BlockFace.NORTH, 3)), 20);
+                            p.spawnParticle(part, loc2, 0, dir.getX(), dir.getY(), dir.getZ(), speed2, data);
+                            if (part.getDataType() == Vibration.class)
+                                data = new Vibration(loc3, new Vibration.Destination.BlockDestination(loc3
+                                        .getBlock().getRelative(BlockFace.NORTH, 3)), 20);
+                            p.spawnParticle(part, loc3, 0, dir.getX(), dir.getY(), dir.getZ(), speed3, data);
+                        } catch (Exception e) {
+                            if (tick == 0)
+                                p.sendMessage("Cannot spawn");
+                        }
+                    }
+                }.runTaskTimer(DeepDungeons.get(), 100L, 1L);
                 return;
             }
         }

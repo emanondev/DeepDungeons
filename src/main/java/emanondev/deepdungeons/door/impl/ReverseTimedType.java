@@ -1,17 +1,16 @@
 package emanondev.deepdungeons.door.impl;
 
-import emanondev.core.ItemBuilder;
 import emanondev.core.UtilsString;
 import emanondev.core.YMLSection;
 import emanondev.core.gui.MapGui;
 import emanondev.core.gui.NumberEditorFButton;
-import emanondev.core.message.DMessage;
+import emanondev.deepdungeons.CUtils;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.door.DoorType;
 import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
+import emanondev.deepdungeons.room.RoomType.RoomBuilder;
 import emanondev.deepdungeons.room.RoomType.RoomInstance;
 import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
-import emanondev.deepdungeons.room.RoomType.RoomInstanceBuilder;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -25,30 +24,30 @@ import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-public class ReversedTimedType extends DoorType {
-    public ReversedTimedType() {
+public class ReverseTimedType extends DoorType {
+    public ReverseTimedType() {
         super("reversed_timed");
     }
 
     @Override
     @NotNull
-    public ReversedTimedDoorInstance read(@NotNull RoomInstance room, @NotNull YMLSection section) {
-        return new ReversedTimedDoorInstance(room, section);
+    public ReverseTimedInstance read(@NotNull RoomInstance room, @NotNull YMLSection section) {
+        return new ReverseTimedInstance(room, section);
     }
 
     @Override
     @NotNull
-    public ReversedTimedDoorInstanceBuilder getBuilder(@NotNull RoomInstanceBuilder room) {
-        return new ReversedTimedDoorInstanceBuilder(room);
+    public ReverseTimedBuilder getBuilder(@NotNull RoomBuilder room) {
+        return new ReverseTimedBuilder(room);
     }
 
-    public final class ReversedTimedDoorInstanceBuilder extends DoorInstanceBuilder {
+    public final class ReverseTimedBuilder extends DoorBuilder {
 
         private long timeToLock = 60;//in seconds
         private boolean completedTimes = false;
         private boolean locksOpenIfPassThrough = false;
 
-        public ReversedTimedDoorInstanceBuilder(@NotNull RoomInstanceBuilder room) {
+        public ReverseTimedBuilder(@NotNull RoomBuilder room) {
             super(room);
         }
 
@@ -62,16 +61,13 @@ public class ReversedTimedType extends DoorType {
         protected void handleInteractImpl(@NotNull PlayerInteractEvent event) {
             switch (event.getPlayer().getInventory().getHeldItemSlot()) {
                 case 1 -> {
-                    MapGui mapGui = new MapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("doorbuilder.reversed_timed_door_gui_title"),
+                    MapGui mapGui = new MapGui(CUtils.craftMsg(getPlayer(), "doorbuilder.reversed_timed_door_gui_title"),
                             1, getPlayer(), null, DeepDungeons.get());
-
                     mapGui.setButton(4, new NumberEditorFButton<>(mapGui, 1L, 1L, 10000L, () -> timeToLock,
                             (time) -> timeToLock = Math.min(Math.max(1, time), 36000),
-                            () -> new ItemBuilder(Material.REPEATER).setDescription(new DMessage(DeepDungeons.get(), getPlayer())
-                                    .appendLang("doorbuilder.timed_door_gui_item",
-                                            "%value%", UtilsString.getTimeStringSeconds(getPlayer(), timeToLock),
-                                            "%value_raw%", String.valueOf(timeToLock))
-                            ).setGuiProperty().build(), true));
+                            () -> CUtils.createItem(getPlayer(), Material.REPEATER, "doorbuilder.timed_door_gui_item",
+                                    "%value%", UtilsString.getTimeStringSeconds(getPlayer(), timeToLock),
+                                    "%value_raw%", String.valueOf(timeToLock)), true));
                     mapGui.open(event.getPlayer());
                 }
                 case 2 -> {
@@ -91,15 +87,12 @@ public class ReversedTimedType extends DoorType {
             if (!completedTimes) {
                 Player player = getPlayer();
                 PlayerInventory inv = player.getInventory();
-                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.reversed_timed_door_info")).build());
-                inv.setItem(1, new ItemBuilder(Material.CHAIN).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.reversed_timed_door_selector", "%value%", UtilsString.getTimeStringSeconds(getPlayer(), timeToLock), "%value_raw%", "" + timeToLock)).build());
-                inv.setItem(2, new ItemBuilder(Material.CLOCK).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.reversed_timed_lock_selector",
-                                "%value%", String.valueOf(locksOpenIfPassThrough))).build());
-                inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.reversed_timed_door_confirm")).build());
+                CUtils.setSlot(player, 0, inv, Material.PAPER, "doorbuilder.reversed_timed_door_info");
+                CUtils.setSlot(player, 1, inv, Material.CHAIN, "doorbuilder.reversed_timed_door_selector",
+                        "%value%", UtilsString.getTimeStringSeconds(getPlayer(), timeToLock), "%value_raw%", String.valueOf(timeToLock));
+                CUtils.setSlot(player, 2, inv, Material.CLOCK, "doorbuilder.reversed_timed_lock_selector",
+                        "%value%", String.valueOf(locksOpenIfPassThrough));
+                CUtils.setSlot(player, 6, inv, Material.LIME_DYE, "doorbuilder.reversed_timed_door_confirm");
                 return;
             }
             this.getCompletableFuture().complete(this);
@@ -111,12 +104,12 @@ public class ReversedTimedType extends DoorType {
 
     }
 
-    public class ReversedTimedDoorInstance extends DoorInstance {
+    public class ReverseTimedInstance extends DoorInstance {
 
         private final long unlockTime;
         private final boolean locksOpenIfPassThrough;
 
-        public ReversedTimedDoorInstance(@NotNull RoomInstance roomInstance, @NotNull YMLSection section) {
+        public ReverseTimedInstance(@NotNull RoomInstance roomInstance, @NotNull YMLSection section) {
             super(roomInstance, section);
             unlockTime = section.getLong("timeToLock", 60L);
             locksOpenIfPassThrough = section.getBoolean("locksOpenIfPassThrough", false);
@@ -124,11 +117,11 @@ public class ReversedTimedType extends DoorType {
 
         @Override
         @NotNull
-        public ReversedTimeDoorHandler createDoorHandler(@NotNull RoomHandler roomHandler) {
-            return new ReversedTimeDoorHandler(roomHandler);
+        public ReverseTimedHandler createDoorHandler(@NotNull RoomHandler roomHandler) {
+            return new ReverseTimedHandler(roomHandler);
         }
 
-        public class ReversedTimeDoorHandler extends DoorHandler {
+        public class ReverseTimedHandler extends DoorHandler {
 
             private long timeWhenLock;
             private boolean unlocked = true;
@@ -136,7 +129,7 @@ public class ReversedTimedType extends DoorType {
             private TextDisplay text;
             private boolean passedThrough = false;
 
-            public ReversedTimeDoorHandler(@NotNull RoomHandler roomHandler) {
+            public ReverseTimedHandler(@NotNull RoomHandler roomHandler) {
                 super(roomHandler);
             }
 
@@ -195,7 +188,7 @@ public class ReversedTimedType extends DoorType {
                         long now = System.currentTimeMillis();
                         if (timeWhenLock < now) {
                             unlocked = false;
-                            text.setText(new DMessage(DeepDungeons.get(), null).appendLang("door.reversed_timed_closed_info").toLegacy());
+                            text.setText(CUtils.craftMsg(null, "door.reversed_timed_closed_info").toLegacy());
                             item.setItemStack(new ItemStack(Material.BARRIER));
                             Transformation tr = item.getTransformation();
                             item.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
@@ -208,7 +201,7 @@ public class ReversedTimedType extends DoorType {
                             return;
                         }
                         //TODO it's not player language specific
-                        text.setText(new DMessage(DeepDungeons.get(), null).appendLang("door.reversed_timed_open_info",
+                        text.setText(CUtils.craftMsg(null, "door.reversed_timed_open_info",
                                 "%current%", UtilsString.getTimeStringSeconds(null, (timeWhenLock - now) / 1000 + 1),
                                 "%max%", UtilsString.getTimeStringSeconds(null, unlockTime), "%current_raw%",
                                 String.valueOf((timeWhenLock - now) / 1000 + 1), "%max_raw%", String.valueOf(unlockTime)).toLegacy());

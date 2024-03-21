@@ -1,21 +1,20 @@
 package emanondev.deepdungeons.door.impl;
 
-import emanondev.core.ItemBuilder;
 import emanondev.core.YMLSection;
 import emanondev.core.gui.MapGui;
 import emanondev.core.gui.ResearchFButton;
 import emanondev.core.message.DMessage;
+import emanondev.deepdungeons.CUtils;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.door.DoorType;
 import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
+import emanondev.deepdungeons.room.RoomType.RoomBuilder;
 import emanondev.deepdungeons.room.RoomType.RoomInstance;
 import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
-import emanondev.deepdungeons.room.RoomType.RoomInstanceBuilder;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -40,16 +39,16 @@ public class GuardianType extends DoorType {
 
     @Override
     @NotNull
-    public GuardianInstanceBuilder getBuilder(@NotNull RoomInstanceBuilder room) {
-        return new GuardianInstanceBuilder(room);
+    public GuardianBuilder getBuilder(@NotNull RoomBuilder room) {
+        return new GuardianBuilder(room);
     }
 
-    public final class GuardianInstanceBuilder extends DoorInstanceBuilder {
+    public final class GuardianBuilder extends DoorBuilder {
 
         private final HashSet<EntityType> entityTypes = new HashSet<>();
         private boolean completedConfiguration = false;
 
-        public GuardianInstanceBuilder(@NotNull RoomInstanceBuilder room) {
+        public GuardianBuilder(@NotNull RoomBuilder room) {
             super(room);
         }
 
@@ -63,18 +62,17 @@ public class GuardianType extends DoorType {
             switch (event.getPlayer().getInventory().getHeldItemSlot()) {
                 case 1 -> {
 
-                    MapGui mapGui = new MapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("doorbuilder.guardian_door_guititle"),
+                    MapGui mapGui = new MapGui(CUtils.craftMsg(getPlayer(), "doorbuilder.guardian_door_guititle"),
                             1, getPlayer(), null, DeepDungeons.get());
 
                     mapGui.setButton(4, new ResearchFButton<>(mapGui,
                             () -> {
-                                DMessage msg = new DMessage(DeepDungeons.get(), event.getPlayer())
-                                        .appendLang("doorbuilder.guardian_door_guiselector_base",
-                                                "%amount%", String.valueOf(this.entityTypes.isEmpty() ?
-                                                        EntityType.values().length : this.entityTypes.size()));
+                                DMessage msg = CUtils.craftMsg(event.getPlayer(), "doorbuilder.guardian_door_guiselector_base",
+                                        "%amount%", String.valueOf(this.entityTypes.isEmpty() ?
+                                                EntityType.values().length : this.entityTypes.size()));
                                 this.entityTypes.forEach((type) -> msg.newLine().appendLang("doorbuilder.guardian_door_guiselector_line", "%id%"));
-                                return new ItemBuilder(Material.ZOMBIE_HEAD).setAmount(Math.max(Math.min(100,
-                                                (this.entityTypes.isEmpty() ? EntityType.values().length : this.entityTypes.size())), 1))
+                                return CUtils.emptyIBuilder(Material.ZOMBIE_HEAD, this.entityTypes.isEmpty() ?
+                                                EntityType.values().length : this.entityTypes.size(), false)
                                         .setDescription(msg).build();
                             },
                             (String text, EntityType type) -> {
@@ -91,11 +89,11 @@ public class GuardianType extends DoorType {
                                     this.entityTypes.add(type);
                                 return true;
                             },
-                            (type) -> new ItemBuilder(Material.BRICK).setDescription(new DMessage(DeepDungeons.get(), getPlayer())
-                                            .appendLang("doorbuilder.guardian_door_guiselector_item", "%id%", type.name(),
-                                                    "%selected%", (this.entityTypes.isEmpty() || this.entityTypes.contains(type) ? "<green>true</green>" : "<red>false</red>"))
-                                    ).addEnchantment(Enchantment.DURABILITY, (this.entityTypes.isEmpty() || this.entityTypes.contains(type) ? 1 : 0))
-                                    .setGuiProperty().build(),
+                            (type) -> CUtils.createItem(getPlayer(), Material.BRICK, 1,
+                                    this.entityTypes.isEmpty() || this.entityTypes.contains(type),
+                                    "doorbuilder.guardian_door_guiselector_item", "%id%", type.name(),
+                                    "%selected%", (this.entityTypes.isEmpty() || this.entityTypes.contains(type) ? "<green>true</green>" : "<red>false</red>")),
+
                             () -> {
                                 List<EntityType> types = new ArrayList<>(Arrays.asList(EntityType.values()));
                                 types.removeIf(type -> !type.isSpawnable() && !type.isAlive());
@@ -119,12 +117,10 @@ public class GuardianType extends DoorType {
             if (!completedConfiguration) {
                 Player player = getPlayer();
                 PlayerInventory inv = player.getInventory();
-                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.guardian_entitytype_info")).build());
-                inv.setItem(1, new ItemBuilder(Material.ZOMBIE_HEAD).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.guardian_entitytype_selector", "%value%", String.valueOf(this.entityTypes.size()))).build());
-                inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.guardian_entitytype_confirm")).build());
+                CUtils.setSlot(player, 0, inv, Material.PAPER, "doorbuilder.guardian_entitytype_info");
+                CUtils.setSlot(player, 1, inv, Material.ZOMBIE_HEAD, "doorbuilder.guardian_entitytype_selector",
+                        "%value%", String.valueOf(this.entityTypes.size()));
+                CUtils.setSlot(player, 6, inv, Material.LIME_DYE, "doorbuilder.guardian_entitytype_confirm");
                 return;
             }
             this.getCompletableFuture().complete(this);
@@ -206,7 +202,7 @@ public class GuardianType extends DoorType {
                             return;
                         }
                         //TODO it's not player language specific
-                        text.setText(new DMessage(DeepDungeons.get(), null).appendLang("door.guardian_info",
+                        text.setText(CUtils.craftMsg(null, "door.guardian_info",
                                 "%value%", String.valueOf(entities.size())).toLegacy());
                     }
                 }.runTaskTimer(DeepDungeons.get(), 10L, 10L);

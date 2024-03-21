@@ -14,8 +14,8 @@ public class SimpleType extends RoomType {
 
     @Override
     @NotNull
-    public RoomInstanceBuilder getBuilder(@NotNull String id, @NotNull Player player) {
-        return new SimpleInstanceBuilder(id, player);
+    public RoomBuilder getBuilder(@NotNull String id, @NotNull Player player) {
+        return new SimpleBuilder(id, player);
     }
 
     @Override
@@ -25,8 +25,8 @@ public class SimpleType extends RoomType {
     }
 
 
-    public class SimpleInstanceBuilder extends RoomInstanceBuilder {
-        public SimpleInstanceBuilder(@NotNull String id, @NotNull Player player) {
+    public class SimpleBuilder extends RoomBuilder {
+        public SimpleBuilder(@NotNull String id, @NotNull Player player) {
             super(id, player);
         }
 
@@ -59,7 +59,7 @@ public class SimpleType extends RoomType {
 
         @Override
         @NotNull
-        public RoomHandler createRoomHandler(DungeonHandler dungeonHandler) {
+        public RoomHandler createRoomHandler(@NotNull DungeonHandler dungeonHandler) {
             return new RoomHandler(dungeonHandler);
         }
     }

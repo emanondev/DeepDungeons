@@ -7,9 +7,9 @@ import emanondev.core.gui.PagedListFGui;
 import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Perms;
-import emanondev.deepdungeons.spawner.MonsterSpawnerType;
-import emanondev.deepdungeons.spawner.MonsterSpawnerType.MonsterSpawnerInstanceBuilder;
-import emanondev.deepdungeons.spawner.MonsterSpawnerTypeManager;
+import emanondev.deepdungeons.paperpopulator.PaperPopulatorType;
+import emanondev.deepdungeons.paperpopulator.PaperPopulatorType.PaperPopulatorBuilder;
+import emanondev.deepdungeons.paperpopulator.PopulatorTypeManager;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -23,9 +23,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-public class DungeonMonsterSpawnerCommand extends CoreCommand {
-    public DungeonMonsterSpawnerCommand() {
-        super("dungeonmonsterspawner", DeepDungeons.get(), Perms.DUNGEONMONSTERSPAWNER_COMMAND, "create blueprint", List.of("dmonsterspawner"));
+public class DungeonPopulatorCommand extends CoreCommand {
+    public DungeonPopulatorCommand() {
+        super("dungeonpopulator", DeepDungeons.get(), Perms.DUNGEONMONSTERSPAWNER_COMMAND, "create blueprint", List.of("dpopulator"));
     }
 
     @Override
@@ -55,21 +55,21 @@ public class DungeonMonsterSpawnerCommand extends CoreCommand {
         ItemStack item = player.getInventory().getItemInMainHand();
         switch (args.length) {
             case 1 -> {
-                MonsterSpawnerInstanceBuilder builder = MonsterSpawnerTypeManager.getInstance().getMonsterSpawnerInstance(item);
+                PaperPopulatorBuilder builder = PopulatorTypeManager.getInstance().getPopulatorBuilder(item);
                 if (builder == null && !UtilsInventory.isAirOrNull(item)) {
-                    sender.sendMessage("Message not implemented yet (hand must be a monsterspawner blueprint or empty)");//TODO
+                    sender.sendMessage("Message not implemented yet (hand must be a populator blueprint or empty)");//TODO
                     return;
                 }
                 if (builder == null) {
-                    new PagedListFGui<>(new DMessage(DeepDungeons.get()).append("&9MonsterSpawner Type Selector").toLegacy(),
+                    new PagedListFGui<>(new DMessage(DeepDungeons.get()).append("&9Populator Type Selector").toLegacy(),
                             6, player, null, DeepDungeons.get(), false,
-                            (InventoryClickEvent click, MonsterSpawnerType type) -> {
-                                MonsterSpawnerInstanceBuilder bb = type.getBuilder();
+                            (InventoryClickEvent click, PaperPopulatorType type) -> {
+                                PaperPopulatorBuilder bb = type.getBuilder();
                                 bb.openGui(player);
                                 player.getInventory().setItemInMainHand(bb.toItem());
                                 return false;
                             },
-                            (MonsterSpawnerType type) -> new ItemBuilder(Material.CHEST)
+                            (PaperPopulatorType type) -> new ItemBuilder(Material.CHEST)
                                     .setDescription(new DMessage(DeepDungeons.get(), player).append("<blue>Type: <gold>" + type.getId() + "</gold></blue>").newLine().append(
                                             type.getDescription(player)
                                     )).build());
@@ -80,27 +80,27 @@ public class DungeonMonsterSpawnerCommand extends CoreCommand {
                 return;
             }
             case 2 -> {
-                MonsterSpawnerType typeArg = MonsterSpawnerTypeManager.getInstance().get(args[1]);
+                PaperPopulatorType typeArg = PopulatorTypeManager.getInstance().get(args[1]);
                 if (typeArg == null) {
                     sender.sendMessage("Message not implemented yet (invalid type)");//TODO
                     return;
                 }
-                MonsterSpawnerType typeItem = MonsterSpawnerTypeManager.getInstance().getMonsterSpawnerType(item);
+                PaperPopulatorType typeItem = PopulatorTypeManager.getInstance().getPopulatorType(item);
                 if (typeItem == null) {
                     if (UtilsInventory.isAirOrNull(item)) {
                         typeItem = typeArg;
                         item = typeArg.getBuilder().toItem();
                         player.getInventory().setItemInMainHand(item);
                     } else {
-                        sender.sendMessage("Message not implemented yet (hand must be monsterspawner blueprint or empty)");//TODO
+                        sender.sendMessage("Message not implemented yet (hand must be populator blueprint or empty)");//TODO
                         return;
                     }
                 }
                 if (typeArg != typeItem) {
-                    sender.sendMessage("Message not implemented yet (hand monsterspawner blueprint and argument monsterspawner mismatch)");//TODO
+                    sender.sendMessage("Message not implemented yet (hand populator blueprint and argument populator mismatch)");//TODO
                     return;
                 }
-                MonsterSpawnerInstanceBuilder builder = MonsterSpawnerTypeManager.getInstance().getMonsterSpawnerInstance(item);
+                PaperPopulatorBuilder builder = PopulatorTypeManager.getInstance().getPopulatorBuilder(item);
                 builder.openGui(player);
             }
         }
@@ -114,7 +114,7 @@ public class DungeonMonsterSpawnerCommand extends CoreCommand {
             case 1 -> this.complete(args[0], new String[]{"create"});
             case 2 -> {
                 if (args[0].equalsIgnoreCase("create"))
-                    yield this.complete(args[1], MonsterSpawnerTypeManager.getInstance().getIds());
+                    yield this.complete(args[1], PopulatorTypeManager.getInstance().getIds());
                 yield Collections.emptyList();
             }
             default -> Collections.emptyList();

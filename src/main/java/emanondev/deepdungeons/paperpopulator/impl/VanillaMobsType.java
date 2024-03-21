@@ -1,4 +1,4 @@
-package emanondev.deepdungeons.spawner.impl;
+package emanondev.deepdungeons.paperpopulator.impl;
 
 import emanondev.core.ItemBuilder;
 import emanondev.core.UtilsString;
@@ -8,8 +8,10 @@ import emanondev.core.gui.PagedMapGui;
 import emanondev.core.gui.ResearchFButton;
 import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.interfaces.MobPopulator;
+import emanondev.deepdungeons.paperpopulator.PaperPopulatorType;
 import emanondev.deepdungeons.room.RoomType.RoomInstance;
-import emanondev.deepdungeons.spawner.MonsterSpawnerType;
+import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -22,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class VanillaMobsType extends MonsterSpawnerType {
+public class VanillaMobsType extends PaperPopulatorType {
 
     public VanillaMobsType() {
         super("vanillamobs");
@@ -36,16 +38,21 @@ public class VanillaMobsType extends MonsterSpawnerType {
 
     @Override
     @NotNull
-    public VanillaMobsInstanceBuilder getBuilder() {
-        return new VanillaMobsInstanceBuilder();
+    public VanillaMobsBuilder getBuilder() {
+        return new VanillaMobsBuilder();
     }
 
-    private class VanillaMobsInstanceBuilder extends MonsterSpawnerInstanceBuilder {
+    private class VanillaMobsBuilder extends PaperPopulatorBuilder {
 
         private EntityType type = EntityType.ZOMBIE;
         private int min = 1;
         private int max = 1;
         private double chance = 1;
+
+        @Override
+        public boolean preserveContainer() {
+            return false;
+        }
 
         @Override
         @NotNull
@@ -67,7 +74,7 @@ public class VanillaMobsType extends MonsterSpawnerType {
         }
 
         @Override
-        public MonsterSpawnerInstanceBuilder fromItemLines(@NotNull List<String> lines) {
+        public PaperPopulatorBuilder fromItemLines(@NotNull List<String> lines) {
             type = EntityType.valueOf(lines.get(1).split(" ")[1]);
             min = Integer.parseInt(lines.get(2).split(" ")[1]);
             max = Integer.parseInt(lines.get(3).split(" ")[1]);
@@ -191,7 +198,7 @@ public class VanillaMobsType extends MonsterSpawnerType {
         }
     }
 
-    private class VanillaMobsInstance extends MonsterSpawnerInstance {
+    private class VanillaMobsInstance extends PaperPopulatorInstance implements MobPopulator {
 
         private final EntityType entityType;
         private final int min;
@@ -222,8 +229,14 @@ public class VanillaMobsType extends MonsterSpawnerType {
         }
 
         @NotNull
+        public EntityType getEntityType() {
+            return entityType;
+        }
+
+        @NotNull
         @Override
-        public Collection<Entity> spawnMobs(@NotNull Random random, @NotNull Location location, @Nullable Player who) {
+        public Collection<Entity> spawnMobs(@NotNull RoomHandler handler, @Nullable Player who, @NotNull Random random) {
+            Location location = handler.getLocation().add(getOffset());
             List<Entity> entities = new ArrayList<>();
             if (Math.random() < chance) {
                 int rand = new Random().nextInt() % (max - min + 1) + min;
@@ -244,9 +257,9 @@ public class VanillaMobsType extends MonsterSpawnerType {
             return entities;
         }
 
-        @NotNull
-        public EntityType getEntityType() {
-            return entityType;
+        @Override
+        public boolean spawnGuardians() {
+            return true;
         }
     }
 }

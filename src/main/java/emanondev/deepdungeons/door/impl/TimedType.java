@@ -1,17 +1,16 @@
 package emanondev.deepdungeons.door.impl;
 
-import emanondev.core.ItemBuilder;
 import emanondev.core.UtilsString;
 import emanondev.core.YMLSection;
 import emanondev.core.gui.MapGui;
 import emanondev.core.gui.NumberEditorFButton;
-import emanondev.core.message.DMessage;
+import emanondev.deepdungeons.CUtils;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.door.DoorType;
 import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
+import emanondev.deepdungeons.room.RoomType.RoomBuilder;
 import emanondev.deepdungeons.room.RoomType.RoomInstance;
 import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
-import emanondev.deepdungeons.room.RoomType.RoomInstanceBuilder;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -32,22 +31,22 @@ public class TimedType extends DoorType {
 
     @Override
     @NotNull
-    public TimedDoorInstance read(@NotNull RoomInstance room, @NotNull YMLSection section) {
-        return new TimedDoorInstance(room, section);
+    public TimedInstance read(@NotNull RoomInstance room, @NotNull YMLSection section) {
+        return new TimedInstance(room, section);
     }
 
     @Override
     @NotNull
-    public TimedDoorInstanceBuilder getBuilder(@NotNull RoomInstanceBuilder room) {
-        return new TimedDoorInstanceBuilder(room);
+    public TimedBuilder getBuilder(@NotNull RoomBuilder room) {
+        return new TimedBuilder(room);
     }
 
-    public final class TimedDoorInstanceBuilder extends DoorInstanceBuilder {
+    public final class TimedBuilder extends DoorBuilder {
 
         private long timeToUnlock = 60;//in seconds
         private boolean completedTimes = false;
 
-        public TimedDoorInstanceBuilder(@NotNull RoomInstanceBuilder room) {
+        public TimedBuilder(@NotNull RoomBuilder room) {
             super(room);
         }
 
@@ -60,16 +59,15 @@ public class TimedType extends DoorType {
         protected void handleInteractImpl(@NotNull PlayerInteractEvent event) {
             switch (event.getPlayer().getInventory().getHeldItemSlot()) {
                 case 1 -> {
-                    MapGui mapGui = new MapGui(new DMessage(DeepDungeons.get(), getPlayer()).appendLang("doorbuilder.timed_door_gui_title"),
+                    MapGui mapGui = new MapGui(
+                            CUtils.craftMsg(getPlayer(), "doorbuilder.timed_door_gui_title"),
                             1, getPlayer(), null, DeepDungeons.get());
 
                     mapGui.setButton(4, new NumberEditorFButton<>(mapGui, 1L, 1L, 10000L, () -> timeToUnlock,
                             (time) -> timeToUnlock = Math.min(Math.max(1, time), 36000),
-                            () -> new ItemBuilder(Material.REPEATER).setDescription(new DMessage(DeepDungeons.get(), getPlayer())
-                                    .appendLang("doorbuilder.timed_door_gui_item",
-                                            "%value%", UtilsString.getTimeStringSeconds(getPlayer(), timeToUnlock),
-                                            "%value_raw%", String.valueOf(timeToUnlock))
-                            ).setGuiProperty().build(), true));
+                            () -> CUtils.createItem(getPlayer(), Material.REPEATER, "doorbuilder.timed_door_gui_item",
+                                    "%value%", UtilsString.getTimeStringSeconds(getPlayer(), timeToUnlock),
+                                    "%value_raw%", String.valueOf(timeToUnlock)), true));
                     mapGui.open(event.getPlayer());
                 }
                 case 6 -> {
@@ -85,12 +83,10 @@ public class TimedType extends DoorType {
             if (!completedTimes) {
                 Player player = getPlayer();
                 PlayerInventory inv = player.getInventory();
-                inv.setItem(0, new ItemBuilder(Material.PAPER).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.timed_door_info")).build());
-                inv.setItem(1, new ItemBuilder(Material.CLOCK).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.timed_door_selector", "%value%", UtilsString.getTimeStringSeconds(getPlayer(), timeToUnlock), "%value_raw%", "" + timeToUnlock)).build());
-                inv.setItem(6, new ItemBuilder(Material.LIME_DYE).setDescription(new DMessage(DeepDungeons.get(), player)
-                        .appendLang("doorbuilder.timed_door_confirm")).build());
+                CUtils.setSlot(player, 0, inv, Material.PAPER, "doorbuilder.timed_door_info");
+                CUtils.setSlot(player, 1, inv, Material.CLOCK, "doorbuilder.timed_door_selector",
+                        "%value%", UtilsString.getTimeStringSeconds(getPlayer(), timeToUnlock), "%value_raw%", String.valueOf(timeToUnlock));
+                CUtils.setSlot(player, 6, inv, Material.LIME_DYE, "doorbuilder.timed_door_confirm");
                 return;
             }
             this.getCompletableFuture().complete(this);
@@ -102,29 +98,29 @@ public class TimedType extends DoorType {
 
     }
 
-    public class TimedDoorInstance extends DoorInstance {
+    public class TimedInstance extends DoorInstance {
 
         private final long unlockTime;
 
-        public TimedDoorInstance(@NotNull RoomInstance roomInstance, @NotNull YMLSection section) {
+        public TimedInstance(@NotNull RoomInstance roomInstance, @NotNull YMLSection section) {
             super(roomInstance, section);
             unlockTime = section.getLong("timeToUnlock", 60L);
         }
 
         @Override
         @NotNull
-        public TimeDoorHandler createDoorHandler(@NotNull RoomHandler roomHandler) {
-            return new TimeDoorHandler(roomHandler);
+        public TimedHandler createDoorHandler(@NotNull RoomHandler roomHandler) {
+            return new TimedHandler(roomHandler);
         }
 
-        public class TimeDoorHandler extends DoorHandler {
+        public class TimedHandler extends DoorHandler {
 
             private long timeAwaited;
             private boolean unlocked = false;
             private ItemDisplay item;
             private TextDisplay text;
 
-            public TimeDoorHandler(@NotNull RoomHandler roomHandler) {
+            public TimedHandler(@NotNull RoomHandler roomHandler) {
                 super(roomHandler);
             }
 
@@ -174,7 +170,7 @@ public class TimedType extends DoorType {
                             return;
                         }
                         //TODO it's not player language specific
-                        text.setText(new DMessage(DeepDungeons.get(), null).appendLang("door.timed_info",
+                        text.setText(CUtils.craftMsg(null, "door.timed_info",
                                 "%current%", UtilsString.getTimeStringSeconds(null, (timeAwaited - now) / 1000 + 1),
                                 "%max%", UtilsString.getTimeStringSeconds(null, unlockTime), "%current_raw%",
                                 String.valueOf((timeAwaited - now) / 1000 + 1), "%max_raw%", String.valueOf(unlockTime)).toLegacy());

@@ -221,6 +221,8 @@ doorbuilder:
     - "<gold>Confirm Selected Duration"
     - "<#7897ff>Confirm current settings"
 roombuilder:
+  exit_mode:
+    - "<red>Exit Room Builder Mode"
   base_msg_must_set_area: "<blue>[</blue>Party<blue>]</blue><red> Set room area with WorldEdit before continue</red>"
   base_msg_too_small: "<blue>[</blue>Party<blue>]</blue><red> Selected area is too small</red>"
   base_area_info:
@@ -258,8 +260,25 @@ roombuilder:
     - "<#7897ff>Select the exit type to add"
   base_exits_confirm:
     - "<gold>Confirm Exit Doors (count: %value%)"
-    - "<#7897ff>Confirm selected worldedit"
-    - "<#7897ff>region as room area"
+    - "<#7897ff>Confirm exit doors setting is complete"
+  base_traps_guititle: "<blue>Choose a Trap type"
+  base_traps_guihelp:
+    - "<white>Choose trap type"
+  base_traps_guiitem:
+    - "<gold><bold>%id%"
+    - "<#7897ff>Click to choose"
+  base_traps_info:
+    - "<gold>Info: Add Traps"
+    - "<#7897ff>Select the trap type to add a new trap"
+    - ""
+    - "<#7897ff>Confirm traps when you added all the"
+    - "<#7897ff>desired traps"
+  base_traps_selector:
+    - "<gold>Add New Trap"
+    - "<#7897ff>Select the trap type to add"
+  base_traps_confirm:
+    - "<gold>Confirm Traps (count: %value%)"
+    - "<#7897ff>Confirm traps setting is complete"
   base_commondata_info:
     - "<gold>Info: Set data"
     - "<#7897ff>Set additional info for the room"
@@ -291,6 +310,8 @@ roombuilder:
     - "<#7897ff>Selected: %selected%"
     - "<#7897ff>Click to toggle"
 dungeonbuilder:
+  exit_mode:
+    - "<red>Exit Dungeon Builder Mode"
   rgs_msg_setup_incomplete: "<blue>[</blue>Party<blue>]</blue><red> Configuration is uncompleted</red>"
   rgs_base_info:
     - "<gold>Info: Configure Dungeon"
@@ -346,3 +367,110 @@ dungeonbuilder:
   rgs_weightgui_roominfo:
     - "<gold>Room: <yellow>%id%"
     - "<#7897ff>Weight: <yellow>%weight%</yellow>/<yellow>%full_weight%</yellow> ≈ <yellow>%perc_weight%</yellow>%"
+trapbuilder:
+  flamechest_msg_block_is_outside_room: "<blue>[</blue>Party<blue>]</blue><red> Selected block is outside the room"
+  flamechest_msg_block_is_not_a_chest: "<blue>[</blue>Party<blue>]</blue><red> Selected block is not a chest"
+  flamechest_guisettings_title: "<blue>FlameChest settings"
+  flamechest_settings_takeaim:
+    - "<gold>Take Aim: <yellow>%directioned%"
+    - "<#7897ff>When true flame shot will be directioned toward"
+    - "<#7897ff>the player who opened the chest"
+    - "<#7897ff>When false flame shot will be directioned toward"
+    - "<#7897ff>chest facing direction"
+  flamechest_settings_maxticks:
+    - "<gold>Duration: <yellow>%maxticks%</yellow> ticks ≈ <yellow>%maxseconds%"
+    - "<#7897ff>For how many ticks the trap should"
+    - "<#7897ff>split flames"
+    - ""
+    - "<#7897ff>20 ticks = 1 second"
+  flamechest_settings_addedticks:
+    - "<gold>Duration: <yellow>%addedticks%</yellow> ticks"
+    - "<#7897ff>How many flames ticks should be"
+    - "<#7897ff>added to target for each tick it"
+    - "<#7897ff>stay on direct flames"
+    - ""
+    - "<#7897ff>20 ticks = 1 second"
+  flamechest_settings_maxuses:
+    - "<gold>Uses: <yellow>%maxuses%"
+    - "<#7897ff>For how many times the trap can be"
+    - "<#7897ff>triggered by opening the chest"
+    - ""
+    - "<#7897ff>set 0 for infinite times"
+  flamechest_settings_typeweights:
+    - "<gold>Flame Type: select the type of flame (and effect)"
+    - "<#7897ff>Fire type: <yellow>%fire%</yellow>/%max% ≈ <yellow>%fire_perc%</yellow>%"
+    - "<#7897ff>Freeze type: <yellow>%freeze%</yellow>/%max% ≈ <yellow>%freeze_perc%</yellow>%"
+    - "<#7897ff>Poison type: <yellow>%poison%</yellow>/%max% ≈ <yellow>%poison_perc%</yellow>%"
+    - "<#7897ff>Wither type: <yellow>%wither%</yellow>/%max% ≈ <yellow>%wither_perc%</yellow>%"
+    - "<#7897ff>No trap: <yellow>%none%</yellow>/%max% ≈ <yellow>%none_perc%</yellow>%"
+    - ""
+    - "<#7897ff>Those values represent the chance of the trap of being of that kind"
+    - "<#7897ff>The type is rolled once on creation, then it'll stay as it is"
+  flamechest_settings_typeguititle: "<blue>Flame Type Weight"
+  flamechest_settings_typeweight_fire:
+    - "<gold><u>Fire</u> Type"
+    - "<#7897ff>Fire type: <yellow><u>%fire%</u></yellow>/%max% ≈ <yellow><u>%fire_perc%</u></yellow>%"
+    - "<#7897ff>Freeze type: <yellow>%freeze%</yellow>/%max% ≈ <yellow>%freeze_perc%</yellow>%"
+    - "<#7897ff>Poison type: <yellow>%poison%</yellow>/%max% ≈ <yellow>%poison_perc%</yellow>%"
+    - "<#7897ff>Wither type: <yellow>%wither%</yellow>/%max% ≈ <yellow>%wither_perc%</yellow>%"
+    - "<#7897ff>No trap: <yellow>%none%</yellow>/%max% ≈ <yellow>%none_perc%</yellow>%"
+    - ""
+    - "<#7897ff>Apply fire ticks to hit entities"
+    - ""
+  flamechest_settings_typeweight_freeze:
+    - "<gold><u>Freeze</u> Type"
+    - "<#7897ff>Fire type: <yellow>%fire%</yellow>/%max% ≈ <yellow>%fire_perc%</yellow>%"
+    - "<#7897ff>Freeze type: <yellow><u>%freeze%</u></yellow>/%max% ≈ <yellow><u>%freeze_perc%</u></yellow>%"
+    - "<#7897ff>Poison type: <yellow>%poison%</yellow>/%max% ≈ <yellow>%poison_perc%</yellow>%"
+    - "<#7897ff>Wither type: <yellow>%wither%</yellow>/%max% ≈ <yellow>%wither_perc%</yellow>%"
+    - "<#7897ff>No trap: <yellow>%none%</yellow>/%max% ≈ <yellow>%none_perc%</yellow>%"
+    - ""
+    - "<#7897ff>Apply freeze ticks to hit entities"
+    - ""
+  flamechest_settings_typeweight_poison:
+    - "<gold><u>Poison</u> Type"
+    - "<#7897ff>Fire type: <yellow>%fire%</yellow>/%max% ≈ <yellow>%fire_perc%</yellow>%"
+    - "<#7897ff>Freeze type: <yellow>%freeze%</yellow>/%max% ≈ <yellow>%freeze_perc%</yellow>%"
+    - "<#7897ff>Poison type: <yellow><u>%poison%</u></yellow>/%max% ≈ <yellow><u>%poison_perc%</u></yellow>%"
+    - "<#7897ff>Wither type: <yellow>%wither%</yellow>/%max% ≈ <yellow>%wither_perc%</yellow>%"
+    - "<#7897ff>No trap: <yellow>%none%</yellow>/%max% ≈ <yellow>%none_perc%</yellow>%"
+    - ""
+    - "<#7897ff>Apply poison effect ticks to hit entities"
+    - ""
+  flamechest_settings_typeweight_wither:
+    - "<gold><u>Wither</u> Type"
+    - "<#7897ff>Fire type: <yellow>%fire%</yellow>/%max% ≈ <yellow>%fire_perc%</yellow>%"
+    - "<#7897ff>Freeze type: <yellow>%freeze%</yellow>/%max% ≈ <yellow>%freeze_perc%</yellow>%"
+    - "<#7897ff>Poison type: <yellow>%poison%</yellow>/%max% ≈ <yellow>%poison_perc%</yellow>%"
+    - "<#7897ff>Wither type: <yellow><u>%wither%</u></yellow>/%max% ≈ <yellow><u>%wither_perc%</u></yellow>%"
+    - "<#7897ff>No trap: <yellow>%none%</yellow>/%max% ≈ <yellow>%none_perc%</yellow>%"
+    - ""
+    - "<#7897ff>Apply wither effect ticks to hit entities"
+    - ""
+  flamechest_settings_typeweight_none:
+    - "<gold><u>No Trap</u> Type"
+    - "<#7897ff>Fire type: <yellow>%fire%</yellow>/%max% ≈ <yellow>%fire_perc%</yellow>%"
+    - "<#7897ff>Freeze type: <yellow>%freeze%</yellow>/%max% ≈ <yellow>%freeze_perc%</yellow>%"
+    - "<#7897ff>Poison type: <yellow>%poison%</yellow>/%max% ≈ <yellow>%poison_perc%</yellow>%"
+    - "<#7897ff>Wither type: <yellow>%wither%</yellow>/%max% ≈ <yellow>%wither_perc%</yellow>%"
+    - "<#7897ff>No trap: <yellow><u>%none%</u></yellow>/%max% ≈ <yellow><u>%none_perc%</u></yellow>%"
+    - ""
+    - "<#7897ff>Does nothing, trap is skipped"
+    - ""
+  flamechest_msg_setup_incomplete: "<blue>[</blue>Party<blue>]</blue><red> Configuration is uncompleted, you must set at least a block</red>"
+  flamechest_info:
+    - "<gold>Info: Configure FlameChest"
+    - "<#7897ff>Set the configuration"
+    - ""
+    - "<#7897ff>Selected chest may trigger the trap when opened"
+    - "<#7897ff>Trap will throw particles and apply effects"
+    - "<#7897ff>based on your configuration"
+  flamechest_chestselector:
+    - "<gold>Select/Deselect chests"
+    - "<#7897ff>Click chests to toggle"
+  flamechest_settings:
+    - "<gold>Set FlameChest options"
+    - "<#7897ff>Click open a gui"
+  flamechest_confirm:
+    - "<gold>Confirm configuration"
+    - "<#7897ff>Click to confirm configuration"

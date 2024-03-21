@@ -1,4 +1,4 @@
-package emanondev.deepdungeons.treasure.impl;
+package emanondev.deepdungeons.paperpopulator.impl;
 
 import emanondev.core.ItemBuilder;
 import emanondev.core.YMLSection;
@@ -6,8 +6,10 @@ import emanondev.core.gui.PagedMapGui;
 import emanondev.core.gui.ResearchFButton;
 import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.DeepDungeons;
+import emanondev.deepdungeons.interfaces.ItemPopulator;
+import emanondev.deepdungeons.paperpopulator.PaperPopulatorType;
 import emanondev.deepdungeons.room.RoomType.RoomInstance;
-import emanondev.deepdungeons.treasure.TreasureType;
+import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -24,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class LootTableType extends TreasureType {
+public class LootTableType extends PaperPopulatorType {
 
     public LootTableType() {
         super("loottable");
@@ -38,17 +40,22 @@ public class LootTableType extends TreasureType {
 
     @Override
     @NotNull
-    public LootTableInstanceBuilder getBuilder() {
-        return new LootTableInstanceBuilder();
+    public LootTableBuilder getBuilder() {
+        return new LootTableBuilder();
     }
 
 
-    public class LootTableInstanceBuilder extends TreasureInstanceBuilder {
+    public class LootTableBuilder extends PaperPopulatorBuilder {
 
         private LootTable table = LootTables.SIMPLE_DUNGEON.getLootTable();
 
-        public LootTableInstanceBuilder() {
+        public LootTableBuilder() {
             super();
+        }
+
+        @Override
+        public boolean preserveContainer() {
+            return true;
         }
 
         @NotNull
@@ -79,7 +86,7 @@ public class LootTableType extends TreasureType {
          */
         @Override
         @Contract("_ -> this")
-        public TreasureInstanceBuilder fromItemLines(@NotNull List<String> lines) {
+        public PaperPopulatorBuilder fromItemLines(@NotNull List<String> lines) {
             if (lines.size() >= 2) {
                 String[] args = lines.get(1).split(" ")[1].split(":");
                 table = Bukkit.getLootTable(new NamespacedKey(args[0], args[1]));
@@ -123,7 +130,7 @@ public class LootTableType extends TreasureType {
         }
     }
 
-    public class LootTableInstance extends TreasureInstance {
+    public class LootTableInstance extends PaperPopulatorInstance implements ItemPopulator {
 
         private final LootTable table;
 
@@ -138,11 +145,11 @@ public class LootTableType extends TreasureType {
         }
 
         @Override
-        @NotNull
-        public Collection<ItemStack> getTreasure(@NotNull Random random, @NotNull Location location, @Nullable Player who) {
+        public Collection<ItemStack> getItems(@NotNull RoomHandler handler, @NotNull Location location, @Nullable Player who, @NotNull Random random) {
             if (table == null)
                 return Collections.emptyList();
             return table.populateLoot(random, new LootContext.Builder(location).killer(who).lootingModifier(0).build());
         }
+
     }
 }

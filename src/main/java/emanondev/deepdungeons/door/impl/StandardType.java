@@ -2,9 +2,9 @@ package emanondev.deepdungeons.door.impl;
 
 import emanondev.core.YMLSection;
 import emanondev.deepdungeons.door.DoorType;
+import emanondev.deepdungeons.room.RoomType.RoomBuilder;
 import emanondev.deepdungeons.room.RoomType.RoomInstance;
 import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
-import emanondev.deepdungeons.room.RoomType.RoomInstanceBuilder;
 import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -23,13 +23,13 @@ public class StandardType extends DoorType {
 
     @Override
     @NotNull
-    public StandardInstanceBuilder getBuilder(@NotNull RoomInstanceBuilder room) {
-        return new StandardInstanceBuilder(room);
+    public StandardBuilder getBuilder(@NotNull RoomBuilder room) {
+        return new StandardBuilder(room);
     }
 
-    public final class StandardInstanceBuilder extends DoorInstanceBuilder {
+    public final class StandardBuilder extends DoorBuilder {
 
-        public StandardInstanceBuilder(@NotNull RoomInstanceBuilder room) {
+        public StandardBuilder(@NotNull RoomBuilder room) {
             super(room);
         }
 
