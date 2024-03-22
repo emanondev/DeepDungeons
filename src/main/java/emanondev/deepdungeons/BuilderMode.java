@@ -197,6 +197,12 @@ public class BuilderMode implements Listener {
             event.setCancelled(true);
     }
 
+    @EventHandler(ignoreCancelled = true)
+    private void event(@NotNull PlayerSwapHandItemsEvent event) {
+        if (isOnEditorMode(event.getPlayer()))
+            event.setCancelled(true);
+    }
+
     @EventHandler
     private void event(@NotNull PlayerInteractEvent event) {
         if (event.getAction() == Action.PHYSICAL)

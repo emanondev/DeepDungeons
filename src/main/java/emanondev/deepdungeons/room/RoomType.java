@@ -486,8 +486,8 @@ public abstract class RoomType extends DRegistryElement {
                                 },
                                 (type) -> CUtils.createItem(event.getPlayer(), type.isItem() ? type : Material.BARRIER, 1,
                                         breakableBlocks.contains(type), "roombuilder.base_commondata_guibreaktitle",
-                                        "%id%" + type.name(),
-                                        "%selected%", breakableBlocks.contains(type) ? ("<green>true</green>") : ("<red>false</red>")),
+                                        "%id%" , type.name(),
+                                        "%selected%", CUtils.toText(breakableBlocks.contains(type) )),
                                 types
                         ).open(event.getPlayer());
                     }
