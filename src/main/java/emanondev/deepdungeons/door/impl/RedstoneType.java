@@ -148,7 +148,7 @@ public class RedstoneType extends DoorType {
             public void setupOffset() {
                 super.setupOffset();
                 for (BlockVector vector : RedstoneInstance.this.poweredBlocks)
-                    poweredBlocksList.add(this.getRoom().getLocation().add(vector).getBlock());
+                    poweredBlocksList.add(this.getRoomHandler().getLocation().add(vector).getBlock());
             }
 
             @Override
@@ -161,7 +161,7 @@ public class RedstoneType extends DoorType {
             @Override
             public void onFirstPlayerEnter(@NotNull Player player) {
                 //entities.addAll(getRoom().getMonsters());
-                @NotNull World world = getRoom().getDungeonHandler().getWorld();
+                @NotNull World world = getRoomHandler().getDungeonHandler().getWorld();
                 Vector center = this.getBoundingBox().getCenter();
                 item = (ItemDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() + 0.5, center.getZ())
                         .setDirection(getDoorFace().getOppositeFace().getDirection()), EntityType.ITEM_DISPLAY);
@@ -177,7 +177,7 @@ public class RedstoneType extends DoorType {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if (getRoom().getDungeonHandler().getState() != DungeonHandler.State.STARTED) {
+                        if (getRoomHandler().getDungeonHandler().getState() != DungeonHandler.State.STARTED) {
                             text.remove();
                             item.remove();
                             this.cancel();
@@ -186,7 +186,7 @@ public class RedstoneType extends DoorType {
                         if (atSameTime) {
                             final int[] counter = {0};
                             poweredBlocksList.forEach(block -> {
-                                if (block.isBlockFacePowered(BlockFace.SELF))//TODO test
+                                if (block.isBlockFacePowered(BlockFace.SELF))
                                     counter[0]++;
                             });
                             if (counter[0] >= poweredBlocksList.size()) {

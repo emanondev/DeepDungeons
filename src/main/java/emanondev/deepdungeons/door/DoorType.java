@@ -459,7 +459,7 @@ public abstract class DoorType extends DRegistryElement {
                     cooldowns.put(player.getUniqueId(), cooldownSeconds * 1000L + System.currentTimeMillis());
                 else
                     blocked.add(player.getUniqueId());
-                World world = getRoom().getDungeonHandler().getWorld();
+                World world = getRoomHandler().getDungeonHandler().getWorld();
                 Vector center = this.getBoundingBox().getCenter();
                 ItemDisplay item = (ItemDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() + 0.25, center.getZ())
                         .setDirection(getDoorFace().getDirection()), EntityType.ITEM_DISPLAY);
@@ -488,7 +488,7 @@ public abstract class DoorType extends DRegistryElement {
                 cooldownTask = new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if (getRoom().getDungeonHandler().getState() != DungeonHandler.State.STARTED) {
+                        if (getRoomHandler().getDungeonHandler().getState() != DungeonHandler.State.STARTED) {
                             cooldownItems.values().forEach(Entity::remove);
                             cooldownText.values().forEach(Entity::remove);
                             this.cancel();
@@ -524,13 +524,13 @@ public abstract class DoorType extends DRegistryElement {
 
             @Contract(pure = true)
             @NotNull
-            public final DoorInstance getInstance() {
+            public final DoorInstance getDoorInstance() {
                 return DoorInstance.this;
             }
 
             @Contract(pure = true)
             @NotNull
-            public RoomHandler getRoom() {
+            public RoomHandler getRoomHandler() {
                 return this.roomHandler;
             }
 
@@ -547,8 +547,8 @@ public abstract class DoorType extends DRegistryElement {
             public void setupOffset() {
                 if (boundingBox != null)
                     throw new IllegalStateException();
-                this.boundingBox = getInstance().getBoundingBox().shift(this.getRoom().getLocation().toVector());
-                this.spawn = getInstance().getSpawnLocation(getRoom().getLocation());
+                this.boundingBox = getDoorInstance().getBoundingBox().shift(this.getRoomHandler().getLocation().toVector());
+                this.spawn = getDoorInstance().getSpawnLocation(getRoomHandler().getLocation());
                 this.spawn.setPitch(getSpawnPitch());
                 this.spawn.setYaw(getSpawnYaw());
             }
@@ -556,11 +556,11 @@ public abstract class DoorType extends DRegistryElement {
             public void onPlayerMove(@NotNull PlayerMoveEvent event) {
                 DoorHandler link = this.getLink();
                 if (link == null) {
-                    if (this.equals(this.getRoom().getDungeonHandler().getEntrance())) {
+                    if (this.equals(this.getRoomHandler().getDungeonHandler().getEntrance())) {
                         //TODO help exit the dungeon confirm with gui
                         return;
                     }
-                    if (this.equals(this.getRoom().getEntrance())) {
+                    if (this.equals(this.getRoomHandler().getEntrance())) {
                         DoorHandler back = PartyManager.getInstance().getDungeonPlayer(event.getPlayer()).getBackRoute(this);
                         if (back != null) {
                             if (canUse(event.getPlayer())) {
@@ -599,7 +599,6 @@ public abstract class DoorType extends DRegistryElement {
             }
 
             public void onFirstPlayerEnter(@NotNull Player player) {
-
             }
         }
 

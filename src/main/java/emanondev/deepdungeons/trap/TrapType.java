@@ -2,14 +2,11 @@ package emanondev.deepdungeons.trap;
 
 import emanondev.core.YMLSection;
 import emanondev.core.util.DRegistryElement;
-import emanondev.core.util.ParticleUtility;
-import emanondev.core.util.WorldEditUtility;
 import emanondev.deepdungeons.DInstance;
 import emanondev.deepdungeons.room.RoomType.RoomBuilder;
 import emanondev.deepdungeons.room.RoomType.RoomInstance;
 import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
 import org.bukkit.Color;
-import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -42,12 +39,12 @@ public abstract class TrapType extends DRegistryElement {
             this.roomBuilder = room;
         }
 
-        public final void writeTo(@NotNull YMLSection section) {
+        public final void writeTo(@NotNull YMLSection section) throws Exception {
             section.set("type", getType().getId());
             writeToImpl(section);
         }
 
-        protected abstract void writeToImpl(@NotNull YMLSection section);
+        protected abstract void writeToImpl(@NotNull YMLSection section) throws Exception;
 
         @NotNull
         public CompletableFuture<TrapBuilder> getCompletableFuture() {
@@ -96,13 +93,6 @@ public abstract class TrapType extends DRegistryElement {
 
         protected abstract void tickTimerImpl(@NotNull Player player, @NotNull Color color);
 
-        protected void showWEBound(@NotNull Player player) {
-            try {
-                ParticleUtility.spawnParticleBoxFaces(player, roomBuilder.getTickCounter() / 6 + 6, 4, Particle.REDSTONE,
-                        WorldEditUtility.getSelectionBoxExpanded(player), new Particle.DustOptions(Color.WHITE, 0.3F));
-            } catch (Exception ignored) {
-            }
-        }
     }
 
     public abstract class TrapInstance extends DInstance<TrapType> {

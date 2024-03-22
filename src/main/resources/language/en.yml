@@ -309,6 +309,24 @@ roombuilder:
     - "<gold><bold>%id%"
     - "<#7897ff>Selected: %selected%"
     - "<#7897ff>Click to toggle"
+  base_populators_guititle: "<blue>Choose a Populator type"
+  base_populators_guihelp:
+    - "<white>Choose populator type"
+  base_populators_guiitem:
+    - "<gold><bold>%id%"
+    - "<#7897ff>Click to choose"
+  base_populators_info:
+    - "<gold>Info: Add Populators"
+    - "<#7897ff>Select the populator type to add a new trap"
+    - ""
+    - "<#7897ff>Confirm populator when you added all the"
+    - "<#7897ff>desired populator"
+  base_populators_selector:
+    - "<gold>Add New Populator"
+    - "<#7897ff>Select the populator type to add"
+  base_populators_confirm:
+    - "<gold>Confirm Populators (count: %value%)"
+    - "<#7897ff>Confirm populator setting is complete"
 dungeonbuilder:
   exit_mode:
     - "<red>Exit Dungeon Builder Mode"
@@ -474,3 +492,61 @@ trapbuilder:
   flamechest_confirm:
     - "<gold>Confirm configuration"
     - "<#7897ff>Click to confirm configuration"
+populatorbuilder:
+  settings_guititle: "<blue>Populator Settings (<gold>%type%</gold>)"
+  settings_usechance:
+    - "<gold>Use Chance: <yellow>%value%</yellow>%"
+    - ""
+    - "<#7897ff>Influence the chance of this Populator to be used or ignored"
+    - ""
+  base_item_settings:
+    - "<gold>Open Settings Gui"
+    - ""
+    - "<#7897ff>Click to open gui"
+  base_confirm:
+    - "<gold>Confirm configuration"
+    - "<#7897ff>Click to confirm configuration"
+  deleteemptycontainer_info:
+    - "<gold>Info: Configure DeleteEmptyContainer"
+    - "<#7897ff>After other populators fills chests and containers"
+    - "<#7897ff>this will check selected chest and containers"
+    - "<#7897ff>and empty ones will be removed"
+  deleteemptycontainer_selector:
+    - "<gold>Select/Deselect containers"
+    - "<#7897ff>Clicking on a container toggle it"
+  loottable_info:
+    - "<gold>Info: Configure LootTable"
+    - "<#7897ff>Adds selected loottable to selected"
+    - "<#7897ff>containers or locations"
+  loottable_selector:
+    - "<gold>Select/Deselect locations"
+    - "<#7897ff>Clicking on a container will spawn the loot inside container"
+    - "<#7897ff>Clicking on a block will spawn the loot next to the block"
+  mythicmobsloottable_info:
+    - "<gold>Info: Configure MythicMobsLootTable"
+    - "<#7897ff>Adds selected loottable to selected"
+    - "<#7897ff>containers or locations"
+  mythicmobsloottable_selector:
+    - "<gold>Select/Deselect locations"
+    - "<#7897ff>Clicking on a container will spawn the loot inside container"
+    - "<#7897ff>Clicking on a block will spawn the loot next to the block"
+  mythicmobs_info:
+    - "<gold>Info: Configure MythicMobs"
+    - "<#7897ff>Spawn mobs of selected kind and options"
+    - "<#7897ff>on random position choosen from selected locations"
+  mythicmobs_selector:
+    - "<gold>Select/Deselect spawn locations"
+    - "<#7897ff>Click where the mobs can spawn"
+    - "<#7897ff>one of the random location is choosen for"
+    - "<#7897ff>each mob, however the amount of mobs is not"
+    - "<#7897ff>influenced by spawning locations"
+  vanillamobs_info:
+    - "<gold>Info: Configure VanillaMobs"
+    - "<#7897ff>Spawn mobs of selected kind and options"
+    - "<#7897ff>on random position choosen from selected locations"
+  vanillamobs_selector:
+    - "<gold>Select/Deselect spawn locations"
+    - "<#7897ff>Click where the mobs can spawn"
+    - "<#7897ff>one of the random location is choosen for"
+    - "<#7897ff>each mob, however the amount of mobs is not"
+    - "<#7897ff>influenced by spawning locations"

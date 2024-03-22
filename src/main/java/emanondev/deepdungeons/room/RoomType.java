@@ -21,9 +21,10 @@ import emanondev.deepdungeons.door.DoorType.DoorInstance.DoorHandler;
 import emanondev.deepdungeons.door.DoorTypeManager;
 import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
 import emanondev.deepdungeons.interfaces.*;
-import emanondev.deepdungeons.paperpopulator.PaperPopulatorType;
-import emanondev.deepdungeons.paperpopulator.PaperPopulatorType.PaperPopulatorBuilder;
-import emanondev.deepdungeons.paperpopulator.PopulatorTypeManager;
+import emanondev.deepdungeons.interfaces.PaperPopulatorType.PaperPopulatorBuilder;
+import emanondev.deepdungeons.interfaces.PopulatorType.PopulatorBuilder;
+import emanondev.deepdungeons.interfaces.PopulatorType.PopulatorInstance;
+import emanondev.deepdungeons.populator.PopulatorTypeManager;
 import emanondev.deepdungeons.trap.TrapType;
 import emanondev.deepdungeons.trap.TrapType.TrapBuilder;
 import emanondev.deepdungeons.trap.TrapType.TrapInstance;
@@ -80,6 +81,7 @@ public abstract class RoomType extends DRegistryElement {
 
         private final List<DoorBuilder> exits = new ArrayList<>();
         private final List<TrapBuilder> traps = new ArrayList<>();
+        private final List<PopulatorType.PopulatorBuilder> populatorBuilders = new ArrayList<>();
         private final HashSet<Material> breakableBlocks = new HashSet<>();
         private final HashSet<Material> placeableBlocks = new HashSet<>();
         private final CompletableFuture<RoomBuilder> completableFuture = new CompletableFuture<>();
@@ -92,6 +94,7 @@ public abstract class RoomType extends DRegistryElement {
         private boolean hasCompletedExitsCreation = false;
         private boolean hasCompletedTrapsCreation = false;
         private int tickCounter = 0;
+        private boolean hasCompletedPopulatorCreation = false;
 
         protected RoomBuilder(@NotNull String id, @NotNull Player player) {
             super(id, RoomType.this);
@@ -146,7 +149,7 @@ public abstract class RoomType extends DRegistryElement {
             BlockVector max = smallArea.getMax().toBlockVector();
 
 
-            List<PaperPopulatorBuilder> populators = new ArrayList<>();
+            List<PaperPopulatorBuilder> paperPopulators = new ArrayList<>();
 
             for (int y = min.getBlockY(); y <= max.getBlockY(); y++)
                 for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++)
@@ -161,15 +164,17 @@ public abstract class RoomType extends DRegistryElement {
                         boolean preserveContainer = false;
                         boolean hasSomething = false;
                         for (int i = 0; i < inv.getSize(); i++) {
-                            PaperPopulatorType.PaperPopulatorBuilder populator = PopulatorTypeManager
-                                    .getInstance().getPopulatorBuilder(inv.getItem(i));
+                            PaperPopulatorBuilder populator = PopulatorTypeManager
+                                    .getInstance().getPaperPopulatorBuilder(inv.getItem(i));
                             if (populator != null) {
                                 preserveContainer |= populator.preserveContainer();
                                 hasSomething = true;
-                                populator.setOffset(new Vector(x, y, z).subtract(getOffset()).add(new Vector(0.5, 0, 0.5)));
-                                if (b.getBlockData() instanceof Directional directional)
-                                    populator.setDirection(directional.getFacing().getDirection());
-                                populators.add(populator);
+                                Location offset = new Location(null, x, y, z);
+                                if (b.getBlockData() instanceof Directional directional) {
+                                    offset.setDirection(directional.getFacing().getDirection());
+                                }
+                                populator.setOffset(offset.subtract(getOffset()).add(new Vector(0.5, 0, 0.5)));
+                                paperPopulators.add(populator);
                                 inv.setItem(i, null);
                             }
                         }
@@ -186,12 +191,11 @@ public abstract class RoomType extends DRegistryElement {
             for (Entity entity : entities) {
                 if (!(entity instanceof Item item))
                     continue;
-                PaperPopulatorType.PaperPopulatorBuilder populator = PopulatorTypeManager
-                        .getInstance().getPopulatorBuilder(item.getItemStack());
+                PaperPopulatorBuilder populator = PopulatorTypeManager
+                        .getInstance().getPaperPopulatorBuilder(item.getItemStack());
                 if (populator != null) {
-                    populator.setOffset(item.getLocation().toVector().subtract(getOffset()));
-                    populator.setDirection(item.getLocation().getDirection());
-                    populators.add(populator);
+                    populator.setOffset(item.getLocation().subtract(getOffset()));
+                    paperPopulators.add(populator);
                     entitiesSnapshots.put(item.createSnapshot(), item.getLocation());
                     item.remove();
                 }
@@ -199,10 +203,19 @@ public abstract class RoomType extends DRegistryElement {
 
 
             tmp = section.loadSection("populators");
-            for (int i = 0; i < populators.size(); i++) {
-                YMLSection sub = tmp.loadSection(String.valueOf(i + 1));
+            int index = 0;
+            for (; index < this.populatorBuilders.size(); index++) {
+                YMLSection sub = tmp.loadSection(String.valueOf(index + 1));
                 try {
-                    populators.get(i).writeTo(sub);
+                    this.populatorBuilders.get(index).writeTo(sub);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }
+            for (; index < paperPopulators.size(); index++) {
+                YMLSection sub = tmp.loadSection(String.valueOf(index + 1));
+                try {
+                    paperPopulators.get(index).writeTo(sub);
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
@@ -279,8 +292,8 @@ public abstract class RoomType extends DRegistryElement {
                             if (t != null) {
                                 this.getCompletableFuture().completeExceptionally(t);
                             } else {
-                                this.setupTools();
                                 getPlayer().getInventory().setHeldItemSlot(0);
+                                this.setupTools();
                             }
                         });
                         WorldEditUtility.clearSelection(event.getPlayer());
@@ -321,6 +334,7 @@ public abstract class RoomType extends DRegistryElement {
                                         if (t != null) {
                                             this.getCompletableFuture().completeExceptionally(t);
                                         } else {
+                                            this.getPlayer().getInventory().setHeldItemSlot(0);
                                             this.setupTools();
                                         }
                                     });
@@ -336,8 +350,8 @@ public abstract class RoomType extends DRegistryElement {
                     case 6 -> {
                         if (!exits.isEmpty()) {
                             hasCompletedExitsCreation = true;
-                            setupTools();
                             getPlayer().getInventory().setHeldItemSlot(0);
+                            setupTools();
                         }
                     }
                 }
@@ -371,6 +385,7 @@ public abstract class RoomType extends DRegistryElement {
                                         if (t != null) {
                                             this.getCompletableFuture().completeExceptionally(t);
                                         } else {
+                                            this.getPlayer().getInventory().setHeldItemSlot(0);
                                             this.setupTools();
                                         }
                                     });
@@ -386,8 +401,59 @@ public abstract class RoomType extends DRegistryElement {
                     case 6 -> {
                         if (!traps.isEmpty()) {
                             hasCompletedTrapsCreation = true;
-                            setupTools();
                             getPlayer().getInventory().setHeldItemSlot(0);
+                            setupTools();
+                        }
+                    }
+                }
+                return;
+            }
+            if (!this.hasCompletedPopulatorCreation) {
+                if (!(populatorBuilders.isEmpty() || populatorBuilders.get(populatorBuilders.size() - 1).getCompletableFuture().isDone())) {
+                    populatorBuilders.get(populatorBuilders.size() - 1).handleInteract(event);
+                    return;
+                }
+                switch (heldSlot) {
+                    case 1 -> {
+                        ArrayList<PopulatorType> types = new ArrayList<>(PopulatorTypeManager.getInstance().getAll());
+                        types.sort(Comparator.comparing(PopulatorType::getId));
+                        new AdvancedResearchFGui<>(
+                                CUtils.craftMsg(event.getPlayer(), "roombuilder.base_populators_guititle"),
+                                event.getPlayer(), null, DeepDungeons.get(),
+                                CUtils.emptyIBuilder(Material.TURTLE_EGG).setDescription(CUtils.emptyMsg(event.getPlayer())
+                                        .append(">").newLine().appendLang("roombuilder.base_populators_guihelp")
+                                ).build(), (String text, PopulatorType type) -> {
+                            String[] split = text.split(" ");
+                            for (String s : split)
+                                if (!(type.getId().toLowerCase(Locale.ENGLISH).contains(s.toLowerCase(Locale.ENGLISH))))
+                                    return false;
+                            return true;
+                        },
+                                (evt, type) -> {
+                                    PopulatorBuilder pop = type.getBuilder(this);
+                                    populatorBuilders.add(pop);
+                                    pop.getCompletableFuture().whenComplete((b, t) -> {
+                                        if (t != null) {
+                                            this.getCompletableFuture().completeExceptionally(t);
+                                        } else {
+                                            this.getPlayer().getInventory().setHeldItemSlot(0);
+                                            this.setupTools();
+                                        }
+                                    });
+                                    event.getPlayer().closeInventory();
+                                    setupTools();
+                                    return false;
+                                },
+                                (type) -> CUtils.createItem(event.getPlayer(), Material.TRIPWIRE_HOOK,
+                                        "roombuilder.base_populators_guiitem", "%id%", type.getId()),
+                                types
+                        ).open(event.getPlayer());
+                    }
+                    case 6 -> {
+                        if (!traps.isEmpty()) {
+                            hasCompletedPopulatorCreation = true;
+                            getPlayer().getInventory().setHeldItemSlot(0);
+                            setupTools();
                         }
                     }
                 }
@@ -458,8 +524,8 @@ public abstract class RoomType extends DRegistryElement {
                     }
                     case 6 -> {
                         hasCompletedBreakableMaterials = true;
-                        setupTools();
                         getPlayer().getInventory().setHeldItemSlot(0);
+                        setupTools();
                     }
                 }
             }
@@ -499,8 +565,6 @@ public abstract class RoomType extends DRegistryElement {
                 }
                 return;
             }
-
-
             if (!hasCompletedTrapsCreation) {
                 if (traps.isEmpty() || traps.get(traps.size() - 1).getCompletableFuture().isDone()) {
                     CUtils.setSlot(player, 0, inv, Material.PAPER, "roombuilder.base_traps_info");
@@ -509,6 +573,18 @@ public abstract class RoomType extends DRegistryElement {
                             "%value%", String.valueOf(traps.size()));
                 } else {
                     traps.get(traps.size() - 1).setupTools();
+                }
+                return;
+            }
+
+            if (!hasCompletedPopulatorCreation) {
+                if (populatorBuilders.isEmpty() || populatorBuilders.get(populatorBuilders.size() - 1).getCompletableFuture().isDone()) {
+                    CUtils.setSlot(player, 0, inv, Material.PAPER, "roombuilder.base_populators_info");
+                    CUtils.setSlot(player, 1, inv, Material.SPRUCE_DOOR, "roombuilder.base_populators_selector");
+                    CUtils.setSlot(player, 6, inv, Material.LIGHT_BLUE_DYE, "roombuilder.base_populators_confirm",
+                            "%value%", String.valueOf(populatorBuilders.size()));
+                } else {
+                    populatorBuilders.get(populatorBuilders.size() - 1).setupTools();
                 }
                 return;
             }
@@ -560,6 +636,12 @@ public abstract class RoomType extends DRegistryElement {
                         trap.timerTick(player, CUtils.craftColorRedSpectrum(i));
                     }
                 }
+                if (!hasCompletedPopulatorCreation) {
+                    for (int i = 0; i < populatorBuilders.size(); i++) {
+                        PopulatorBuilder pop = populatorBuilders.get(i);
+                        pop.timerTick(player, CUtils.craftColorRedSpectrum(i));
+                    }
+                }
             }
             timerTickImpl();
         }
@@ -605,7 +687,7 @@ public abstract class RoomType extends DRegistryElement {
         private final Set<Material> placeableBlocks = new HashSet<>();
         private final String schematicName;
         private final BlockVector size;
-        private final List<RoomPopulator> populators = new ArrayList<>();
+        private final List<PopulatorInstance> populators = new ArrayList<>();
         private SoftReference<Clipboard> clipboard = null;
         private CompletableFuture<Clipboard> futureClipboard;
 
@@ -619,7 +701,7 @@ public abstract class RoomType extends DRegistryElement {
                 exits.add(DoorTypeManager.getInstance().get(sub.getString("type")).read(this, sub));
             }
             tmp = section.loadSection("populators");
-            List<RoomPopulator> pops = new ArrayList<>();
+            List<PopulatorInstance> pops = new ArrayList<>();
             for (String key : tmp.getKeys(false)) {
                 YMLSection sub = tmp.loadSection(key);
                 pops.add(PopulatorTypeManager.getInstance().get(sub.getString("type")).read(this, sub));
@@ -713,17 +795,17 @@ public abstract class RoomType extends DRegistryElement {
         @NotNull
         public abstract RoomHandler createRoomHandler(@NotNull DungeonHandler dungeonHandler);
 
-        public void addPopulator(@NotNull RoomPopulator populator) {
+        public void addPopulator(@NotNull PopulatorInstance populator) {
             this.populators.add(populator);
             this.populators.sort(Comparator.comparingInt(p -> p.getPriority().ordinal()));
         }
 
-        public void addPopulators(@NotNull Collection<RoomPopulator> populators) {
+        public void addPopulators(@NotNull Collection<PopulatorType.PopulatorInstance> populators) {
             this.populators.addAll(populators);
             this.populators.sort(Comparator.comparingInt(p -> p.getPriority().ordinal()));
         }
 
-        private List<RoomPopulator> getPopulators() {
+        private List<PopulatorInstance> getPopulators() {
             return Collections.unmodifiableList(populators);
         }
 

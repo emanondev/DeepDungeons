@@ -1,4 +1,4 @@
-package emanondev.deepdungeons.paperpopulator;
+package emanondev.deepdungeons.populator;
 
 /**
  * Represents a paper populator's priority in execution.

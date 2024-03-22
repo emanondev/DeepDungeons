@@ -449,7 +449,7 @@ public class GroupsSequenceType extends DungeonType {
 
             private void paste() {
                 //TODO debug
-                DeepDungeons.get().logInfo("Pasting &e" + this.getInstance().getId() + " &fat &e" + getWorld().getName() + " " + Util.toString(location.toVector().toBlockVector()).replace(";", " "));
+                DeepDungeons.get().logInfo("Pasting &e" + this.getDungeonInstance().getId() + " &fat &e" + getWorld().getName() + " " + Util.toString(location.toVector().toBlockVector()).replace(";", " "));
                 long before = System.currentTimeMillis();
 
                 getLocation().getWorld().getNearbyEntities(getBoundingBox(), (e) -> !(e instanceof Player)).forEach(Entity::remove);
@@ -503,7 +503,7 @@ public class GroupsSequenceType extends DungeonType {
                     this.state = State.READY;
                     AreaManager.getInstance().flagReady(this);
                     //TODO debug
-                    DeepDungeons.get().logInfo("Pasted &e" + this.getInstance().getId() + " &fat &e" + getWorld().getName() + " " + Util.toString(location.toVector().toBlockVector()).replace(";", " ") + "&f took &e" + (System.currentTimeMillis() - before) + " &fms");
+                    DeepDungeons.get().logInfo("Pasted &e" + this.getDungeonInstance().getId() + " &fat &e" + getWorld().getName() + " " + Util.toString(location.toVector().toBlockVector()).replace(";", " ") + "&f took &e" + (System.currentTimeMillis() - before) + " &fms");
                 });
             }
 

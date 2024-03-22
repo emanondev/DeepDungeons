@@ -1,13 +1,11 @@
-package emanondev.deepdungeons.paperpopulator;
+package emanondev.deepdungeons.populator;
 
 import emanondev.core.Hooks;
 import emanondev.core.util.DRegistry;
 import emanondev.deepdungeons.DeepDungeons;
-import emanondev.deepdungeons.paperpopulator.PaperPopulatorType.PaperPopulatorBuilder;
-import emanondev.deepdungeons.paperpopulator.impl.LootTableType;
-import emanondev.deepdungeons.paperpopulator.impl.MythicMobsDropTableType;
-import emanondev.deepdungeons.paperpopulator.impl.MythicMobsType;
-import emanondev.deepdungeons.paperpopulator.impl.VanillaMobsType;
+import emanondev.deepdungeons.interfaces.PaperPopulatorType;
+import emanondev.deepdungeons.interfaces.PaperPopulatorType.PaperPopulatorBuilder;
+import emanondev.deepdungeons.populator.impl.*;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -15,9 +13,11 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-public class PopulatorTypeManager extends DRegistry<PaperPopulatorType> {
+public class PopulatorTypeManager extends DRegistry<APopulatorType> {
 
     public static final String LINE_ONE = "POPULATOR BLUEPRINT";
     private static final PopulatorTypeManager instance = new PopulatorTypeManager();
@@ -30,6 +30,7 @@ public class PopulatorTypeManager extends DRegistry<PaperPopulatorType> {
             this.register(new MythicMobsDropTableType());
             this.register(new MythicMobsType());
         }
+        this.register(new DeleteEmptyContainerType());
     }
 
     @NotNull
@@ -37,19 +38,42 @@ public class PopulatorTypeManager extends DRegistry<PaperPopulatorType> {
         return instance;
     }
 
-    @Contract("null -> null")
     @Nullable
-    public PaperPopulatorType getPopulatorType(@Nullable ItemStack itemStack) {
-        if (itemStack == null)
-            return null;
-        if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
-            return null;
-        return getPopulatorType(itemStack.getItemMeta());
+    public PaperPopulatorType getPaper(String id) {
+        return get(id) instanceof PaperPopulatorType pap ? pap : null;
+    }
+
+    @Nullable
+    public Collection<PaperPopulatorType> getAllPapers() {
+        List<PaperPopulatorType> values = new ArrayList<>();
+        getAll().forEach(pop -> {
+            if (pop instanceof PaperPopulatorType paper) values.add(paper);
+        });
+        return values;
+    }
+
+    @Nullable
+    public Collection<String> getPaperIds() {
+        List<String> values = new ArrayList<>();
+        getAll().forEach(pop -> {
+            if (pop instanceof PaperPopulatorType paper) values.add(paper.getId());
+        });
+        return values;
     }
 
     @Contract("null -> null")
     @Nullable
-    public PaperPopulatorType getPopulatorType(@Nullable ItemMeta meta) {
+    public PaperPopulatorType getPaperPopulatorType(@Nullable ItemStack itemStack) {
+        if (itemStack == null)
+            return null;
+        if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
+            return null;
+        return getPaperPopulatorType(itemStack.getItemMeta());
+    }
+
+    @Contract("null -> null")
+    @Nullable
+    public PaperPopulatorType getPaperPopulatorType(@Nullable ItemMeta meta) {
         if (meta == null)
             return null;
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))
@@ -57,20 +81,21 @@ public class PopulatorTypeManager extends DRegistry<PaperPopulatorType> {
         List<String> lore = meta.getLore();
         if (lore.size() == 0)
             return null;
-        return get(lore.get(0).split(" ")[1]);
+        APopulatorType val = get(lore.get(0).split(" ")[1]);
+        return val instanceof PaperPopulatorType paper ? paper : null;
     }
 
     @Contract("null -> null")
-    public PaperPopulatorBuilder getPopulatorBuilder(@Nullable ItemStack itemStack) {
+    public PaperPopulatorBuilder getPaperPopulatorBuilder(@Nullable ItemStack itemStack) {
         if (itemStack == null)
             return null;
         if (itemStack.getType() != Material.PAPER || !itemStack.hasItemMeta())
             return null;
-        return getPopulatorBuilder(itemStack.getItemMeta());
+        return getPaperPopulatorBuilder(itemStack.getItemMeta());
     }
 
     @Contract("null -> null")
-    public PaperPopulatorBuilder getPopulatorBuilder(@Nullable ItemMeta meta) {
+    public PaperPopulatorBuilder getPaperPopulatorBuilder(@Nullable ItemMeta meta) {
         if (meta == null)
             return null;
         if (!meta.hasLore() || !LINE_ONE.equals(meta.getDisplayName()))
@@ -78,9 +103,11 @@ public class PopulatorTypeManager extends DRegistry<PaperPopulatorType> {
         List<String> lore = meta.getLore();
         if (lore.size() == 0)
             return null;
-        PaperPopulatorType type = get(lore.get(0).split(" ")[1]);
+        APopulatorType type = get(lore.get(0).split(" ")[1]);
         if (type == null)
             return null;
-        return type.getBuilder().fromItemLines(lore);
+        if (!(type instanceof PaperPopulatorType paperPop))
+            return null;
+        return paperPop.getPaperBuilder().fromItemLines(lore);
     }
 }

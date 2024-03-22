@@ -175,8 +175,8 @@ public class AreaManager implements Listener {
      * @param handler who
      */
     public void flagReady(@NotNull DungeonHandler handler) {
-        this.ready.putIfAbsent(handler.getInstance(), new ArrayList<>());
-        this.ready.get(handler.getInstance()).add(handler);
+        this.ready.putIfAbsent(handler.getDungeonInstance(), new ArrayList<>());
+        this.ready.get(handler.getDungeonInstance()).add(handler);
     }
 
     /**
@@ -185,11 +185,11 @@ public class AreaManager implements Listener {
      * @param handler who
      */
     public void flagStarted(@NotNull DungeonHandler handler) {
-        this.ready.get(handler.getInstance()).remove(handler);
+        this.ready.get(handler.getDungeonInstance()).remove(handler);
         this.started.putIfAbsent(handler.getWorld(), new ArrayList<>());
         this.started.get(handler.getWorld()).add(handler);
         //TODO generate cache?
-        cacheDone.put(handler.getInstance(), cacheDone.getOrDefault(handler.getInstance(), 0) - 1);
+        cacheDone.put(handler.getDungeonInstance(), cacheDone.getOrDefault(handler.getDungeonInstance(), 0) - 1);
     }
 
     /**

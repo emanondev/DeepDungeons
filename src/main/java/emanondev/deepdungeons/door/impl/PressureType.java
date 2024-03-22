@@ -139,7 +139,7 @@ public class PressureType extends DoorType {
             public void setupOffset() {
                 super.setupOffset();
                 for (BlockVector vector : PressureInstance.this.pressurePlates)
-                    pressurePlates.add(this.getRoom().getLocation().add(vector).getBlock());
+                    pressurePlates.add(this.getRoomHandler().getLocation().add(vector).getBlock());
             }
 
             @Override
@@ -152,7 +152,7 @@ public class PressureType extends DoorType {
             @Override
             public void onFirstPlayerEnter(@NotNull Player player) {
                 //entities.addAll(getRoom().getMonsters());
-                @NotNull World world = getRoom().getDungeonHandler().getWorld();
+                @NotNull World world = getRoomHandler().getDungeonHandler().getWorld();
                 Vector center = this.getBoundingBox().getCenter();
                 item = (ItemDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() + 0.5, center.getZ())
                         .setDirection(getDoorFace().getOppositeFace().getDirection()), EntityType.ITEM_DISPLAY);
@@ -168,7 +168,7 @@ public class PressureType extends DoorType {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if (getRoom().getDungeonHandler().getState() != DungeonHandler.State.STARTED) {
+                        if (getRoomHandler().getDungeonHandler().getState() != DungeonHandler.State.STARTED) {
                             text.remove();
                             item.remove();
                             this.cancel();

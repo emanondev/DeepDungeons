@@ -1,5 +1,6 @@
 package emanondev.deepdungeons;
 
+import org.bukkit.Location;
 import org.bukkit.util.BlockVector;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -38,4 +39,26 @@ public class Util {
         return new Vector(Double.parseDouble(split[0]), Double.parseDouble(split[1]), Double.parseDouble(split[2]));
     }
 
+    /**
+     * @param vector
+     * @return
+     */
+    @NotNull
+    public static String toStringNoWorld(@NotNull Location vector) {
+        DecimalFormat df = new DecimalFormat("###.###");
+        return df.format(vector.getX()) + ";" + df.format(vector.getY()) + ";" + df.format(vector.getZ()) + ";" + df.format(vector.getYaw()) + ";" + df.format(vector.getPitch());
+    }
+
+    /**
+     * Returned location has null World
+     *
+     * @param text text to parse
+     * @return location obtained parsing input text
+     */
+    @NotNull
+    public static Location toLocationNoWorld(@NotNull String text) {
+        String[] split = text.replace(",", ".").split(";");
+        return split.length == 3 ? new Location(null, Double.parseDouble(split[0]), Double.parseDouble(split[1]), Double.parseDouble(split[2])) :
+                new Location(null, Double.parseDouble(split[0]), Double.parseDouble(split[1]), Double.parseDouble(split[2]), Float.parseFloat(split[2]), Float.parseFloat(split[2]));
+    }
 }

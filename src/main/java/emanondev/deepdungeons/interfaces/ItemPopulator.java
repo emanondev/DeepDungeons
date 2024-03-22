@@ -1,6 +1,8 @@
 package emanondev.deepdungeons.interfaces;
 
+import emanondev.deepdungeons.event.PopulatorGenerateLootEvent;
 import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
@@ -11,12 +13,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public interface ItemPopulator extends RoomPopulator {
-    default Collection<ItemStack> getItems(@NotNull RoomHandler handler, @NotNull Location location, @Nullable Player who) {
-        return getItems(handler, location, who, new Random());
+public interface ItemPopulator extends PopulatorType.PopulatorInstance {
+    default Map<Location, Collection<ItemStack>> getItems(@NotNull RoomHandler handler, @Nullable Player who) {
+        return getItems(handler, who, new Random());
     }
 
-    Collection<ItemStack> getItems(@NotNull RoomHandler handler, @NotNull Location location, @Nullable Player who, @NotNull Random random);
+    Map<Location, Collection<ItemStack>> getItems(@NotNull RoomHandler handler, @Nullable Player who, @NotNull Random random);
 
     default void populate(@NotNull RoomHandler handler, @Nullable Player who) {
         populate(handler, who, new Random());
@@ -24,15 +26,26 @@ public interface ItemPopulator extends RoomPopulator {
     }
 
     default void populate(@NotNull RoomHandler handler, @Nullable Player who, @NotNull Random random) {
-        Location to = handler.getLocation().add(getOffset());
-        if (to.getBlock().getState() instanceof Container container) {
-            Inventory inv = container.getInventory();
-            inv.addItem(getItems(handler, to, who, new Random()).toArray(new ItemStack[0]));
-            ItemStack[] stacks = inv.getContents();
-            List<ItemStack> contained = Arrays.asList(stacks);
-            Collections.shuffle(contained);
-            inv.setContents(contained.toArray(stacks));
-        } else
-            getItems(handler, to, who, new Random()).forEach(itemStack -> to.getWorld().dropItem(to, itemStack));
+        PopulatorGenerateLootEvent event = new PopulatorGenerateLootEvent(handler, this, getItems(handler, who, random));
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled())
+            return;
+        event.getDrops().forEach((to, drops) -> {
+            if (to.getBlock().getState() instanceof Container container) {
+                Inventory inv = container.getInventory();
+                drops.forEach(item -> {
+                    if (item != null && !item.getType().isAir())
+                        inv.addItem(item);
+                });
+                ItemStack[] stacks = inv.getContents();
+                List<ItemStack> contained = Arrays.asList(stacks);
+                Collections.shuffle(contained);
+                inv.setContents(contained.toArray(stacks));
+            } else
+                drops.forEach(item -> {
+                    if (item != null && !item.getType().isAir())
+                        to.getWorld().dropItem(to, item);
+                });
+        });
     }
 }

@@ -145,7 +145,7 @@ public abstract class DungeonType extends DRegistryElement {
 
         public abstract class DungeonHandler implements MoveListener, InteractListener, InteractEntityListener, BlockPlaceListener, BlockBreakListener, AreaHolder {
             @NotNull
-            public DungeonInstance getInstance() {
+            public DungeonInstance getDungeonInstance() {
                 return DungeonInstance.this;
             }
 

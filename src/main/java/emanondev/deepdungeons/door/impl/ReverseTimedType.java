@@ -156,7 +156,7 @@ public class ReverseTimedType extends DoorType {
             @Override
             public void onFirstPlayerEnter(@NotNull Player player) {
                 //entities.addAll(getRoom().getMonsters());
-                World world = getRoom().getDungeonHandler().getWorld();
+                World world = getRoomHandler().getDungeonHandler().getWorld();
                 Vector center = this.getBoundingBox().getCenter();
                 item = (ItemDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() + 0.5, center.getZ())
                         .setDirection(getDoorFace().getOppositeFace().getDirection()), EntityType.ITEM_DISPLAY);
@@ -173,7 +173,7 @@ public class ReverseTimedType extends DoorType {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if (getRoom().getDungeonHandler().getState() != DungeonHandler.State.STARTED) {
+                        if (getRoomHandler().getDungeonHandler().getState() != DungeonHandler.State.STARTED) {
                             text.remove();
                             item.remove();
                             this.cancel();

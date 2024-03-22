@@ -1,10 +1,12 @@
 package emanondev.deepdungeons;
 
 import emanondev.core.ItemBuilder;
+import emanondev.core.UtilsString;
 import emanondev.core.message.DMessage;
 import emanondev.core.util.ParticleUtility;
 import emanondev.core.util.WorldEditUtility;
 import org.bukkit.Color;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
@@ -17,6 +19,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BlockVector;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -24,6 +27,16 @@ import org.jetbrains.annotations.NotNull;
  */
 @ApiStatus.Internal
 public class CUtils {
+
+    @ApiStatus.Internal
+    public static double bound(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    @ApiStatus.Internal
+    public static int bound(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
+    }
 
     @NotNull
     @ApiStatus.Internal
@@ -132,18 +145,30 @@ public class CUtils {
     @ApiStatus.Internal
     public static void markBlock(Player player, BlockVector block, Color color) {
         Particle.DustOptions info = new Particle.DustOptions(color, 0.4F);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX(), block.getY(), block.getZ(), BlockFace.UP.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX() + 1, block.getY(), block.getZ(), BlockFace.UP.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX(), block.getY(), block.getZ() + 1, BlockFace.UP.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX() + 1, block.getY(), block.getZ() + 1, BlockFace.UP.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX(), block.getY(), block.getZ(), BlockFace.EAST.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX(), block.getY(), block.getZ(), BlockFace.SOUTH.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX(), block.getY() + 1, block.getZ(), BlockFace.EAST.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX(), block.getY() + 1, block.getZ(), BlockFace.SOUTH.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX() + 1, block.getY(), block.getZ() + 1, BlockFace.WEST.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX() + 1, block.getY(), block.getZ() + 1, BlockFace.NORTH.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX() + 1, block.getY() + 1, block.getZ() + 1, BlockFace.WEST.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getX() + 1, block.getY() + 1, block.getZ() + 1, BlockFace.NORTH.getDirection(), 1, 0.25D, info);
+        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX(), block.getBlockY(),
+                block.getBlockZ(), BlockFace.UP.getDirection(), 1, 0.25D, info);
+        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX() + 1, block.getBlockY(),
+                block.getBlockZ(), BlockFace.UP.getDirection(), 1, 0.25D, info);
+        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX(), block.getBlockY(),
+                block.getBlockZ() + 1, BlockFace.UP.getDirection(), 1, 0.25D, info);
+        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX() + 1, block.getBlockY(),
+                block.getBlockZ() + 1, BlockFace.UP.getDirection(), 1, 0.25D, info);
+        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX(), block.getBlockY(),
+                block.getBlockZ(), BlockFace.EAST.getDirection(), 1, 0.25D, info);
+        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX(), block.getBlockY(),
+                block.getBlockZ(), BlockFace.SOUTH.getDirection(), 1, 0.25D, info);
+        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX(), block.getBlockY() + 1,
+                block.getBlockZ(), BlockFace.EAST.getDirection(), 1, 0.25D, info);
+        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX(), block.getBlockY() + 1,
+                block.getBlockZ(), BlockFace.SOUTH.getDirection(), 1, 0.25D, info);
+        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX() + 1, block.getBlockY(),
+                block.getBlockZ() + 1, BlockFace.WEST.getDirection(), 1, 0.25D, info);
+        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX() + 1, block.getBlockY(),
+                block.getBlockZ() + 1, BlockFace.NORTH.getDirection(), 1, 0.25D, info);
+        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX() + 1, block.getBlockY() + 1,
+                block.getBlockZ() + 1, BlockFace.WEST.getDirection(), 1, 0.25D, info);
+        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX() + 1, block.getBlockY() + 1,
+                block.getBlockZ() + 1, BlockFace.NORTH.getDirection(), 1, 0.25D, info);
     }
 
 
@@ -190,5 +215,35 @@ public class CUtils {
 
     public static String toText(Vector value) {
         return value == null ? null : Util.toString(value).replace(";", " ");
+    }
+
+    public static String chanceToText(double chance) {
+        return percentToText(chance * 100D);
+    }
+
+    public static String percentToText(double chance) {
+        return UtilsString.formatOptional2Digit(chance);
+    }
+
+    /**
+     * loc and loc2 are summed together, world matching is ignored
+     * first argument is modified and returned
+     * second argument is unchanged
+     * yaw and pitch are inherited by loc2
+     *
+     * @param loc
+     * @param loc2
+     * @return
+     */
+    @Contract(value = "_, _ -> param1")
+    public static Location sum(@NotNull Location loc, @NotNull Location loc2) {
+        loc.add(loc2.toVector());
+        loc.setYaw(loc2.getYaw());
+        loc.setYaw(loc2.getPitch());
+        return loc;
+    }
+
+    public static boolean isEqual(@NotNull Location loc,@NotNull Location loc2) {
+        return loc.getX()==loc2.getX()&&loc.getZ()==loc2.getZ()&&loc.getY()==loc2.getY();
     }
 }

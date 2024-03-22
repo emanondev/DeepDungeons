@@ -6,13 +6,11 @@ import emanondev.deepdungeons.command.*;
 import emanondev.deepdungeons.door.DoorTypeManager;
 import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
 import emanondev.deepdungeons.dungeon.DungeonTypeManager;
-import emanondev.deepdungeons.paperpopulator.PopulatorTypeManager;
 import emanondev.deepdungeons.party.PartyManager;
+import emanondev.deepdungeons.populator.PopulatorTypeManager;
 import emanondev.deepdungeons.room.RoomInstanceManager;
 import emanondev.deepdungeons.room.RoomTypeManager;
-import emanondev.deepdungeons.spawner.MonsterSpawnerTypeManager;
 import emanondev.deepdungeons.trap.TrapTypeManager;
-import emanondev.deepdungeons.treasure.TreasureTypeManager;
 
 /**
  * Plugin main class
@@ -25,8 +23,6 @@ import emanondev.deepdungeons.treasure.TreasureTypeManager;
  * @see RoomInstanceManager
  * @see DoorTypeManager
  * @see TrapTypeManager
- * @see TreasureTypeManager
- * @see MonsterSpawnerTypeManager
  * @see AreaManager
  */
 public class DeepDungeons extends CorePlugin {

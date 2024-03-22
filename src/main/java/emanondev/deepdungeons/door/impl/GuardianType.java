@@ -103,11 +103,10 @@ public class GuardianType extends DoorType {
                     mapGui.open(event.getPlayer());
                 }
                 case 6 -> {
-                    if (entityTypes.size() > 0) {
-                        completedConfiguration = true;
-                        event.getPlayer().getInventory().setHeldItemSlot(0);
-                        setupTools();
-                    }
+                    completedConfiguration = true;
+                    event.getPlayer().getInventory().setHeldItemSlot(0);
+                    setupTools();
+
                 }
             }
         }
@@ -164,16 +163,16 @@ public class GuardianType extends DoorType {
                 if (!pr)
                     return false;
                 if (!this.entities.isEmpty()) {
-                    this.entities.removeIf(entity -> !entity.isValid() || !getRoom().overlaps(entity));
+                    this.entities.removeIf(entity -> !entity.isValid() || !getRoomHandler().overlaps(entity));
                 }
                 return this.entities.isEmpty();
             }
 
             @Override
             public void onFirstPlayerEnter(@NotNull Player player) {
-                this.entities.addAll(getRoom().getMonsters());
+                this.entities.addAll(getRoomHandler().getMonsters());
                 this.entities.removeIf(type -> !GuardianInstance.this.entityTypes.isEmpty() && !GuardianInstance.this.entityTypes.contains(type.getType()));
-                World world = getRoom().getDungeonHandler().getWorld();
+                World world = getRoomHandler().getDungeonHandler().getWorld();
                 Vector center = this.getBoundingBox().getCenter();
                 this.item = (ItemDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() + 0.5, center.getZ())
                         .setDirection(getDoorFace().getOppositeFace().getDirection()), EntityType.ITEM_DISPLAY);
@@ -188,13 +187,13 @@ public class GuardianType extends DoorType {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if (getRoom().getDungeonHandler().getState() != DungeonHandler.State.STARTED) {
+                        if (getRoomHandler().getDungeonHandler().getState() != DungeonHandler.State.STARTED) {
                             text.remove();
                             item.remove();
                             this.cancel();
                             return;
                         }
-                        entities.removeIf(entity -> !entity.isValid() || !getRoom().overlaps(entity));
+                        entities.removeIf(entity -> !entity.isValid() || !getRoomHandler().overlaps(entity));
                         if (entities.isEmpty()) {
                             text.remove();
                             item.remove();
