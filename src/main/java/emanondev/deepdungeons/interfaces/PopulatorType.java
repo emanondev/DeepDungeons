@@ -31,6 +31,8 @@ public interface PopulatorType {
 
     PopulatorBuilder getBuilder(RoomBuilder roomBuilder);
 
+    boolean hasUseChance();
+
     interface PopulatorBuilder {
 
 
@@ -76,5 +78,13 @@ public interface PopulatorType {
         @NotNull
         RoomInstance getRoomInstance();
 
+        default boolean rollUseChance() {
+            return !getPopulatorType().hasUseChance() || Math.random() > getUseChance();
+        }
+
+        double getUseChance();
+
+        @NotNull
+        PopulatorType getPopulatorType();
     }
 }

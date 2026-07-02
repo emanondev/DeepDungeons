@@ -50,7 +50,7 @@ public abstract class APaperPopulatorType extends APopulatorType implements Pape
             list.add("&9Type:&6 " + getType().getId());
             list.addAll(toItemLinesImpl());
             if (hasUseChance())
-                list.add("&9UseChance:&e " + UtilsString.formatOptional2Digit(getUseChance()*100D).replace(",","."));
+                list.add("&9UseChance:&e " + UtilsString.formatOptional2Digit(getUseChance() * 100D).replace(",", "."));
             return list;
         }
 
@@ -61,7 +61,7 @@ public abstract class APaperPopulatorType extends APopulatorType implements Pape
             lines = new ArrayList<>(lines);
             lines.remove(0);
             if (hasUseChance())
-                setUseChance(Double.parseDouble(lines.remove(lines.size() - 1).split(" ")[1])/100);
+                setUseChance(Double.parseDouble(lines.remove(lines.size() - 1).split(" ")[1]) / 100);
             fromItemLinesImpl(lines);
             return this;
         }
@@ -81,7 +81,7 @@ public abstract class APaperPopulatorType extends APopulatorType implements Pape
 
 
         protected PagedMapGui craftGui(@NotNull Player player) {
-            PagedMapGui gui = new PagedMapGui(CUtils.craftMsg(player,"populatorbuilder.settings_guititle",
+            PagedMapGui gui = new PagedMapGui(CUtils.craftMsg(player, "populatorbuilder.settings_guititle",
                     "%type%", APaperPopulatorType.this.getId()), 6, player, null, DeepDungeons.get()) {
                 @Override
                 public void onClose(@NotNull InventoryCloseEvent event) {

@@ -1,10 +1,8 @@
 package emanondev.deepdungeons.populator.impl;
 
-import emanondev.core.ItemBuilder;
 import emanondev.core.YMLSection;
 import emanondev.core.gui.PagedMapGui;
 import emanondev.core.gui.ResearchFButton;
-import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.CUtils;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Util;
@@ -27,11 +25,45 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class LootTableType extends APaperPopulatorType {
 
     public LootTableType() {
         super("loottable");
+    }
+
+    private static void createButtons(PagedMapGui gui, Player player, Consumer<LootTable> consumer, Supplier<LootTable> supplier) {
+        gui.addButton(new ResearchFButton<>(gui, () ->
+                CUtils.createItem(player, Material.CHEST, "populatorbuilder.loottable_tableselector",
+                        "%table%", (supplier.get().getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
+                                supplier.get().getKey().toString().substring(10) : supplier.get().getKey().toString())),
+                (String text, LootTables lootTable) -> {
+                    String[] split = text.split(" ");
+                    for (String s : split) {
+                        if (!(lootTable.name().toLowerCase(Locale.ENGLISH).contains(s.toLowerCase(Locale.ENGLISH))
+                                || lootTable.getKey().toString().contains(s.toLowerCase(Locale.ENGLISH))))
+                            return false;
+                    }
+                    return true;
+                },
+                (InventoryClickEvent event, LootTables lootTable) -> {
+                    consumer.accept(lootTable.getLootTable());
+                    gui.open(player);
+                    return false;
+                },
+                (LootTables lootTable) ->
+                        CUtils.createItem(player, Material.CHEST, "populatorbuilder.loottable_tableitem",
+                                "%tablename%", lootTable.name(),
+                                "%table%", (lootTable.getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
+                                        lootTable.getKey().toString().substring(10) : lootTable.getKey().toString())),
+                () -> {
+                    ArrayList<LootTables> list = new ArrayList<>(Arrays.asList(LootTables.values()));
+                    list.sort(Comparator.comparing(l -> l.getKey().getKey()));
+                    return list;
+                }
+        ));
     }
 
     @Override
@@ -51,7 +83,6 @@ public class LootTableType extends APaperPopulatorType {
     public LootTablePaperBuilder getPaperBuilder() {
         return new LootTablePaperBuilder();
     }
-
 
     public class LootTableBuilder extends APopulatorBuilder {
 
@@ -77,7 +108,7 @@ public class LootTableType extends APaperPopulatorType {
                 }
                 case 6 -> {
                     if (offsets.isEmpty() || table == null) {
-                        //TODO lang uncompleted
+                        CUtils.sendMsg(event.getPlayer(), "populatorbuilder.msg_uncompleted_settings");
                         return;
                     }
                     this.complete();
@@ -119,36 +150,7 @@ public class LootTableType extends APaperPopulatorType {
 
         @Override
         protected void craftGuiButtonsImpl(@NotNull PagedMapGui gui, @NotNull Player player) {
-            gui.addButton(new ResearchFButton<>(gui, () -> new ItemBuilder(Material.CHEST).setDescription(
-                    new DMessage(DeepDungeons.get(), player)
-                            .append("<!i><gold><b>LootTable</b>").newLine()
-                            .append("<gold>Type:<blue> " + (table.getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
-                                    table.getKey().toString().substring(10) : table.getKey().toString()) + "</blue>")).setGuiProperty().build(),
-                    (String text, LootTables lootTable) -> {
-                        String[] split = text.split(" ");
-                        for (String s : split) {
-                            if (!(lootTable.name().toLowerCase(Locale.ENGLISH).contains(s.toLowerCase(Locale.ENGLISH))
-                                    || lootTable.getKey().toString().contains(s.toLowerCase(Locale.ENGLISH))))
-                                return false;
-                        }
-                        return true;
-                    },
-                    (InventoryClickEvent event, LootTables lootTable) -> {
-                        setTable(lootTable.getLootTable());
-                        gui.open(player);
-                        return false;
-                    },
-                    (LootTables lootTable) -> new ItemBuilder(Material.CHEST).setDescription(
-                            new DMessage(DeepDungeons.get(), player)
-                                    .append("<!i><gold><b>" + lootTable.name() + "</b>").newLine()
-                                    .append("<gold>Type:<blue> " + (lootTable.getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
-                                            lootTable.getKey().toString().substring(10) : lootTable.getKey().toString()) + "</blue>")).setGuiProperty().build(),
-                    () -> {
-                        ArrayList<LootTables> list = new ArrayList<>(Arrays.asList(LootTables.values()));
-                        list.sort(Comparator.comparing(l -> l.getKey().getKey()));
-                        return list;
-                    }
-            ));
+            createButtons(gui, player, (LootTable lootTable) -> table = lootTable, () -> table);
         }
 
         public void toggleOffset(@NotNull Location location) {
@@ -178,11 +180,6 @@ public class LootTableType extends APaperPopulatorType {
             return true;
         }
 
-        @NotNull
-        public LootTable getTable() {
-            return table;
-        }
-
         public void setTable(@NotNull LootTable table) {
             this.table = table;
         }
@@ -204,37 +201,7 @@ public class LootTableType extends APaperPopulatorType {
 
         @Override
         protected void craftGuiButtonsImpl(@NotNull PagedMapGui gui, @NotNull Player player) {
-            gui.addButton(new ResearchFButton<>(gui, () -> new ItemBuilder(Material.CHEST).setDescription(
-                    new DMessage(DeepDungeons.get(), player)
-                            .append("<!i><gold><b>LootTable</b>").newLine()//TODO lang
-                            .append("<gold>Type:<blue> " + (table.getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
-                                    table.getKey().toString().substring(10) : table.getKey().toString()) + "</blue>")).setGuiProperty().build(),
-                    (String text, LootTables lootTable) -> {
-                        String[] split = text.split(" ");
-                        for (String s : split) {
-                            if (!(lootTable.name().toLowerCase(Locale.ENGLISH).contains(s.toLowerCase(Locale.ENGLISH))
-                                    || lootTable.getKey().toString().contains(s.toLowerCase(Locale.ENGLISH))))
-                                return false;
-                        }
-                        return true;
-                    },
-                    (InventoryClickEvent event, LootTables lootTable) -> {
-                        setTable(lootTable.getLootTable());
-                        gui.open(player);
-                        player.getInventory().setItemInMainHand(this.toItem());
-                        return false;
-                    },
-                    (LootTables lootTable) -> new ItemBuilder(Material.CHEST).setDescription(
-                            new DMessage(DeepDungeons.get(), player)
-                                    .append("<!i><gold><b>" + lootTable.name() + "</b>").newLine()//TODO lang
-                                    .append("<gold>Type:<blue> " + (lootTable.getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
-                                            lootTable.getKey().toString().substring(10) : lootTable.getKey().toString()) + "</blue>")).setGuiProperty().build(),
-                    () -> {
-                        ArrayList<LootTables> list = new ArrayList<>(Arrays.asList(LootTables.values()));
-                        list.sort(Comparator.comparing(l -> l.getKey().getKey()));
-                        return list;
-                    }
-            ));
+            createButtons(gui, player, (LootTable lootTable) -> table = lootTable, () -> table);
         }
 
         /**
@@ -270,7 +237,7 @@ public class LootTableType extends APaperPopulatorType {
                 return Collections.emptyMap();
             Map<Location, Collection<ItemStack>> result = new HashMap<>();
             offsets.forEach(offset -> {
-                Location loc = CUtils.sum(handler.getLocation(),offset);
+                Location loc = CUtils.sum(handler.getLocation(), offset);
                 result.put(loc, table.populateLoot(random, new LootContext.Builder(loc).killer(who).lootingModifier(0).build()));
             });
             return result;

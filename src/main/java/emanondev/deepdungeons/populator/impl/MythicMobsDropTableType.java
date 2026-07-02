@@ -1,10 +1,8 @@
 package emanondev.deepdungeons.populator.impl;
 
-import emanondev.core.ItemBuilder;
 import emanondev.core.YMLSection;
 import emanondev.core.gui.PagedMapGui;
 import emanondev.core.gui.ResearchFButton;
-import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.CUtils;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Util;
@@ -31,11 +29,39 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class MythicMobsDropTableType extends APaperPopulatorType {
 
     public MythicMobsDropTableType() {
         super("mythicmobsloottable");
+    }
+
+    private static void createButtons(PagedMapGui gui, Player player, Consumer<DropTable> consumer, Supplier<DropTable> supplier) {
+        gui.addButton(new ResearchFButton<>(gui, () -> CUtils.createItem(player, Material.CHEST,
+                "populatorbuilder.mythicmobsloottable_tableselector", "%table%", (supplier.get() == null ? "null" : supplier.get().getInternalName())),
+                (String text, DropTable lootTable) -> {
+                    String[] split = text.split(" ");
+                    for (String s : split) {
+                        if (!(lootTable.getInternalName().toLowerCase(Locale.ENGLISH).contains(s.toLowerCase(Locale.ENGLISH))))
+                            return false;
+                    }
+                    return true;
+                },
+                (InventoryClickEvent event, DropTable lootTable) -> {
+                    consumer.accept(lootTable);
+                    gui.open(player);
+                    return false;
+                },
+                (DropTable lootTable) -> CUtils.createItem(player, Material.CHEST, "populatorbuilder.mythicmobsloottable_tableitem",
+                        "%table%", lootTable.getInternalName()),
+                () -> {
+                    ArrayList<DropTable> list = new ArrayList<>(MythicBukkit.inst().getDropManager().getDropTables());
+                    list.sort(Comparator.comparing(DropTable::getInternalName));
+                    return list;
+                }
+        ));
     }
 
     @Override
@@ -79,7 +105,7 @@ public class MythicMobsDropTableType extends APaperPopulatorType {
                 }
                 case 6 -> {
                     if (offsets.isEmpty() || table == null) {
-                        //TODO lang uncompleted
+                        CUtils.sendMsg(event.getPlayer(), "populatorbuilder.msg_uncompleted_settings");
                         return;
                     }
                     this.complete();
@@ -102,32 +128,7 @@ public class MythicMobsDropTableType extends APaperPopulatorType {
 
         @Override
         protected void craftGuiButtonsImpl(@NotNull PagedMapGui gui, @NotNull Player player) {
-            gui.addButton(new ResearchFButton<>(gui, () -> new ItemBuilder(Material.CHEST).setDescription(
-                    new DMessage(DeepDungeons.get(), player) //TODO
-                            .append("<!i><gold><b>MythicMobsDropTable</b>").newLine()//TODO lang
-                            .append("<gold>Type:<blue> " + (table == null ? "null" : table.getInternalName()) + "</blue>")).setGuiProperty().build(),
-                    (String text, DropTable lootTable) -> {
-                        String[] split = text.split(" ");
-                        for (String s : split) {
-                            if (!(lootTable.getInternalName().toLowerCase(Locale.ENGLISH).contains(s.toLowerCase(Locale.ENGLISH))))
-                                return false;
-                        }
-                        return true;
-                    },
-                    (InventoryClickEvent event, DropTable lootTable) -> {
-                        setTable(lootTable);
-                        gui.open(player);
-                        return false;
-                    },
-                    (DropTable lootTable) -> new ItemBuilder(Material.CHEST).setDescription(
-                            new DMessage(DeepDungeons.get(), player) //TODO lang
-                                    .append("<!i><gold><b>" + lootTable.getInternalName() + "</b>")).setGuiProperty().build(),
-                    () -> {
-                        ArrayList<DropTable> list = new ArrayList<>(MythicBukkit.inst().getDropManager().getDropTables());
-                        list.sort(Comparator.comparing(DropTable::getInternalName));
-                        return list;
-                    }
-            ));
+            createButtons(gui, player, (table) -> this.table = table, () -> this.table);
         }
 
         @Override
@@ -138,15 +139,6 @@ public class MythicMobsDropTableType extends APaperPopulatorType {
             List<String> offsetsString = new ArrayList<>();
             offsets.forEach(off -> offsetsString.add(Util.toStringNoWorld(off)));
             section.set("offsets", offsetsString);
-        }
-
-        @NotNull
-        public DropTable getTable() {
-            return table;
-        }
-
-        public void setTable(@NotNull DropTable table) {
-            this.table = table;
         }
 
         public void toggleOffset(@NotNull Location location) {
@@ -172,15 +164,6 @@ public class MythicMobsDropTableType extends APaperPopulatorType {
         @Override
         public boolean preserveContainer() {
             return true;
-        }
-
-        @NotNull
-        public DropTable getTable() {
-            return table;
-        }
-
-        public void setTable(@NotNull DropTable table) {
-            this.table = table;
         }
 
         @Override
@@ -211,32 +194,7 @@ public class MythicMobsDropTableType extends APaperPopulatorType {
 
         @Override
         protected void craftGuiButtonsImpl(@NotNull PagedMapGui gui, @NotNull Player player) {
-            gui.addButton(new ResearchFButton<>(gui, () -> new ItemBuilder(Material.CHEST).setDescription(
-                    new DMessage(DeepDungeons.get(), player) //TODO
-                            .append("<!i><gold><b>MythicMobsDropTable</b>").newLine()//TODO lang
-                            .append("<gold>Type:<blue> " + (table == null ? "null" : table.getInternalName()) + "</blue>")).setGuiProperty().build(),
-                    (String text, DropTable lootTable) -> {
-                        String[] split = text.split(" ");
-                        for (String s : split) {
-                            if (!(lootTable.getInternalName().toLowerCase(Locale.ENGLISH).contains(s.toLowerCase(Locale.ENGLISH))))
-                                return false;
-                        }
-                        return true;
-                    },
-                    (InventoryClickEvent event, DropTable lootTable) -> {
-                        setTable(lootTable);
-                        gui.open(player);
-                        return false;
-                    },
-                    (DropTable lootTable) -> new ItemBuilder(Material.CHEST).setDescription(
-                            new DMessage(DeepDungeons.get(), player) //TODO lang
-                                    .append("<!i><gold><b>" + lootTable.getInternalName() + "</b>")).setGuiProperty().build(),
-                    () -> {
-                        ArrayList<DropTable> list = new ArrayList<>(MythicBukkit.inst().getDropManager().getDropTables());
-                        list.sort(Comparator.comparing(DropTable::getInternalName));
-                        return list;
-                    }
-            ));
+            createButtons(gui, player, (table) -> this.table = table, () -> this.table);
         }
     }
 
@@ -261,7 +219,7 @@ public class MythicMobsDropTableType extends APaperPopulatorType {
                 return Collections.emptyMap();
             Map<Location, Collection<ItemStack>> result = new HashMap<>();
             offsets.forEach(offset -> {
-                Location loc = CUtils.sum(handler.getLocation(),offset);
+                Location loc = CUtils.sum(handler.getLocation(), offset);
                 ArrayList<ItemStack> list = new ArrayList<>();
                 LootBag bag = table.generate();
                 bag.getLootTable().forEach(drop -> {

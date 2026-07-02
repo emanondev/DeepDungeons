@@ -71,12 +71,15 @@ party:
   list_postfix: "<blue><click:run_command:'/%label% list %prev_page%'><hover:show_text:'<gold>Go to previous page</gold>'>[<aqua><b><<<</b></aqua>]</hover></click> Party List Page <yellow>%page%</yellow> <click:run_command:'/%label% list %next_page%'><hover:show_text:'<gold>Go to next page</gold>'>[<aqua><b>>>></b></aqua>]</hover></click></blue>"
   list_line: "<hover:show_text:'<gold>Click to see detailed info</gold>'><click:run_command:'/%label% info %leader%'><#7897ff><aqua><b>%index%</b></aqua>. <aqua>%leader%</aqua>'s party <green>%online%</green>/<aqua>%members%</aqua></#7897ff></click></hover>"
   list_no_parties: "<blue>[</blue>Party<blue>]</blue><red> There are no parties with online members right now</red>"
+  chat_prefix: "<blue>[</blue>PartyChat<blue>]</blue> <aqua>%sender% <blue>></blue> %msg%</aqua>"
+  chat_on: "<blue>[</blue>PartyChat<blue>]</blue> <aqua>You are now writing on party chat</aqua>"
+  chat_off: "<blue>[</blue>PartyChat<blue>]</blue> <aqua>You are no longer writing on party chat</aqua>"
 buildermode:
   actionbar: "<gold>You are on Builder Mode"
 doorbuilder:
-  base_msg_must_set_area: "<blue>[</blue>Party<blue>]</blue><red> Set door area with WorldEdit before continue</red>"
-  base_msg_area_is_outside_room: "<blue>[</blue>Party<blue>]</blue><red> Selected area is outside (or partially outside) the room</red>"
-  base_msg_spawn_is_outside_room: "<blue>[</blue>Party<blue>]</blue><red> Selected spawn point is outside (or partially outside) the room</red>"
+  base_msg_must_set_area: "<blue>[</blue>BuilderMode<blue>]</blue><red> Set door area with WorldEdit before continue</red>"
+  base_msg_area_is_outside_room: "<blue>[</blue>BuilderMode<blue>]</blue><red> Selected area is outside (or partially outside) the room</red>"
+  base_msg_spawn_is_outside_room: "<blue>[</blue>BuilderMode<blue>]</blue><red> Selected spawn point is outside (or partially outside) the room</red>"
   base_area_info:
     - "<gold>Info: Set door Area"
     - "<#7897ff>Select the area with worldedit"
@@ -223,8 +226,8 @@ doorbuilder:
 roombuilder:
   exit_mode:
     - "<red>Exit Room Builder Mode"
-  base_msg_must_set_area: "<blue>[</blue>Party<blue>]</blue><red> Set room area with WorldEdit before continue</red>"
-  base_msg_too_small: "<blue>[</blue>Party<blue>]</blue><red> Selected area is too small</red>"
+  base_msg_must_set_area: "<blue>[</blue>BuilderMode<blue>]</blue><red> Set room area with WorldEdit before continue</red>"
+  base_msg_too_small: "<blue>[</blue>BuilderMode<blue>]</blue><red> Selected area is too small</red>"
   base_area_info:
     - "<gold>Info: Set Room Area"
     - "<#7897ff>Select the area with worldedit"
@@ -330,7 +333,7 @@ roombuilder:
 dungeonbuilder:
   exit_mode:
     - "<red>Exit Dungeon Builder Mode"
-  rgs_msg_setup_incomplete: "<blue>[</blue>Party<blue>]</blue><red> Configuration is uncompleted</red>"
+  rgs_msg_setup_incomplete: "<blue>[</blue>BuilderMode<blue>]</blue><red> Configuration is uncompleted</red>"
   rgs_base_info:
     - "<gold>Info: Configure Dungeon"
     - "<#7897ff>Open the gui to configure groups"
@@ -386,8 +389,8 @@ dungeonbuilder:
     - "<gold>Room: <yellow>%id%"
     - "<#7897ff>Weight: <yellow>%weight%</yellow>/<yellow>%full_weight%</yellow> ≈ <yellow>%perc_weight%</yellow>%"
 trapbuilder:
-  flamechest_msg_block_is_outside_room: "<blue>[</blue>Party<blue>]</blue><red> Selected block is outside the room"
-  flamechest_msg_block_is_not_a_chest: "<blue>[</blue>Party<blue>]</blue><red> Selected block is not a chest"
+  flamechest_msg_block_is_outside_room: "<blue>[</blue>BuilderMode<blue>]</blue><red> Selected block is outside the room"
+  flamechest_msg_block_is_not_a_chest: "<blue>[</blue>BuilderMode<blue>]</blue><red> Selected block is not a chest"
   flamechest_guisettings_title: "<blue>FlameChest settings"
   flamechest_settings_takeaim:
     - "<gold>Take Aim: <yellow>%directioned%"
@@ -475,7 +478,7 @@ trapbuilder:
     - ""
     - "<#7897ff>Does nothing, trap is skipped"
     - ""
-  flamechest_msg_setup_incomplete: "<blue>[</blue>Party<blue>]</blue><red> Configuration is uncompleted, you must set at least a block</red>"
+  flamechest_msg_setup_incomplete: "<blue>[</blue>BuilderMode<blue>]</blue><red> Configuration is uncompleted, you must set at least a block</red>"
   flamechest_info:
     - "<gold>Info: Configure FlameChest"
     - "<#7897ff>Set the configuration"
@@ -492,7 +495,32 @@ trapbuilder:
   flamechest_confirm:
     - "<gold>Confirm configuration"
     - "<#7897ff>Click to confirm configuration"
+  hiddenpassage_msg_block_is_outside_room: "<blue>[</blue>BuilderMode<blue>]</blue><red> Selected block is outside the room"
+  hiddenpassage_guisettings_title: "<blue>HiddenChest settings"
+  hiddenpassage_settings_activationrange:
+    - "<gold>Activation Range: <yellow>%range%"
+    - "<#7897ff>How close you have to be to blocks"
+    - "<#7897ff>to let them disappear?"
+    - ""
+    - "<#7897ff>set 0 for infinite times"
+  hiddenpassage_msg_setup_incomplete: "<blue>[</blue>BuilderMode<blue>]</blue><red> Configuration is uncompleted, you must set at least a block</red>"
+  hiddenpassage_info:
+    - "<gold>Info: Configure HiddenPassage"
+    - "<#7897ff>Set the configuration"
+    - ""
+    - "<#7897ff>Selected blocks will disappear when player is"
+    - "<#7897ff> close enough to them"
+  hiddenpassage_blockselector:
+    - "<gold>Select/Deselect block"
+    - "<#7897ff>Click block to toggle"
+  hiddenpassage_settings:
+    - "<gold>Set HiddenPassage options"
+    - "<#7897ff>Click open a gui"
+  hiddenpassage_confirm:
+    - "<gold>Confirm configuration"
+    - "<#7897ff>Click to confirm configuration"
 populatorbuilder:
+  msg_uncompleted_settings: "<blue>[</blue>BuilderMode<blue>]</blue><red> Settings is uncompleted, you must complete it before advancing</red>"
   settings_guititle: "<blue>Populator Settings (<gold>%type%</gold>)"
   settings_usechance:
     - "<gold>Use Chance: <yellow>%value%</yellow>%"
@@ -522,6 +550,17 @@ populatorbuilder:
     - "<gold>Select/Deselect locations"
     - "<#7897ff>Clicking on a container will spawn the loot inside container"
     - "<#7897ff>Clicking on a block will spawn the loot next to the block"
+  loottable_tableselector:
+    - "<!i><gold><b>LootTable</b>"
+    - "<gold>Type:<blue> %table%</blue>"
+  loottable_tableitem:
+    - "<!i><gold><b>%tablename%</b>"
+    - "<gold>Type:<blue> %table%</blue>"
+  mythicmobsloottable_tableselector:
+    - "<!i><gold><b>MythicMobsDropTable</b>"
+    - "<gold>Type:<blue> %table%</blue>"
+  mythicmobsloottable_tableitem:
+    - "<!i><gold><b>%table%</b>"
   mythicmobsloottable_info:
     - "<gold>Info: Configure MythicMobsLootTable"
     - "<#7897ff>Adds selected loottable to selected"
@@ -540,6 +579,28 @@ populatorbuilder:
     - "<#7897ff>one of the random location is choosen for"
     - "<#7897ff>each mob, however the amount of mobs is not"
     - "<#7897ff>influenced by spawning locations"
+  mythicmobs_guimobselector:
+    - "<!i><gold><b>MobType</b>"
+    - "<gold><blue>Type:</blue> %type%"
+  mythicmobs_guimobitem:
+    - "<!i><gold><b>%name%</b>"
+    - "<gold><blue>Type:</blue> %type%"
+  mythicmobs_guimin:
+  - "<gold>Minimum spawned Mobs"
+  - "<gold><blue>Max: </blue>%max%"
+  - "<gold><blue>Min: </blue>%min%"
+  mythicmobs_guimax:
+    - "<gold>Maximus spawned Mobs"
+    - "<gold><blue>Max: </blue>%max%"
+    - "<gold><blue>Min: </blue>%min%"
+  mythicmobs_guiminlevel:
+    - "<gold>Minimum Level spawned Mobs"
+    - "<gold><blue>Max Level: </blue>%max%"
+    - "<gold><blue>Min Level: </blue>%min%"
+  mythicmobs_guimaxlevel:
+    - "<gold>Maximus Level spawned Mobs"
+    - "<gold><blue>Max Level: </blue>%max%"
+    - "<gold><blue>Min Level: </blue>%min%"
   vanillamobs_info:
     - "<gold>Info: Configure VanillaMobs"
     - "<#7897ff>Spawn mobs of selected kind and options"
@@ -550,3 +611,17 @@ populatorbuilder:
     - "<#7897ff>one of the random location is choosen for"
     - "<#7897ff>each mob, however the amount of mobs is not"
     - "<#7897ff>influenced by spawning locations"
+  vanillamobs_guimobselector:
+    - "<!i><gold><b>EntityType</b>"
+    - "<gold><blue>Type:</blue> %type%"
+  vanillamobs_guimobitem:
+    - "<!i><gold><b>%name%</b>"
+    - "<gold><blue>Type:</blue> %type%"
+  vanillamobs_guimin:
+    - "<gold>Minimum spawned Mobs"
+    - "<gold><blue>Max: </blue>%max%"
+    - "<gold><blue>Min: </blue>%min%"
+  vanillamobs_guimax:
+    - "<gold>Maximus spawned Mobs"
+    - "<gold><blue>Max: </blue>%max%"
+    - "<gold><blue>Min: </blue>%min%"

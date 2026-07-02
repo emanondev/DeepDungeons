@@ -1,25 +1,25 @@
 package emanondev.deepdungeons.party;
 
 import emanondev.core.util.DRegistry;
-import emanondev.core.util.DRegistryElement;
 import emanondev.deepdungeons.DeepDungeons;
-import emanondev.deepdungeons.area.AreaManager;
+import emanondev.deepdungeons.Perms;
 import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.UUID;
 
-public class PartyManager extends DRegistry<PartyManager.Party> implements Listener {
+public class PartyManager extends DRegistry<Party> implements Listener {
     private static final PartyManager instance = new PartyManager();
-    private final HashMap<UUID, Party> parties = new HashMap<>();
     private final HashMap<UUID, DungeonPlayer> dungeonPlayers = new HashMap<>();
 
     public PartyManager() {
@@ -34,12 +34,12 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
 
     @NotNull
     public Party createParty(@NotNull Player leader) {
-        if (parties.containsKey(leader.getUniqueId()))
+        if (Party.getParty(leader.getUniqueId()) != null)
             throw new IllegalStateException();
         return new Party(leader);
     }
 
-    public void startDungeon(@NotNull Party party, @NotNull DungeonHandler dungeon) {
+    public void startDungeon(@NotNull Party party, @NotNull DungeonHandler dungeon, @NotNull Collection<Player> players) {
         if (dungeon.getState() != DungeonHandler.State.READY)
             throw new IllegalStateException();
         if (party.getLeader() == null)
@@ -47,17 +47,20 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
         if (party.isExploringDungeon())
             throw new IllegalStateException();
         dungeon.start(party);
-        party.start(dungeon);
+        if (!party.start(dungeon, players)){
+            DeepDungeons.get().logIssue("Unable to start dungeon!");
+            dungeon.flagCompleted();
+        }
     }
 
     @Nullable
     public Party getParty(OfflinePlayer player) {
-        return parties.get(player.getUniqueId());
+        return Party.getParty(player.getUniqueId());
     }
 
     @EventHandler
     private void event(@NotNull PlayerQuitEvent event) {
-        Party party = parties.get(event.getPlayer().getUniqueId());
+        Party party = Party.getParty(event.getPlayer().getUniqueId());
         if (party == null)
             return;
         party.onPlayerQuit(event.getPlayer());
@@ -65,10 +68,25 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
 
     @EventHandler
     private void event(@NotNull PlayerJoinEvent event) {
-        Party party = parties.get(event.getPlayer().getUniqueId());
+        Party party = Party.getParty(event.getPlayer().getUniqueId());
         if (party == null)
             return;
         party.onPlayerJoin(event.getPlayer());
+    }
+
+
+    @EventHandler(ignoreCancelled = true)
+    private void event(@NotNull AsyncPlayerChatEvent event) {
+        if (!event.getPlayer().hasPermission(Perms.PARTY_CHAT))
+            return;
+        Party party = Party.getParty(event.getPlayer().getUniqueId());
+        if (party == null)
+            return;
+        DungeonPlayer dPlayer = getDungeonPlayer(event.getPlayer());
+        if (!dPlayer.isOnPartyChat())
+            return;
+        event.setCancelled(true);
+        party.chatMessage(event.getPlayer(), event.getMessage());
     }
 
     @NotNull
@@ -84,190 +102,5 @@ public class PartyManager extends DRegistry<PartyManager.Party> implements Liste
         value = new DungeonPlayer();
         dungeonPlayers.put(uuid, value);
         return value;
-    }
-
-    public class Party extends DRegistryElement {
-
-        private final HashSet<UUID> users = new HashSet<>();
-        private UUID leader;
-        private DungeonHandler dungeon;
-        private boolean isPartyPublic = true;
-
-        Party(@NotNull Player leader) {
-            super("p" + UUID.randomUUID().toString().replace("-", ""));
-            this.leader = leader.getUniqueId();
-            users.add(this.leader);
-            parties.put(leader.getUniqueId(), this);
-        }
-
-        public boolean isPartyPublic() {
-            return isPartyPublic;
-        }
-
-        public void togglePartyPublic() {
-            isPartyPublic = !isPartyPublic;
-        }
-
-        @NotNull
-        public Set<Player> getPlayers() {
-            HashSet<Player> players = new HashSet<>();
-            this.users.forEach(uuid -> {
-                Player p = Bukkit.getPlayer(uuid);
-                if (p != null)
-                    players.add(p);
-            });
-            return players;
-        }
-
-        public void invite(@Nullable Player sender, @NotNull OfflinePlayer target) {
-            getDungeonPlayer(target).receiveInvite(this);
-
-        }
-
-        @NotNull
-        public Set<UUID> getPlayersUUID() {
-            return Collections.unmodifiableSet(users);
-        }
-
-        public boolean start(@NotNull DungeonHandler dungeon) {
-            if (getLeader() == null)
-                return false;
-            if (isExploringDungeon())
-                return false;
-            Collection<Player> players = getPlayers();
-            this.dungeon = dungeon;
-            for (Player player : players) {
-                DungeonPlayer dp = PartyManager.getInstance().getDungeonPlayer(player);
-                dp.setPreEnterSnapshot(player);
-                dungeon.getEntrance().teleportIn(player);//TODO
-            }
-            //TODO check the teleport has a good end
-            return true;
-        }
-
-        public boolean isExploringDungeon() {
-            return dungeon != null;
-        }
-
-
-        public boolean addPlayer(Player player) {
-            if (parties.containsKey(player.getUniqueId()))
-                throw new IllegalStateException();
-            users.add(player.getUniqueId());
-            parties.put(player.getUniqueId(), this);
-            return true;
-        }
-
-        public void removePlayer(@NotNull UUID player) {
-            if (!parties.containsKey(player) || !users.contains(player))
-                throw new IllegalStateException();
-            if (player.equals(leader))
-                throw new IllegalArgumentException();
-            Player p = Bukkit.getPlayer(player);
-            if (p != null && this.isInsideDungeon(p))
-                PartyManager.getInstance().getDungeonPlayer(player).getAndDeletePreEnterSnapshot().apply(p);
-            users.remove(player);
-            parties.remove(player);
-        }
-
-        public void removePlayer(@NotNull OfflinePlayer player) {
-            removePlayer(player.getUniqueId());
-        }
-
-        public void disband() {
-            users.forEach((player) -> {
-                        DungeonPlayer d = PartyManager.getInstance().getDungeonPlayer(player);
-                        Player p = Bukkit.getPlayer(player);
-                        if (p != null && this.isInsideDungeon(p))
-                            d.getPreEnterSnapshot().apply(p);
-                        users.remove(player);
-                        parties.remove(player);
-                    }
-            );
-            //parties.remove(this);
-        }
-
-        /**
-         * true if you are <b>online</b> and inside the dungeon
-         * <p>
-         * N.B. if you are offline but logged out inside the dungeon you are considered outside
-         *
-         * @param player
-         * @return
-         */
-        public boolean isInsideDungeon(@NotNull OfflinePlayer player) {
-            return PartyManager.getInstance().getDungeonPlayer(player).hasPreEnterSnapshot();
-        }
-
-        @NotNull
-        public UUID getLeaderUUID() {
-            return leader;
-        }
-
-        @Nullable
-        public Player getLeader() {
-            return Bukkit.getPlayer(leader);
-        }
-
-        @NotNull
-        public OfflinePlayer getOfflineLeader() {
-            return Bukkit.getOfflinePlayer(leader);
-        }
-
-        @Nullable
-        public DungeonHandler getDungeon() {
-            return dungeon;
-        }
-
-        public void flagPlayerExitDungeon(@NotNull Player player) {
-            DungeonPlayer dp = PartyManager.getInstance().getDungeonPlayer(player);
-            dp.getAndDeletePreEnterSnapshot().apply(player);
-            dp.clearDungeonData();
-            for (UUID uuid : users) {
-                DungeonPlayer dungeonPlayer = PartyManager.getInstance().getDungeonPlayer(uuid);
-                if (dungeonPlayer.hasPreEnterSnapshot())
-                    return;
-            }
-
-            //dungeon completed
-            AreaManager.getInstance().flagComplete(dungeon);
-            dungeon = null;
-
-            for (UUID uuid : users) {
-                DungeonPlayer dungeonPlayer = PartyManager.getInstance().getDungeonPlayer(uuid);
-                dungeonPlayer.clearDungeonData();
-            }
-        }
-
-        private void onPlayerQuit(Player player) {
-            if (!isInsideDungeon(player))
-                return;
-            DungeonPlayer dp = PartyManager.getInstance().getDungeonPlayer(player);
-            dp.setLogoutSnapshot(player);
-            dp.getAndDeletePreEnterSnapshot().apply(player);
-        }
-
-        private void onPlayerJoin(Player player) {
-            DungeonPlayer dp = PartyManager.getInstance().getDungeonPlayer((player));
-            if (dp.hasLogoutSnapshot()) {
-                dp.setPreEnterSnapshot(player);
-                dp.getAndDeleteLogoutSnapshot().apply(player);
-            }
-        }
-
-        public void setLeader(@NotNull Player newLeader) {
-            if (!this.equals(getParty(newLeader)))
-                throw new IllegalArgumentException();
-            leader = newLeader.getUniqueId();
-        }
-
-        /*
-        public DungeonPlayer getDungeonPlayer(OfflinePlayer player) {
-            return getDungeonPlayer(player.getUniqueId());
-        }
-
-        public DungeonPlayer getDungeonPlayer(UUID player) {
-            return dungeonPlayers.get(player);
-        }*/
     }
 }

@@ -13,7 +13,7 @@ import emanondev.deepdungeons.Util;
 import emanondev.deepdungeons.area.AreaManager;
 import emanondev.deepdungeons.door.DoorType.DoorInstance.DoorHandler;
 import emanondev.deepdungeons.dungeon.DungeonType;
-import emanondev.deepdungeons.party.PartyManager;
+import emanondev.deepdungeons.party.Party;
 import emanondev.deepdungeons.room.RoomInstanceManager;
 import emanondev.deepdungeons.room.RoomType.RoomInstance;
 import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
@@ -551,7 +551,7 @@ public class GroupsSequenceType extends DungeonType {
             }
 
             @Override
-            protected void startImpl(@NotNull PartyManager.Party party) {
+            protected void startImpl(@NotNull Party party) {
                 state = State.STARTED;
             }
 

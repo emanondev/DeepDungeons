@@ -6,6 +6,7 @@ import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
 import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance;
 import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
+import emanondev.deepdungeons.party.Party;
 import emanondev.deepdungeons.party.PartyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
@@ -14,6 +15,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
@@ -215,7 +217,7 @@ public class AreaManager implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void event(BlockBreakEvent event) {
-        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        Party party = PartyManager.getInstance().getParty(event.getPlayer());
         if (party == null || !party.isInsideDungeon(event.getPlayer()))
             return;
         party.getDungeon().onBlockBreak(event);
@@ -223,15 +225,15 @@ public class AreaManager implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void event(BlockPlaceEvent event) {
-        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        Party party = PartyManager.getInstance().getParty(event.getPlayer());
         if (party == null || !party.isInsideDungeon(event.getPlayer()))
             return;
         party.getDungeon().onBlockPlace(event);
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     private void event(PlayerTeleportEvent event) {
-        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        Party party = PartyManager.getInstance().getParty(event.getPlayer());
         if (party == null || !party.isInsideDungeon(event.getPlayer()))
             return;
         party.getDungeon().onPlayerTeleport(event);
@@ -239,7 +241,7 @@ public class AreaManager implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerMoveEvent event) {
-        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        Party party = PartyManager.getInstance().getParty(event.getPlayer());
         if (party == null || !party.isInsideDungeon(event.getPlayer()))
             return;
         party.getDungeon().onPlayerMove(event);
@@ -247,7 +249,7 @@ public class AreaManager implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerInteractEvent event) {
-        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        Party party = PartyManager.getInstance().getParty(event.getPlayer());
         if (party == null || !party.isInsideDungeon(event.getPlayer()))
             return;
         party.getDungeon().onPlayerInteract(event);
@@ -255,7 +257,7 @@ public class AreaManager implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerInteractEntityEvent event) {
-        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        Party party = PartyManager.getInstance().getParty(event.getPlayer());
         if (party == null || !party.isInsideDungeon(event.getPlayer()))
             return;
         party.getDungeon().onPlayerInteractEntity(event);
@@ -263,7 +265,7 @@ public class AreaManager implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerHarvestBlockEvent event) {
-        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        Party party = PartyManager.getInstance().getParty(event.getPlayer());
         if (party == null || !party.isInsideDungeon(event.getPlayer()))
             return;
         party.getDungeon().onPlayerHarvestBlock(event);
@@ -271,7 +273,7 @@ public class AreaManager implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerFishEvent event) {
-        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        Party party = PartyManager.getInstance().getParty(event.getPlayer());
         if (party == null || !party.isInsideDungeon(event.getPlayer()))
             return;
         party.getDungeon().onPlayerFish(event);
@@ -279,7 +281,7 @@ public class AreaManager implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerCommandSendEvent event) {
-        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        Party party = PartyManager.getInstance().getParty(event.getPlayer());
         if (party == null || !party.isInsideDungeon(event.getPlayer()))
             return;
         party.getDungeon().onPlayerCommandSend(event);
@@ -287,7 +289,7 @@ public class AreaManager implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerBucketEmptyEvent event) {
-        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        Party party = PartyManager.getInstance().getParty(event.getPlayer());
         if (party == null || !party.isInsideDungeon(event.getPlayer()))
             return;
         party.getDungeon().onPlayerBucketEmpty(event);
@@ -295,7 +297,7 @@ public class AreaManager implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerBucketFillEvent event) {
-        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        Party party = PartyManager.getInstance().getParty(event.getPlayer());
         if (party == null || !party.isInsideDungeon(event.getPlayer()))
             return;
         party.getDungeon().onPlayerBucketFill(event);
@@ -303,7 +305,7 @@ public class AreaManager implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerBucketEntityEvent event) {
-        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        Party party = PartyManager.getInstance().getParty(event.getPlayer());
         if (party == null || !party.isInsideDungeon(event.getPlayer()))
             return;
         party.getDungeon().onPlayerBucketEntity(event);
@@ -311,7 +313,7 @@ public class AreaManager implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerBedLeaveEvent event) {
-        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        Party party = PartyManager.getInstance().getParty(event.getPlayer());
         if (party == null || !party.isInsideDungeon(event.getPlayer()))
             return;
         party.getDungeon().onPlayerBedLeave(event);
@@ -319,7 +321,7 @@ public class AreaManager implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerBedEnterEvent event) {
-        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        Party party = PartyManager.getInstance().getParty(event.getPlayer());
         if (party == null || !party.isInsideDungeon(event.getPlayer()))
             return;
         party.getDungeon().onPlayerBedEnter(event);
@@ -328,7 +330,7 @@ public class AreaManager implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void event(PlayerShearEntityEvent event) {
-        PartyManager.Party party = PartyManager.getInstance().getParty(event.getPlayer());
+        Party party = PartyManager.getInstance().getParty(event.getPlayer());
         if (party == null || !party.isInsideDungeon(event.getPlayer()))
             return;
         party.getDungeon().onPlayerShearEntity(event);

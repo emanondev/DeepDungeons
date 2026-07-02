@@ -2,20 +2,32 @@ package emanondev.deepdungeons.party;
 
 import emanondev.core.PlayerSnapshot;
 import emanondev.deepdungeons.door.DoorType.DoorInstance.DoorHandler;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 public class DungeonPlayer {
     private static final int MAX_INVITES = 10;
     private final HashMap<DoorHandler, DoorHandler> history = new HashMap<>();
-    private final List<PartyManager.Party> invites = new LinkedList<>();
+    private final List<Party> invites = new LinkedList<>();
     private PlayerSnapshot preEnterSnapshot = null;
     private PlayerSnapshot logoutSnapshot = null;
+    private boolean partyChat = false;
+
+    /**
+     * @see PartyManager#getDungeonPlayer(UUID)
+     * @see PartyManager#getDungeonPlayer(OfflinePlayer)
+     */
+    @ApiStatus.Internal
+    DungeonPlayer() {
+    }
 
     public void setPreEnterSnapshot(@NotNull Player player) {
         setPreEnterSnapshot(new PlayerSnapshot(player, PlayerSnapshot.FieldType.LOCATION));
@@ -80,7 +92,7 @@ public class DungeonPlayer {
         return history.get(from);
     }
 
-    public void receiveInvite(@NotNull PartyManager.Party party) {
+    public void receiveInvite(@NotNull Party party) {
         if (invites.contains(party))
             return;
         invites.add(party);
@@ -88,11 +100,19 @@ public class DungeonPlayer {
             invites.remove(0);
     }
 
-    public void revokeInvite(@NotNull PartyManager.Party party) {
+    public void revokeInvite(@NotNull Party party) {
         invites.remove(party);
     }
 
-    public boolean hasInvite(PartyManager.Party targetParty) {
+    public boolean hasInvite(Party targetParty) {
         return invites.contains(targetParty);
+    }
+
+    public boolean isOnPartyChat() {
+        return this.partyChat;
+    }
+
+    public void setPartyChat(boolean value) {
+        this.partyChat = value;
     }
 }

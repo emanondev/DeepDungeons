@@ -243,7 +243,7 @@ public class CUtils {
         return loc;
     }
 
-    public static boolean isEqual(@NotNull Location loc,@NotNull Location loc2) {
-        return loc.getX()==loc2.getX()&&loc.getZ()==loc2.getZ()&&loc.getY()==loc2.getY();
+    public static boolean isEqual(@NotNull Location loc, @NotNull Location loc2) {
+        return loc.getX() == loc2.getX() && loc.getZ() == loc2.getZ() && loc.getY() == loc2.getY();
     }
 }

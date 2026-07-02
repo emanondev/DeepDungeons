@@ -44,7 +44,7 @@ public class PrePopulateEvent extends RoomEvent implements Cancellable {
 
     /**
      * Returns an immutable view to the list of populators to apply to the room<p>
-     * Populators returned by this method are already filtered by their {@link PopulatorInstance#getChance() chance} value<br>
+     * Populators returned by this method are already filtered by their {@link PopulatorInstance#getUseChance()} chance} value<br>
      * List order doesn't match populate calls done to populate the room<br>
      * To add and remove populators use {@link #addPopulator(PopulatorInstance) addPopulator()} and {@link #removePopulator(PopulatorInstance) removePopulator()}
      *

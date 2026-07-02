@@ -37,7 +37,8 @@ public abstract class APopulatorType extends DRegistryElement implements Populat
         return new DMessage(DeepDungeons.get(), player).append("<red>Description of <gold>" + getId() + "</gold> not implemented</red>");//TODO
     }
 
-    protected boolean hasUseChance() {
+    @Override
+    public boolean hasUseChance() {
         return true;
     }
 
@@ -69,6 +70,7 @@ public abstract class APopulatorType extends DRegistryElement implements Populat
         public RoomBuilder getRoomBuilder() {
             return roomBuilder;
         }
+
 
         @Override
         public void setupTools() {
@@ -160,44 +162,30 @@ public abstract class APopulatorType extends DRegistryElement implements Populat
 
 
         private final RoomInstance room;
-        //private final Vector offset;
-        //private final Vector direction;
         private final double useChance;
 
         public APopulatorInstance(@NotNull RoomInstance room, @NotNull YMLSection section) {
             super(APopulatorType.this);
             this.room = room;
             this.useChance = hasUseChance() ? CUtils.bound(section.getDouble("useChance", 1), 0D, 1D) : 1;
-            //this.offset = Util.toVector(section.getString("offset"));
-            //this.direction = Util.toVector(section.getString("direction"));
         }
 
-        public boolean rollUseChance() {
-            return !hasUseChance() || Math.random() > getUseChance();
-        }
-
+        @Override
         public double getUseChance() {
             return hasUseChance() ? useChance : 1;
         }
 
-
-        /*
-        @Contract("-> new")
-        @NotNull
-        public Vector getOffset() {
-            return offset.clone();
-        }
-
-        @Contract("-> new")
-        @NotNull
-        public Vector getDirection() {
-            return direction.clone();
-        }*/
-
         @NotNull
         @Override
-        public RoomInstance getRoomInstance() {
+        public final RoomInstance getRoomInstance() {
             return room;
+        }
+
+
+        @Override
+        @NotNull
+        public final PopulatorType getPopulatorType(){
+            return APopulatorType.this;
         }
 
     }

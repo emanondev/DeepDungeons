@@ -41,6 +41,8 @@ public class Perms {
             "dungeonparty", "list").addChild(PARTY_HELP, true).buildAndRegister(DeepDungeons.get());
     public static final Permission PARTY_INFO = PermissionBuilder.ofCommand(DeepDungeons.get(),
             "dungeonparty", "info").addChild(PARTY_HELP, true).buildAndRegister(DeepDungeons.get());
+    public static final Permission PARTY_CHAT = PermissionBuilder.ofCommand(DeepDungeons.get(),
+            "dungeonparty", "chat").addChild(PARTY_HELP, true).buildAndRegister(DeepDungeons.get());
     public static final Permission PARTY_ALL = PermissionBuilder.ofCommand(DeepDungeons.get(),
                     "dungeonparty")
             .addChild(PARTY_HELP, true)
@@ -54,6 +56,7 @@ public class Perms {
             .addChild(PARTY_LEADER, true)
             .addChild(PARTY_LIST, true)
             .addChild(PARTY_INFO, true)
+            .addChild(PARTY_CHAT, true)
             .buildAndRegister(DeepDungeons.get());
     public static final Permission DUNGEONTREASURE_ADMIN = PermissionBuilder.ofPlugin(DeepDungeons.get(), "admin")
             .addChild(PARTY_ALL, true)
@@ -62,7 +65,7 @@ public class Perms {
             .addChild(DUNGEONTREASURE_COMMAND, true)
             .addChild(DUNGEONCREATOR_COMMAND, true)
             .addChild(DUNGEONMONSTERSPAWNER_COMMAND, true).buildAndRegister(DeepDungeons.get());
-    ;
+
 
     private Perms() {
         throw new AssertionError();

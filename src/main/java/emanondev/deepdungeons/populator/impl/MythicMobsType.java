@@ -1,11 +1,9 @@
 package emanondev.deepdungeons.populator.impl;
 
-import emanondev.core.ItemBuilder;
 import emanondev.core.YMLSection;
 import emanondev.core.gui.NumberEditorFButton;
 import emanondev.core.gui.PagedMapGui;
 import emanondev.core.gui.ResearchFButton;
-import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.CUtils;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Util;
@@ -29,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class MythicMobsType extends APaperPopulatorType {
 
@@ -92,7 +92,7 @@ public class MythicMobsType extends APaperPopulatorType {
             location.setY(location.getBlockY());
             location.setZ(location.getBlockZ() + 0.5D);
             Location finalLocation = location;
-            if (!offsets.removeIf(loc -> CUtils.isEqual(loc,finalLocation)))
+            if (!offsets.removeIf(loc -> CUtils.isEqual(loc, finalLocation)))
                 offsets.add(location);
         }
 
@@ -109,7 +109,7 @@ public class MythicMobsType extends APaperPopulatorType {
                 }
                 case 6 -> {
                     if (offsets.isEmpty() || type == null) {
-                        //TODO lang uncompleted
+                        CUtils.sendMsg(event.getPlayer(), "populatorbuilder.msg_uncompleted_settings");
                         return;
                     }
                     this.complete();
@@ -132,59 +132,8 @@ public class MythicMobsType extends APaperPopulatorType {
 
         @Override
         protected void craftGuiButtonsImpl(@NotNull PagedMapGui gui, @NotNull Player player) {
-            gui.addButton(new ResearchFButton<>(gui, () -> new ItemBuilder(Material.SPAWNER).setDescription(
-                    new DMessage(DeepDungeons.get(), player)
-                            .append("<!i><gold><b>MobType</b>").newLine()//TODO lang
-                            .append("<gold><blue>Type:</blue> " + (type == null ? "null" : type.getInternalName()))).setGuiProperty().build(),
-                    (String text, MythicMob type) -> {
-                        String[] split = text.split(" ");
-                        for (String s : split) {
-                            if (!(type.getInternalName().toLowerCase(Locale.ENGLISH).contains(s.toLowerCase(Locale.ENGLISH))))
-                                return false;
-                        }
-                        return true;
-                    },
-                    (InventoryClickEvent event, MythicMob type) -> {
-                        setEntityType(type);
-                        gui.open(player);
-                        return false;
-                    },
-                    (MythicMob type) -> new ItemBuilder(Material.ZOMBIE_HEAD).setDescription(
-                            new DMessage(DeepDungeons.get(), player)
-                                    .append("<!i><gold><b>" + type.getInternalName() + "</b>").newLine()//TODO lang
-                                    .append("<gold><blue>Type:</blue> " + (type.getInternalName()))).setGuiProperty().build(),
-                    () -> {
-                        ArrayList<MythicMob> list = new ArrayList<>(MythicBukkit.inst().getMobManager().getMobTypes());
-                        list.sort((t1, t2) -> t1.getInternalName().compareToIgnoreCase(t2.getInternalName()));
-                        return list;
-                    }
-            ));
-            gui.addButton(new NumberEditorFButton<>(
-                    gui, 1, 1, 100, this::getMin, this::setMin, () ->
-                    new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, min))
-                            .setDescription(new DMessage(DeepDungeons.get(), player).append("<gold>Minimum spawned Mobs").newLine()
-                                    .append("<gold><blue>Max: </blue>" + max).newLine()//TODO lang
-                                    .append("<gold><blue>Min: </blue>" + min)).setGuiProperty().build(), true
-            ));
-            gui.addButton(new NumberEditorFButton<>(
-                    gui, 1, 1, 100, this::getMax, this::setMax, () ->
-                    new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, max)).setDescription(//TODO lang
-                            new DMessage(DeepDungeons.get(), player).append("<gold><b>Maximus spawned Mobs</b>").newLine()
-                                    .append("<gold><blue>Max: </blue>" + max).newLine()
-                                    .append("<gold><blue>Min: </blue>" + min)).setGuiProperty().build(), true));
-            gui.addButton(new NumberEditorFButton<>(
-                    gui, 1, 1, 10000, this::getLevelMin, this::setLevelMin, () ->
-                    new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, levelMin))//TODO lang
-                            .setDescription(new DMessage(DeepDungeons.get(), player).append("<gold>Minimum Level spawned Mobs").newLine()
-                                    .append("<gold><blue>LevelMax: </blue>" + levelMax).newLine()
-                                    .append("<gold><blue>LevelMin: </blue>" + levelMin)).setGuiProperty().build(), true
-            ));
-            gui.addButton(new NumberEditorFButton<>(
-                    gui, 1, 1, 10000, this::getLevelMax, this::setLevelMax, () ->
-                    new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, levelMax)).setDescription(//TODO lang
-                            new DMessage(DeepDungeons.get(), player).append("<gold><b>Maximus Level spawned Mobs</b>").newLine()
-                                    .append("<gold><blue>LevelMax: </blue>" + levelMax).newLine()
-                                    .append("<gold><blue>LevelMin: </blue>" + levelMin)).setGuiProperty().build(), true));
+            createButtons(gui, player, () -> type, this::setEntityType, this::getMin, this::setMin, this::getMax, this::setMax,
+                    this::getLevelMin, this::setLevelMin, this::getLevelMax, this::setLevelMax);
         }
 
         public int getLevelMin() {
@@ -248,6 +197,61 @@ public class MythicMobsType extends APaperPopulatorType {
         }
     }
 
+
+    private static void createButtons(PagedMapGui gui, Player player, Supplier<MythicMob> getMob, Consumer<MythicMob> setMob,
+                                      Supplier<Integer> getMin, Consumer<Integer> setMin,
+                                      Supplier<Integer> getMax, Consumer<Integer> setMax,
+                                      Supplier<Integer> getMinLv, Consumer<Integer> setMinLv,
+                                      Supplier<Integer> getMaxLv, Consumer<Integer> setMaxLv) {
+        gui.addButton(new ResearchFButton<>(gui, () ->
+                CUtils.createItem(player, Material.SPAWNER, "mythicmob_guimobselector", "%type%",
+                        (getMob.get() == null ? "null" : getMob.get().getInternalName())),
+                (String text, MythicMob type) -> {
+                    String[] split = text.split(" ");
+                    for (String s : split) {
+                        if (!(type.getInternalName().toLowerCase(Locale.ENGLISH).contains(s.toLowerCase(Locale.ENGLISH))))
+                            return false;
+                    }
+                    return true;
+                },
+                (InventoryClickEvent event, MythicMob type) -> {
+                    setMob.accept(type);
+                    gui.open(player);
+                    return false;
+                },
+                (MythicMob type) ->
+                        CUtils.createItem(player, Material.SPAWNER, "mythicmob_guimobitem", "%type%",
+                                type.getInternalName(), "%name%", type.getDisplayName().get()),
+                () -> {
+                    ArrayList<MythicMob> list = new ArrayList<>(MythicBukkit.inst().getMobManager().getMobTypes());
+                    list.sort((t1, t2) -> t1.getInternalName().compareToIgnoreCase(t2.getInternalName()));
+                    return list;
+                }
+        ));
+        gui.addButton(new NumberEditorFButton<>(
+                gui, 1, 1, 100, getMin, setMin, () ->
+                CUtils.createItem(player, Material.REPEATER, getMin.get(), false, "mythicmob_guimobmin",
+                        "%min%", String.valueOf(getMin.get()),
+                        "%max%", String.valueOf(getMax.get())), true
+        ));
+        gui.addButton(new NumberEditorFButton<>(
+                gui, 1, 1, 100, getMax, setMax, () ->
+                CUtils.createItem(player, Material.REPEATER, getMax.get(), false, "mythicmob_guimobmax",
+                        "%min%", String.valueOf(getMin.get()),
+                        "%max%", String.valueOf(getMax.get())), true));
+
+        gui.addButton(new NumberEditorFButton<>(
+                gui, 1, 1, 10000, getMinLv, setMinLv, () ->
+                CUtils.createItem(player, Material.REPEATER, getMinLv.get(), false, "mythicmob_guimobminlevel",
+                        "%min%", String.valueOf(getMinLv.get()),
+                        "%max%", String.valueOf(getMaxLv.get())), true));
+        gui.addButton(new NumberEditorFButton<>(
+                gui, 1, 1, 10000, getMaxLv, setMaxLv, () ->
+                CUtils.createItem(player, Material.REPEATER, getMaxLv.get(), false, "mythicmob_guimobmaxlevel",
+                        "%min%", String.valueOf(getMinLv.get()),
+                        "%max%", String.valueOf(getMaxLv.get())), true));
+    }
+
     private class MythicMobsPaperBuilder extends APaperPopulatorBuilder {
 
         @Nullable
@@ -300,59 +304,8 @@ public class MythicMobsType extends APaperPopulatorType {
 
         @Override
         protected void craftGuiButtonsImpl(@NotNull PagedMapGui gui, @NotNull Player player) {
-            gui.addButton(new ResearchFButton<>(gui, () -> new ItemBuilder(Material.SPAWNER).setDescription(
-                    new DMessage(DeepDungeons.get(), player)
-                            .append("<!i><gold><b>MobType</b>").newLine()//TODO lang
-                            .append("<gold><blue>Type:</blue> " + (type == null ? "null" : type.getInternalName()))).setGuiProperty().build(),
-                    (String text, MythicMob type) -> {
-                        String[] split = text.split(" ");
-                        for (String s : split) {
-                            if (!(type.getInternalName().toLowerCase(Locale.ENGLISH).contains(s.toLowerCase(Locale.ENGLISH))))
-                                return false;
-                        }
-                        return true;
-                    },
-                    (InventoryClickEvent event, MythicMob type) -> {
-                        setEntityType(type);
-                        gui.open(player);
-                        return false;
-                    },
-                    (MythicMob type) -> new ItemBuilder(Material.ZOMBIE_HEAD).setDescription(
-                            new DMessage(DeepDungeons.get(), player)
-                                    .append("<!i><gold><b>" + type.getInternalName() + "</b>").newLine()//TODO lang
-                                    .append("<gold><blue>Type:</blue> " + (type.getInternalName()))).setGuiProperty().build(),
-                    () -> {
-                        ArrayList<MythicMob> list = new ArrayList<>(MythicBukkit.inst().getMobManager().getMobTypes());
-                        list.sort((t1, t2) -> t1.getInternalName().compareToIgnoreCase(t2.getInternalName()));
-                        return list;
-                    }
-            ));
-            gui.addButton(new NumberEditorFButton<>(
-                    gui, 1, 1, 100, this::getMin, this::setMin, () ->
-                    new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, min))
-                            .setDescription(new DMessage(DeepDungeons.get(), player).append("<gold>Minimum spawned Mobs").newLine()
-                                    .append("<gold><blue>Max: </blue>" + max).newLine()//TODO lang
-                                    .append("<gold><blue>Min: </blue>" + min)).setGuiProperty().build(), true
-            ));
-            gui.addButton(new NumberEditorFButton<>(
-                    gui, 1, 1, 100, this::getMax, this::setMax, () ->
-                    new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, max)).setDescription(//TODO lang
-                            new DMessage(DeepDungeons.get(), player).append("<gold><b>Maximus spawned Mobs</b>").newLine()
-                                    .append("<gold><blue>Max: </blue>" + max).newLine()
-                                    .append("<gold><blue>Min: </blue>" + min)).setGuiProperty().build(), true));
-            gui.addButton(new NumberEditorFButton<>(
-                    gui, 1, 1, 10000, this::getLevelMin, this::setLevelMin, () ->
-                    new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, levelMin))//TODO lang
-                            .setDescription(new DMessage(DeepDungeons.get(), player).append("<gold>Minimum Level spawned Mobs").newLine()
-                                    .append("<gold><blue>LevelMax: </blue>" + levelMax).newLine()
-                                    .append("<gold><blue>LevelMin: </blue>" + levelMin)).setGuiProperty().build(), true
-            ));
-            gui.addButton(new NumberEditorFButton<>(
-                    gui, 1, 1, 10000, this::getLevelMax, this::setLevelMax, () ->
-                    new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, levelMax)).setDescription(//TODO lang
-                            new DMessage(DeepDungeons.get(), player).append("<gold><b>Maximus Level spawned Mobs</b>").newLine()
-                                    .append("<gold><blue>LevelMax: </blue>" + levelMax).newLine()
-                                    .append("<gold><blue>LevelMin: </blue>" + levelMin)).setGuiProperty().build(), true));
+            createButtons(gui, player, () -> type, this::setEntityType, this::getMin, this::setMin, this::getMax, this::setMax,
+                    this::getLevelMin, this::setLevelMin, this::getLevelMax, this::setLevelMax);
         }
 
         public int getLevelMin() {

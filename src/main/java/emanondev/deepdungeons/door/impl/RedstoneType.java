@@ -82,7 +82,7 @@ public class RedstoneType extends DoorType {
                     setupTools();
                 }
                 case 6 -> {
-                    if (blocks.size() > 0) {
+                    if (!blocks.isEmpty()) {
                         completedRedstonePlates = true;
                         event.getPlayer().getInventory().setHeldItemSlot(0);
                         setupTools();
@@ -101,7 +101,7 @@ public class RedstoneType extends DoorType {
                         "%value%", String.valueOf(blocks.size()));
                 CUtils.setSlot(player, 2, inv, Material.CLOCK, "doorbuilder.redstone_blocks_atsametime",
                         "%value%", String.valueOf(atSameTime));
-                if (blocks.size() > 0)
+                if (!blocks.isEmpty())
                     CUtils.setSlot(player, 6, inv, Material.LIME_DYE, "doorbuilder.redstone_blocks_confirm");
                 return;
             }

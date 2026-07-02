@@ -77,7 +77,7 @@ public class HiddenPassageType extends TrapType {
                     if (event.getClickedBlock() == null)
                         return;
                     if (!getRoomBuilder().contains(event.getClickedBlock().getLocation())) {
-                        CUtils.sendMsg(event.getPlayer(), "trapbuilder.hiddenpassage_msg_block_is_outside_room"); //TODO lang
+                        CUtils.sendMsg(event.getPlayer(), "trapbuilder.hiddenpassage_msg_block_is_outside_room");
                         return;
                     }
                     if (!blocks.remove(event.getClickedBlock()))
@@ -87,21 +87,21 @@ public class HiddenPassageType extends TrapType {
                 }
                 case 2 -> {
                     MapGui map = new MapGui(new DMessage(DeepDungeons.get(), p)
-                            .appendLang("trapbuilder.hiddenpassage_guisettings_title"), //TODO lang
+                            .appendLang("trapbuilder.hiddenpassage_guisettings_title"),
                             1, p, null, DeepDungeons.get());
                     map.setButton(4, new NumberEditorFButton<>(map, 1D, 0.1D, 10D,
-                            () -> activationRange, (value) -> activationRange = CUtils.bound( value,0.1D,50D),
-                            () -> CUtils.createItem(p, Material.REPEATER, "trapbuilder.hiddenpassage_settings_activationrange", //TODO lang
-                                    "%maxuses%", String.valueOf(activationRange) ), true));
+                            () -> activationRange, (value) -> activationRange = CUtils.bound(value, 0.1D, 50D),
+                            () -> CUtils.createItem(p, Material.REPEATER, "trapbuilder.hiddenpassage_settings_activationrange",
+                                    "%range%", String.valueOf(activationRange)), true));
                     map.open(p);
                 }
                 case 6 -> {
-                    if (blocks.size() > 0) {
+                    if (!blocks.isEmpty()) {
                         inv.setHeldItemSlot(0);
                         this.complete();
                         return;
                     }
-                    CUtils.sendMsg(p, "trapbuilder.hiddenpassage_msg_setup_incomplete"); //TODO lang
+                    CUtils.sendMsg(p, "trapbuilder.hiddenpassage_msg_setup_incomplete");
                 }
             }
         }
@@ -110,10 +110,10 @@ public class HiddenPassageType extends TrapType {
         protected void setupToolsImpl() {
             Player p = getPlayer();
             PlayerInventory inv = p.getInventory();
-            inv.setItem(0, CUtils.createItem(p, Material.PAPER, "trapbuilder.hiddenpassage_info")); //TODO lang
-            inv.setItem(1, CUtils.createItem(p, Material.STICK, blocks.size(), false, "trapbuilder.hiddenpassage_chestselector")); //TODO lang
-            inv.setItem(2, CUtils.createItem(p, Material.CHEST, "trapbuilder.hiddenpassage_settings")); //TODO lang
-            inv.setItem(6, CUtils.createItem(p, Material.LIME_DYE, blocks.size(), false, "trapbuilder.hiddenpassage_confirm")); //TODO lang
+            inv.setItem(0, CUtils.createItem(p, Material.PAPER, "trapbuilder.hiddenpassage_info"));
+            inv.setItem(1, CUtils.createItem(p, Material.STICK, blocks.size(), false, "trapbuilder.hiddenpassage_blockselector"));
+            inv.setItem(2, CUtils.createItem(p, Material.CHEST, "trapbuilder.hiddenpassage_settings"));
+            inv.setItem(6, CUtils.createItem(p, Material.LIME_DYE, blocks.size(), false, "trapbuilder.hiddenpassage_confirm"));
         }
 
         @Override
@@ -132,7 +132,7 @@ public class HiddenPassageType extends TrapType {
         public HiddenPassageInstance(@NotNull RoomInstance room, @NotNull YMLSection section) {
             super(room, section);
             section.getStringList("hiddenBlocks").forEach(val -> where.add(Util.toBlockVector(val)));
-            this.activationRange =  section.getDouble("activationRange", 1);
+            this.activationRange = section.getDouble("activationRange", 1);
         }
 
         @Override
@@ -156,28 +156,26 @@ public class HiddenPassageType extends TrapType {
 
             @Override
             public void onFirstPlayerEnter(@NotNull Player player) {
-                hiddenBlocks.removeIf(block -> block.getType().isAir()||block.getBoundingBox().getVolume()==0);
+                hiddenBlocks.removeIf(block -> block.getType().isAir() || block.getBoundingBox().getVolume() == 0);
                 hiddenBlocks.forEach(block -> hiddenBlocksBoxes.add(block.getBoundingBox().expand(activationRange)));
             }
 
 
             @Override
             public void onPlayerMove(@NotNull PlayerMoveEvent event) {
-                if (hiddenBlocksBoxes.isEmpty()||CUtils.isEqual(event.getFrom(),event.getTo()))
+                if (hiddenBlocksBoxes.isEmpty() || CUtils.isEqual(event.getFrom(), event.getTo()))
                     return;
                 BoundingBox playerBox = event.getPlayer().getBoundingBox();
-                playerBox = new BoundingBox().expand(playerBox.getWidthX()/2,playerBox.getHeight()/2,playerBox.getWidthZ()/2).shift(event.getFrom().getX(),
-                        event.getFrom().getY()+playerBox.getHeight()/2,event.getFrom().getZ());
-                for (int i = 0 ; i< hiddenBlocksBoxes.size();i++){
-                    if (playerBox.overlaps(hiddenBlocksBoxes.get(i))){
+                for (int i = 0; i < hiddenBlocksBoxes.size(); i++) {
+                    if (playerBox.overlaps(hiddenBlocksBoxes.get(i))) {
                         hiddenBlocksBoxes.remove(i);
                         BlockState b = hiddenBlocks.remove(i).getState();
                         BlockData data = b.getBlockData();
                         BoundingBox box = b.getBlock().getBoundingBox();
                         b.setType(Material.AIR);
-                        b.update(true,true);
-                        b.getWorld().spawnParticle(Particle.BLOCK_CRACK,box.getCenter().toLocation(b.getWorld()),20,
-                                box.getWidthX()/2,box.getHeight()/2,box.getWidthZ()/2,data);
+                        b.update(true, true);
+                        b.getWorld().spawnParticle(Particle.BLOCK_CRACK, box.getCenter().toLocation(b.getWorld()), 20,
+                                box.getWidthX() / 2, box.getHeight() / 2, box.getWidthZ() / 2, data);
                         i--;
                     }
                 }

@@ -1,11 +1,9 @@
 package emanondev.deepdungeons.populator.impl;
 
-import emanondev.core.ItemBuilder;
 import emanondev.core.YMLSection;
 import emanondev.core.gui.NumberEditorFButton;
 import emanondev.core.gui.PagedMapGui;
 import emanondev.core.gui.ResearchFButton;
-import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.CUtils;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Util;
@@ -28,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class VanillaMobsType extends APaperPopulatorType {
 
@@ -86,7 +86,7 @@ public class VanillaMobsType extends APaperPopulatorType {
             location.setY(location.getBlockY());
             location.setZ(location.getBlockZ() + 0.5D);
             Location finalLocation = location;
-            if (!offsets.removeIf(loc -> CUtils.isEqual(loc,finalLocation) ))
+            if (!offsets.removeIf(loc -> CUtils.isEqual(loc, finalLocation)))
                 offsets.add(location);
         }
 
@@ -103,7 +103,7 @@ public class VanillaMobsType extends APaperPopulatorType {
                 }
                 case 6 -> {
                     if (offsets.isEmpty()) {
-                        //TODO lang uncompleted
+                        CUtils.sendMsg(event.getPlayer(), "populatorbuilder.msg_uncompleted_settings");
                         return;
                     }
                     this.complete();
@@ -126,50 +126,7 @@ public class VanillaMobsType extends APaperPopulatorType {
 
         @Override
         protected void craftGuiButtonsImpl(@NotNull PagedMapGui gui, @NotNull Player player) {
-            gui.addButton(new ResearchFButton<>(gui, () -> new ItemBuilder(Material.SPAWNER).setDescription(
-                    new DMessage(DeepDungeons.get(), player)
-                            .append("<!i><gold><b>EntityType</b>").newLine() //TODO lang
-                            .append("<gold><blue>Type:</blue> " + (type.getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
-                                    type.getKey().toString().substring(10) : type.getKey().toString()))).setGuiProperty().build(),
-                    (String text, EntityType type) -> {
-                        String[] split = text.split(" ");
-                        for (String s : split) {
-                            if (!(type.name().toLowerCase(Locale.ENGLISH).contains(s.toLowerCase(Locale.ENGLISH))
-                                    || type.getKey().toString().contains(s.toLowerCase(Locale.ENGLISH))))
-                                return false;
-                        }
-                        return true;
-                    },
-                    (InventoryClickEvent event, EntityType type) -> {
-                        setEntityType(type);
-                        gui.open(player);
-                        return false;
-                    },
-                    (EntityType type) -> new ItemBuilder(Material.ZOMBIE_HEAD).setDescription(
-                            new DMessage(DeepDungeons.get(), player)
-                                    .append("<!i><gold><b>" + type.name() + "</b>").newLine() //TODO lang
-                                    .append("<gold><blue>Type:</blue> " + (type.getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
-                                            type.getKey().toString().substring(10) : type.getKey().toString()))).setGuiProperty().build(),
-                    () -> {
-                        ArrayList<EntityType> list = new ArrayList<>(Arrays.asList(EntityType.values()));
-                        list.removeIf((type) -> !type.isSpawnable() || !type.isAlive());
-                        list.sort(Comparator.comparing(Enum::name));
-                        return list;
-                    }
-            ));
-            gui.addButton(new NumberEditorFButton<>(
-                    gui, 1, 1, 100, this::getMin, this::setMin, () ->
-                    new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, min)) //TODO lang
-                            .setDescription(new DMessage(DeepDungeons.get(), player).append("<gold>Minimum spawned Mobs").newLine()
-                                    .append("<gold><blue>Max: </blue>" + max).newLine()
-                                    .append("<gold><blue>Min: </blue>" + min)).setGuiProperty().build(), true
-            ));
-            gui.addButton(new NumberEditorFButton<>(
-                    gui, 1, 1, 100, this::getMax, this::setMax, () ->
-                    new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, max)).setDescription( //TODO lang
-                            new DMessage(DeepDungeons.get(), player).append("<gold><b>Maximus spawned Mobs</b>").newLine()
-                                    .append("<gold><blue>Max: </blue>" + max).newLine()
-                                    .append("<gold><blue>Min: </blue>" + min)).setGuiProperty().build(), true));
+            createButtons(gui, player, () -> type, this::setEntityType, this::getMin, this::setMin, this::getMax, this::setMax);
         }
 
         public int getMin() {
@@ -210,6 +167,50 @@ public class VanillaMobsType extends APaperPopulatorType {
         }
     }
 
+    private static void createButtons(PagedMapGui gui, Player player, Supplier<EntityType> getMob, Consumer<EntityType> setMob,
+                                      Supplier<Integer> getMin, Consumer<Integer> setMin,
+                                      Supplier<Integer> getMax, Consumer<Integer> setMax) {
+        gui.addButton(new ResearchFButton<>(gui, () ->
+                CUtils.createItem(player, Material.SPAWNER, "mythicmob_guimobselector", "%type%",
+                        (getMob.get().getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
+                                getMob.get().getKey().toString().substring(10) : getMob.get().getKey().toString())),
+                (String text, EntityType type) -> {
+                    String[] split = text.split(" ");
+                    for (String s : split) {
+                        if (!(type.name().toLowerCase(Locale.ENGLISH).contains(s.toLowerCase(Locale.ENGLISH))
+                                || type.getKey().toString().contains(s.toLowerCase(Locale.ENGLISH))))
+                            return false;
+                    }
+                    return true;
+                },
+                (InventoryClickEvent event, EntityType type) -> {
+                    setMob.accept(type);
+                    gui.open(player);
+                    return false;
+                },
+                (EntityType type) ->
+                        CUtils.createItem(player, Material.SPAWNER, "mythicmob_guimobitem", "%name%",type.name(),"%type%",
+                                (type.getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
+                                        type.getKey().toString().substring(10) : type.getKey().toString())),
+                () -> {
+                    ArrayList<EntityType> list = new ArrayList<>(Arrays.asList(EntityType.values()));
+                    list.removeIf((type) -> !type.isSpawnable() || !type.isAlive());
+                    list.sort(Comparator.comparing(Enum::name));
+                    return list;
+                }));
+        gui.addButton(new NumberEditorFButton<>(
+                gui, 1, 1, 100, getMin, setMin, () ->
+                CUtils.createItem(player, Material.REPEATER, getMin.get(), false, "mythicmob_guimobmin",
+                        "%min%", String.valueOf(getMin.get()),
+                        "%max%", String.valueOf(getMax.get())), true
+        ));
+        gui.addButton(new NumberEditorFButton<>(
+                gui, 1, 1, 100, getMax, setMax, () ->
+                CUtils.createItem(player, Material.REPEATER, getMax.get(), false, "mythicmob_guimobmax",
+                        "%min%", String.valueOf(getMin.get()),
+                        "%max%", String.valueOf(getMax.get())), true));
+    }
+
     private class VanillaMobsPaperBuilder extends APaperPopulatorBuilder {
 
         private EntityType type = EntityType.ZOMBIE;
@@ -248,50 +249,7 @@ public class VanillaMobsType extends APaperPopulatorType {
 
         @Override
         protected void craftGuiButtonsImpl(@NotNull PagedMapGui gui, @NotNull Player player) {
-            gui.addButton(new ResearchFButton<>(gui, () -> new ItemBuilder(Material.SPAWNER).setDescription(
-                    new DMessage(DeepDungeons.get(), player)
-                            .append("<!i><gold><b>EntityType</b>").newLine() //TODO lang
-                            .append("<gold><blue>Type:</blue> " + (type.getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
-                                    type.getKey().toString().substring(10) : type.getKey().toString()))).setGuiProperty().build(),
-                    (String text, EntityType type) -> {
-                        String[] split = text.split(" ");
-                        for (String s : split) {
-                            if (!(type.name().toLowerCase(Locale.ENGLISH).contains(s.toLowerCase(Locale.ENGLISH))
-                                    || type.getKey().toString().contains(s.toLowerCase(Locale.ENGLISH))))
-                                return false;
-                        }
-                        return true;
-                    },
-                    (InventoryClickEvent event, EntityType type) -> {
-                        setEntityType(type);
-                        gui.open(player);
-                        return false;
-                    },
-                    (EntityType type) -> new ItemBuilder(Material.ZOMBIE_HEAD).setDescription(
-                            new DMessage(DeepDungeons.get(), player)
-                                    .append("<!i><gold><b>" + type.name() + "</b>").newLine() //TODO lang
-                                    .append("<gold><blue>Type:</blue> " + (type.getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
-                                            type.getKey().toString().substring(10) : type.getKey().toString()))).setGuiProperty().build(),
-                    () -> {
-                        ArrayList<EntityType> list = new ArrayList<>(Arrays.asList(EntityType.values()));
-                        list.removeIf((type) -> !type.isSpawnable() || !type.isAlive());
-                        list.sort(Comparator.comparing(Enum::name));
-                        return list;
-                    }
-            ));
-            gui.addButton(new NumberEditorFButton<>(
-                    gui, 1, 1, 100, this::getMin, this::setMin, () ->
-                    new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, min)) //TODO lang
-                            .setDescription(new DMessage(DeepDungeons.get(), player).append("<gold>Minimum spawned Mobs").newLine()
-                                    .append("<gold><blue>Max: </blue>" + max).newLine()
-                                    .append("<gold><blue>Min: </blue>" + min)).setGuiProperty().build(), true
-            ));
-            gui.addButton(new NumberEditorFButton<>(
-                    gui, 1, 1, 100, this::getMax, this::setMax, () ->
-                    new ItemBuilder(Material.REPEATER).setAmount(Math.max(1, max)).setDescription( //TODO lang
-                            new DMessage(DeepDungeons.get(), player).append("<gold><b>Maximus spawned Mobs</b>").newLine()
-                                    .append("<gold><blue>Max: </blue>" + max).newLine()
-                                    .append("<gold><blue>Min: </blue>" + min)).setGuiProperty().build(), true));
+            createButtons(gui, player, () -> type, this::setEntityType, this::getMin, this::setMin, this::getMax, this::setMax);
         }
 
         public int getMin() {

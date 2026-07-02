@@ -11,7 +11,7 @@ import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.area.AreaManager;
 import emanondev.deepdungeons.door.DoorType.DoorInstance.DoorHandler;
 import emanondev.deepdungeons.interfaces.*;
-import emanondev.deepdungeons.party.PartyManager;
+import emanondev.deepdungeons.party.Party;
 import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -201,45 +201,143 @@ public abstract class DungeonType extends DRegistryElement {
             }
 
             public void onEntityPlace(@NotNull EntityPlaceEvent event) {
+                for (RoomHandler room : this.getRooms()) {
+                    if (room.contains(event.getBlock())) {
+                        room.onEntityPlace(event);
+                        return;
+                    }
+                }
+                event.setCancelled(true);
             }
 
             public void onEntityInteract(@NotNull EntityInteractEvent event) {
+                for (RoomHandler room : this.getRooms()) {
+                    if (room.contains(event.getBlock())) {
+                        room.onEntityInteract(event);
+                        return;
+                    }
+                }
+                event.setCancelled(true);
             }
 
             public void onEntityExplode(@NotNull EntityExplodeEvent event) {
+                for (RoomHandler room : this.getRooms()) {
+                    if (room.overlaps(event.getEntity())) {
+                        room.onEntityExplode(event);
+                        return;
+                    }
+                }
+                event.setCancelled(true);
             }
 
             public void onEntityEnterBlock(@NotNull EntityEnterBlockEvent event) {
+                for (RoomHandler room : this.getRooms()) {
+                    if (room.contains(event.getBlock())) {
+                        room.onEntityEnterBlock(event);
+                        return;
+                    }
+                }
+                event.setCancelled(true);
             }
 
             public void onEntityDeath(@NotNull EntityDeathEvent event) {
+                for (RoomHandler room : this.getRooms()) {
+                    if (room.overlaps(event.getEntity())) {
+                        room.onEntityDeath(event);
+                        return;
+                    }
+                }
+                //TODO
             }
 
             public void onPortalCreate(@NotNull PortalCreateEvent event) {
+                for (RoomHandler room : this.getRooms()) {
+                    if (room.overlaps(event.getEntity())) {
+                        room.onPortalCreate(event);
+                        return;
+                    }
+                }
+                event.setCancelled(true);
             }
 
             public void onBlockExplode(@NotNull BlockExplodeEvent event) {
+                for (RoomHandler room : this.getRooms()) {
+                    if (room.contains(event.getBlock())) {
+                        room.onBlockExplode(event);
+                        return;
+                    }
+                }
+                event.setCancelled(true);
             }
 
             public void onBlockBurn(@NotNull BlockBurnEvent event) {
+                for (RoomHandler room : this.getRooms()) {
+                    if (room.contains(event.getBlock())) {
+                        room.onBlockBurn(event);
+                        return;
+                    }
+                }
+                event.setCancelled(true);
             }
 
             public void onHangingBreak(@NotNull HangingBreakEvent event) {
+                for (RoomHandler room : this.getRooms()) {
+                    if (room.overlaps(event.getEntity())) {
+                        room.onHangingBreak(event);
+                        return;
+                    }
+                }
+                event.setCancelled(true);
             }
 
             public void onHangingPlace(@NotNull HangingPlaceEvent event) {
+                for (RoomHandler room : this.getRooms()) {
+                    if (room.overlaps(event.getEntity())) {
+                        room.onHangingPlace(event);
+                        return;
+                    }
+                }
+                event.setCancelled(true);
             }
 
             public void onPlayerShearEntity(@NotNull PlayerShearEntityEvent event) {
+                for (RoomHandler room : this.getRooms()) {
+                    if (room.overlaps(event.getEntity())) {
+                        room.onPlayerShearEntity(event);
+                        return;
+                    }
+                }
+                event.setCancelled(true);
             }
 
             public void onPlayerBedEnter(@NotNull PlayerBedEnterEvent event) {
+                for (RoomHandler room : this.getRooms()) {
+                    if (room.contains(event.getBed())) {
+                        room.onPlayerBedEnter(event);
+                        return;
+                    }
+                }
+                event.setCancelled(true);
             }
 
             public void onPlayerBedLeave(@NotNull PlayerBedLeaveEvent event) {
+                for (RoomHandler room : this.getRooms()) {
+                    if (room.contains(event.getBed())) {
+                        room.onPlayerBedLeave(event);
+                        return;
+                    }
+                }
+                event.setCancelled(true);
             }
 
             public void onPlayerBucketEntity(@NotNull PlayerBucketEntityEvent event) {
+                for (RoomHandler room : this.getRooms()) {
+                    if (room.overlaps(event.getEntity())) {
+                        room.onPlayerBucketEntity(event);
+                        return;
+                    }
+                }
+                event.setCancelled(true);
             }
 
             public void onPlayerBucketEmpty(@NotNull PlayerBucketEmptyEvent event) {
@@ -306,20 +404,44 @@ public abstract class DungeonType extends DRegistryElement {
                 event.setCancelled(true);
             }
 
+            /**
+             * Event should not be changed nor cancelled
+             *
+             * @param event
+             */
             public void onPlayerTeleport(@NotNull PlayerTeleportEvent event) {
                 Location to = event.getTo();
                 if (to == null) {
                     event.setCancelled(true);
                     return;
                 }
+                Location from = event.getFrom();
+                RoomHandler fromRoom = null;
+                RoomHandler toRoom = null;
                 for (RoomHandler room : this.getRooms()) {
-                    if (room.contains(to)) {
-                        room.onPlayerTeleport(event);
-                        return;
-                    }
+                    if (room.contains(from))
+                        fromRoom = room;
+                    if (room.contains(to))
+                        toRoom = room;
                 }
-                //
-                event.setCancelled(true);//TODO ?
+                if (toRoom != null && fromRoom == toRoom) {
+                    fromRoom.onPlayerTeleport(event);
+                    return;
+                }
+                if (toRoom == null) {
+                    DeepDungeons.get().logInfo("DEBUG teleport cancelled " + event.getPlayer().getName() + " " + event.getCause().name());
+                    event.setCancelled(true);
+                    return;
+                }
+                if (event.getCause() != PlayerTeleportEvent.TeleportCause.PLUGIN) {
+                    event.setCancelled(true);
+                    DeepDungeons.get().logInfo("DEBUG teleport cancelled " + event.getPlayer().getName() + " " + event.getCause().name());
+                    return;
+                }
+
+                if (fromRoom != null)
+                    fromRoom.onPlayerLeavingRoom(event);
+                toRoom.onPlayerEnteringRoom(event);
             }
 
             public void onBlockPlace(@NotNull BlockPlaceEvent event) {
@@ -342,7 +464,7 @@ public abstract class DungeonType extends DRegistryElement {
                 event.setCancelled(true);
             }
 
-            public void start(@NotNull PartyManager.Party party) {
+            public void start(@NotNull Party party) {
                 startImpl(party);
                 if (this.getState() != State.STARTED)
                     throw new IllegalStateException("startImpl should flag this as started");
@@ -354,7 +476,7 @@ public abstract class DungeonType extends DRegistryElement {
              *
              * @param party
              */
-            protected abstract void startImpl(@NotNull PartyManager.Party party);
+            protected abstract void startImpl(@NotNull Party party);
 
             public abstract void flagCompleted();
 

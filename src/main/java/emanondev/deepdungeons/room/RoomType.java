@@ -20,6 +20,7 @@ import emanondev.deepdungeons.door.DoorType.DoorInstance;
 import emanondev.deepdungeons.door.DoorType.DoorInstance.DoorHandler;
 import emanondev.deepdungeons.door.DoorTypeManager;
 import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
+import emanondev.deepdungeons.event.*;
 import emanondev.deepdungeons.interfaces.*;
 import emanondev.deepdungeons.interfaces.PaperPopulatorType.PaperPopulatorBuilder;
 import emanondev.deepdungeons.interfaces.PopulatorType.PopulatorBuilder;
@@ -40,11 +41,12 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntitySnapshot;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.block.*;
+import org.bukkit.event.entity.*;
+import org.bukkit.event.hanging.HangingBreakEvent;
+import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BlockVector;
@@ -486,8 +488,8 @@ public abstract class RoomType extends DRegistryElement {
                                 },
                                 (type) -> CUtils.createItem(event.getPlayer(), type.isItem() ? type : Material.BARRIER, 1,
                                         breakableBlocks.contains(type), "roombuilder.base_commondata_guibreaktitle",
-                                        "%id%" , type.name(),
-                                        "%selected%", CUtils.toText(breakableBlocks.contains(type) )),
+                                        "%id%", type.name(),
+                                        "%selected%", CUtils.toText(breakableBlocks.contains(type))),
                                 types
                         ).open(event.getPlayer());
                     }
@@ -812,6 +814,7 @@ public abstract class RoomType extends DRegistryElement {
         public class RoomHandler implements MoveListener, InteractListener, InteractEntityListener,
                 BlockPlaceListener, BlockBreakListener, AreaHolder {
 
+            public final HashSet<Player> players = new HashSet<>();
             private final DungeonHandler dungeonHandler;
             private final DoorHandler entranceHandler;
             private final List<DoorHandler> exits = new ArrayList<>();
@@ -926,17 +929,23 @@ public abstract class RoomType extends DRegistryElement {
 
             }
 
+            /**
+             * Event should not be changed nor cancelled
+             *
+             * @param event
+             */
             public void onPlayerTeleport(@NotNull PlayerTeleportEvent event) {
-                if (!firstEnter) {
-                    firstEnter = true;
-                    onFirstPlayerEnter(event.getPlayer());
-                }
             }
 
-            protected void onFirstPlayerEnter(@NotNull Player player) {
-                //TODO may generate treasures on chest opens instead
-                //TODO event
-                this.getRoomInstance().getPopulators().forEach(pop -> pop.populate(this, player));
+            protected void onFirstPlayerEntered(@NotNull Player player) {
+                List<PopulatorInstance> populators = new ArrayList<>();
+                this.getRoomInstance().getPopulators().forEach(pop -> {
+                    if (pop.rollUseChance()) populators.add(pop);
+                });
+                PrePopulateEvent event = new PrePopulateEvent(this,populators);
+                Bukkit.getPluginManager().callEvent(event);
+                if (!event.isCancelled())
+                    event.getPopulators().forEach(pop->pop.populate(this,player));
                 this.entranceHandler.onFirstPlayerEnter(player);
                 this.exits.forEach(e -> e.onFirstPlayerEnter(player));
                 this.traps.forEach(e -> e.onFirstPlayerEnter(player));
@@ -988,6 +997,93 @@ public abstract class RoomType extends DRegistryElement {
                 for (TrapHandler trap : this.traps)
                     if (trap instanceof InteractListener iTrap)
                         iTrap.onPlayerInteract(event);
+            }
+
+            /**
+             * Event should not be changed nor cancelled
+             *
+             * @param event
+             */
+            public void onPlayerEnteringRoom(@NotNull PlayerTeleportEvent event) {
+                PlayerEnteringRoomEvent evt = new PlayerEnteringRoomEvent(event, this);
+                Bukkit.getPluginManager().callEvent(evt);
+
+
+                Bukkit.getScheduler().runTask(DeepDungeons.get(), () -> {
+                    if (!event.isCancelled()) {
+                        players.add(event.getPlayer());
+                        if (!firstEnter) {
+                            firstEnter = true;
+                            onFirstPlayerEntered(event.getPlayer());
+                        }
+                        PlayerEnteredRoomEvent evt2 = new PlayerEnteredRoomEvent(event, this);
+                        Bukkit.getPluginManager().callEvent(evt2);
+                    }
+                });
+            }
+
+            /**
+             * Event should not be changed nor cancelled
+             *
+             * @param event
+             */
+            public void onPlayerLeavingRoom(@NotNull PlayerTeleportEvent event) {
+                PlayerLeavingRoomEvent evt = new PlayerLeavingRoomEvent(event, this); //TODO a caso
+                Bukkit.getPluginManager().callEvent(evt);
+                Bukkit.getScheduler().runTask(DeepDungeons.get(), () -> {
+                    if (!event.isCancelled()) {
+                        players.remove(event.getPlayer());
+                        PlayerLeftRoomEvent evt2 = new PlayerLeftRoomEvent(event, this);
+                        Bukkit.getPluginManager().callEvent(evt2);
+                    }
+                });
+            }
+
+            @NotNull
+            public Set<Player> getPlayers() {
+                return Collections.unmodifiableSet(players);
+            }
+
+            public void onPlayerBucketEntity(PlayerBucketEntityEvent event) {
+            }
+
+            public void onPlayerBedLeave(PlayerBedLeaveEvent event) {
+            }
+
+            public void onPlayerBedEnter(PlayerBedEnterEvent event) {
+            }
+
+            public void onPlayerShearEntity(PlayerShearEntityEvent event) {
+            }
+
+            public void onHangingPlace(HangingPlaceEvent event) {
+            }
+
+            public void onHangingBreak(HangingBreakEvent event) {
+            }
+
+            public void onBlockBurn(BlockBurnEvent event) {
+            }
+
+            public void onBlockExplode(BlockExplodeEvent event) {
+            }
+
+            public void onPortalCreate(PortalCreateEvent event) {
+            }
+
+            public void onEntityDeath(EntityDeathEvent event) {
+            }
+
+            public void onEntityEnterBlock(EntityEnterBlockEvent event) {
+            }
+
+            public void onEntityExplode(EntityExplodeEvent event) {
+            }
+
+            public void onEntityInteract(EntityInteractEvent event) {
+            }
+
+            public void onEntityPlace(EntityPlaceEvent event) {
             }
         }
     }

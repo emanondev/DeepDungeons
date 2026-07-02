@@ -158,7 +158,7 @@ public class DeleteEmptyContainerType extends APaperPopulatorType {
         public List<BlockState> getChangingBlocks(@NotNull RoomHandler handler, @Nullable Player who, @NotNull Random random) {
             List<BlockState> states = new ArrayList<>();
             offsets.forEach(offset -> {
-                BlockState b = CUtils.sum(handler.getLocation(),offset).getBlock().getState();
+                BlockState b = CUtils.sum(handler.getLocation(), offset).getBlock().getState();
                 if (b instanceof Container cont && cont.getInventory().isEmpty()) {
                     if (b instanceof Waterlogged waterlogged && waterlogged.isWaterlogged())
                         b.setType(Material.WATER);
@@ -170,8 +170,9 @@ public class DeleteEmptyContainerType extends APaperPopulatorType {
             return states;
         }
 
+        @NotNull
         @Override
-        public PopulatorPriority getPriority(){
+        public PopulatorPriority getPriority() {
             return PopulatorPriority.HIGHEST;
         }
     }

@@ -217,7 +217,7 @@ public class FlameChestType extends TrapType {
                     map.open(p);
                 }
                 case 6 -> {
-                    if (blocks.size() > 0) {
+                    if (!blocks.isEmpty()) {
                         inv.setHeldItemSlot(0);
                         this.complete();
                         return;

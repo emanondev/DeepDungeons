@@ -8,8 +8,8 @@ import emanondev.deepdungeons.CUtils;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Perms;
 import emanondev.deepdungeons.party.DungeonPlayer;
+import emanondev.deepdungeons.party.Party;
 import emanondev.deepdungeons.party.PartyManager;
-import emanondev.deepdungeons.party.PartyManager.Party;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -45,10 +45,35 @@ public class DungeonPartyCommand extends CoreCommand {
             case "close" -> close(sender, label, args);
             case "info" -> info(sender, label, args);
             case "list" -> list(sender, label, args);
+            case "chat" -> chat(sender, label, args);
             //case "revokeinvite" -> revokeinvite(sender, label, args);
             default -> help(sender, label, args);
         }
 
+    }
+
+
+    private void chat(CommandSender sender, String label, String[] args) {
+        if (!(sender instanceof Player player)) {
+            this.playerOnlyNotify(sender);
+            return;
+        }
+        if (!player.hasPermission(Perms.PARTY_CHAT)) {
+            this.permissionLackNotify(player, Perms.PARTY_CHAT);
+            return;
+        }
+        if (args.length == 1) {
+            DungeonPlayer dPlayer = PartyManager.getInstance().getDungeonPlayer(player);
+            dPlayer.setPartyChat(!dPlayer.isOnPartyChat());
+            //TODO feedback
+            return;
+        }
+        Party party = PartyManager.getInstance().getParty(player);
+        if (party == null) {
+            CUtils.sendMsg(player, "party.has_no_party", "%label%", label);
+            return;
+        }
+        party.chatMessage(player, String.join(" ", Arrays.copyOfRange(args, 1, args.length)));
     }
 
     //join <player>
@@ -341,7 +366,7 @@ public class DungeonPartyCommand extends CoreCommand {
                 return pl1 - pl2;
             return c1.getOfflineLeader().getName().compareToIgnoreCase(c2.getOfflineLeader().getName());
         });
-        PartyManager.getInstance().getAll(party -> party.getPlayers().size() > 0);
+        PartyManager.getInstance().getAll(party -> !party.getPlayers().isEmpty());
         ArrayList<Party> list = new ArrayList<>(parties);
         if (list.isEmpty()) {
             CUtils.sendMsg(sender, "party.list_no_parties", "%label%", label);
@@ -522,6 +547,8 @@ public class DungeonPartyCommand extends CoreCommand {
                         list.addAll(this.complete(args[0], Collections.singleton("invite")));
                     if (!leader && player.hasPermission(Perms.PARTY_LEAVE))
                         list.addAll(this.complete(args[0], Collections.singleton("leave")));
+                    if (player.hasPermission(Perms.PARTY_CHAT))
+                        list.addAll(this.complete(args[0], Collections.singleton("chat")));
                 }
                 if (player.hasPermission(Perms.PARTY_INFO))
                     list.addAll(this.complete(args[0], Collections.singleton("info")));

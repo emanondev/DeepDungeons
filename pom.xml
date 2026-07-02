@@ -161,7 +161,7 @@
         <dependency>
             <groupId>emanondev.core</groupId>
             <artifactId>DeepCore</artifactId>
-            <version>3.8.5</version>
+            <version>3.9.1</version>
             <scope>provided</scope>
             <exclusions>
                 <exclusion>
@@ -169,6 +169,13 @@
                     <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.30</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

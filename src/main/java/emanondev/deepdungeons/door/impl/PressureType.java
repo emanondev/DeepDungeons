@@ -75,7 +75,7 @@ public class PressureType extends DoorType {
 
                 }
                 case 6 -> {
-                    if (blocks.size() > 0) {
+                    if (!blocks.isEmpty()) {
                         completedPressurePlates = true;
                         event.getPlayer().getInventory().setHeldItemSlot(0);
                         setupTools();
@@ -92,7 +92,7 @@ public class PressureType extends DoorType {
                 CUtils.setSlot(player, 0, inv, Material.PAPER, "doorbuilder.pressure_plates_info");
                 CUtils.setSlot(player, 1, inv, Material.STICK, "doorbuilder.pressure_plates_selector",
                         "%value%", String.valueOf(blocks.size()));
-                if (blocks.size() > 0)
+                if (!blocks.isEmpty())
                     CUtils.setSlot(player, 6, inv, Material.LIME_DYE, "doorbuilder.pressure_plates_confirm");
                 return;
             }
