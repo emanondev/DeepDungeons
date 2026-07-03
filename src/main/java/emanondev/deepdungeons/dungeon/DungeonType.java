@@ -13,6 +13,7 @@ import emanondev.deepdungeons.door.DoorType.DoorInstance.DoorHandler;
 import emanondev.deepdungeons.interfaces.*;
 import emanondev.deepdungeons.party.Party;
 import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -58,6 +59,7 @@ public abstract class DungeonType extends DRegistryElement {
     public abstract class DungeonBuilder extends DRInstance<DungeonType> implements ActiveBuilder {
         private final CompletableFuture<DungeonBuilder> completableFuture = new CompletableFuture<>();
         private final UUID playerUuid;
+        @Getter
         private int tickCounter = 0;
 
         public DungeonBuilder(@NotNull String id, @NotNull Player player) {
@@ -91,10 +93,6 @@ public abstract class DungeonType extends DRegistryElement {
         }
 
         protected abstract void setupToolsImpl();
-
-        public int getTickCounter() {
-            return tickCounter;
-        }
 
         public void timerTick() {
             tickCounter++;

@@ -8,6 +8,7 @@ import emanondev.deepdungeons.event.*;
 import emanondev.deepdungeons.party.DungeonPlayer;
 import emanondev.deepdungeons.party.Party;
 import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
@@ -25,36 +26,27 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+@Slf4j
 public class Info implements Listener {
 
     private static final Info instance = new Info();
-
-    private Info(){
-        DeepDungeons.get().registerListener(this);
-    }
-
-    public static Info get(){
-        return instance;
-    }
-
-    private record RegionLoc(int x, int z) {
-    }
-
     private final HashMap<UUID, Party> playerParty = new HashMap<>();
-
     private final HashMap<Player, DungeonPlayer> dungeonPlayers = new HashMap<>();
-
     private final HashMap<Party, DungeonHandler> currentDungeons = new HashMap<>();
     private final HashMap<DungeonHandler, Party> currentParty = new HashMap<>();
-
     private final HashMap<RoomHandler, Set<Player>> roomPlayers = new HashMap<>();
     private final HashMap<Player, RoomHandler> playerRoom = new HashMap<>();
-
     private final HashMap<DungeonHandler, HashSet<RegionLoc>> handlerRegions = new HashMap<>();
     private final HashMap<DungeonHandler, World> handlerWorld = new HashMap<>();
     private final HashMap<World, HashMap<RegionLoc, DungeonHandler>> regionDungeon = new HashMap<>();
-
     private final HashSet<Player> teleporting = new HashSet<>();
+    private Info() {
+        DeepDungeons.get().registerListener(this);
+    }
+
+    public static Info get() {
+        return instance;
+    }
 
     @Nullable
     public Party getParty(@NotNull DungeonHandler handler) {
@@ -159,9 +151,9 @@ public class Info implements Listener {
             }
             i++;
         }
-        for (int rx=0;rx<xWidth;rx++)
-            for (int rz=0;rz<zWidth;rz++)
-                where.add(new RegionLoc(xMin+rx,zMin+rz));
+        for (int rx = 0; rx < xWidth; rx++)
+            for (int rz = 0; rz < zWidth; rz++)
+                where.add(new RegionLoc(xMin + rx, zMin + rz));
 
 
         if (where.isEmpty())
@@ -179,8 +171,8 @@ public class Info implements Listener {
 
         //TODO remove entities/clear chunks
 
-        min = new Location(world,(xMin+xWidth/2D)*512+256-area.getWidthX()/2,64+area.getHeight()/2,
-                (zMin+zWidth/2D)*512+256-area.getWidthZ()/2);
+        min = new Location(world, (xMin + xWidth / 2D) * 512 + 256 - area.getWidthX() / 2, 64 + area.getHeight() / 2,
+                (zMin + zWidth / 2D) * 512 + 256 - area.getWidthZ() / 2);
 //TODO feedback to console
         return min;
     }
@@ -210,34 +202,29 @@ public class Info implements Listener {
         return room == null ? null : room.getDungeonHandler();
     }
 
-    @NotNull
-    private RegionLoc locToRegion(@NotNull Location loc) {
-        return new RegionLoc(loc.getBlockX() >> 9, loc.getBlockY() >> 9);
-    }
-
     public boolean moveToRoom(@NotNull Player player, @NotNull Location to, @Nullable RoomHandler toRoom) {
         Party party = getParty(player);
         if (party == null && toRoom != null) {
-            new Exception("No party no dungeon").printStackTrace();
+            log.error("No party no dungeon", new Exception());
             return false;
         }
         RoomHandler fromRoom = getRoom(player);
         if (Objects.equals(fromRoom, toRoom)) {
-            new Exception("Wrong use of moveToRoom").printStackTrace();
+            log.error("Wrong use of moveToRoom",new Exception());
             return false;
         }
         if (toRoom != null && !toRoom.contains(to)) {
-            new Exception("target location doesn't match room location").printStackTrace();
+            log.error("target location doesn't match room location",new Exception());
             return false;
         }
         if (toRoom == null && getDungeon(to) != null) {
-            new Exception("target location has no room but has dungeon").printStackTrace(); //TODO quit may take you to another dungeon
+            log.error("target location has no room but has dungeon",new Exception()); //TODO quit may take you to another dungeon
             return false;
         }
         if (toRoom != null)
             switch (toRoom.getDungeonHandler().getState()) {
                 case LOADING, COMPLETED -> {
-                    new Exception("Invalid dungeon state").printStackTrace();
+                    log.error("Invalid dungeon state",new Exception());
                     return false;
                 }
             }
@@ -281,7 +268,7 @@ public class Info implements Listener {
             Bukkit.getPluginManager().callEvent(event2);
             return true;
         }
-        PlayerEnteringDungeonEvent event = new PlayerEnteringDungeonEvent(player, toRoom, to);
+        PlayerEnteringDungeonEvent event = new PlayerEnteringDungeonEvent(player, toRoom /*, to*/);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled())
             return false;
@@ -295,10 +282,15 @@ public class Info implements Listener {
 
         playerRoom.put(player, toRoom);
 
-        PlayerEnteredDungeonEvent event2 = new PlayerEnteredDungeonEvent(player, toRoom, from);
+        PlayerEnteredDungeonEvent event2 = new PlayerEnteredDungeonEvent(player, toRoom /*, from*/);
         Bukkit.getPluginManager().callEvent(event2);
 
         return true;
+    }
+
+    @NotNull
+    private RegionLoc locToRegion(@NotNull Location loc) {
+        return new RegionLoc(loc.getBlockX() >> 9, loc.getBlockY() >> 9);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
@@ -313,7 +305,7 @@ public class Info implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = false, priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGHEST)
     private void playerTeleport(PlayerTeleportEvent event) {
         if (event.getTo() == null) {
             DeepDungeons.get().logInfo(event.getPlayer().getName() + " teleported to null");
@@ -344,7 +336,7 @@ public class Info implements Listener {
                 if (playerDungeon == null && locationDungeon == null)
                     return; //not related to dungeons
                 if (playerDungeon == null) {
-                    if (event.getPlayer().hasPermission(Perms.BYPASS_LOCATION_RESTRINCTIONS))
+                    if (event.getPlayer().hasPermission(Perms.BYPASS_LOCATION_RESTRICTIONS))
                         return;
                     event.setCancelled(true);
                     DeepDungeons.get().logInfo(event.getPlayer().getName() + " teleport for " + event.getCause() + " was cancelled (not allowed to enter dungeon this way)");
@@ -379,7 +371,10 @@ public class Info implements Listener {
     }
 
     private Party getParty(Player player) {
-        //TODO
+        return playerParty.get(player.getUniqueId());
+    }
+
+    private record RegionLoc(int x, int z) {
     }
 
 

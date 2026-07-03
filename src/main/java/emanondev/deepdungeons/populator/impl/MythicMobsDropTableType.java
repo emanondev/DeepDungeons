@@ -188,7 +188,7 @@ public class MythicMobsDropTableType extends APaperPopulatorType {
          */
         @Override
         public void fromItemLinesImpl(@NotNull List<String> lines) {
-            table = MythicBukkit.inst().getDropManager().getDropTable(lines.get(0).split(" ")[1]).orElse(null);
+            table = MythicBukkit.inst().getDropManager().getDropTable(lines.getFirst().split(" ")[1]).orElse(null);
         }
 
 

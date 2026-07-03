@@ -64,7 +64,7 @@ public class DungeonPartyCommand extends CoreCommand {
         }
         if (args.length == 1) {
             DungeonPlayer dPlayer = PartyManager.getInstance().getDungeonPlayer(player);
-            dPlayer.setPartyChat(!dPlayer.isOnPartyChat());
+            dPlayer.setOnPartyChat(!dPlayer.isOnPartyChat());
             //TODO feedback
             return;
         }
@@ -431,7 +431,7 @@ public class DungeonPartyCommand extends CoreCommand {
         int page = 1;
         try {
             if (args.length > 1 && args[0].equalsIgnoreCase("help"))
-                page = Math.max(1, Math.min(2, Integer.parseInt(args[1])));
+                page = Math.clamp(Integer.parseInt(args[1]), 1, 2);
         } catch (Exception ignored) {
         }
         DMessage msg = new DMessage(DeepDungeons.get(), sender);

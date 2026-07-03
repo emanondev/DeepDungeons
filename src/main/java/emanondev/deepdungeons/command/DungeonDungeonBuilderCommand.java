@@ -105,10 +105,10 @@ public class DungeonDungeonBuilderCommand extends CoreCommand {
         return switch (args.length) {
             case 1 -> {
                 if (BuilderMode.getInstance().isOnEditorMode(player))
-                    yield this.complete(args[0], new String[]{"pause"});
+                    yield this.complete(args[0], "pause");
                 if (BuilderMode.getInstance().isOnPausedEditorMode(player))
-                    yield this.complete(args[0], new String[]{"continue"});
-                yield this.complete(args[0], new String[]{"create"});
+                    yield this.complete(args[0], "continue");
+                yield this.complete(args[0], "create");
             }
             case 2 -> {
                 if (args[0].equalsIgnoreCase("create"))

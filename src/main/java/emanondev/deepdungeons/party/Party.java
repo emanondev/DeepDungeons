@@ -7,6 +7,7 @@ import emanondev.deepdungeons.area.AreaManager;
 import emanondev.deepdungeons.dungeon.DungeonType.DungeonInstance.DungeonHandler;
 import emanondev.deepdungeons.event.PlayerEnteredDungeonEvent;
 import emanondev.deepdungeons.event.PlayerEnteringDungeonEvent;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -22,7 +23,8 @@ public class Party extends DRegistryElement {
     private final HashSet<UUID> users = new HashSet<>();
     private UUID leader;
     private DungeonHandler dungeon;
-    private boolean isPartyPublic = true;
+    @Getter
+    private boolean partyPublic = true;
 
     /**
      * @param leader
@@ -46,12 +48,8 @@ public class Party extends DRegistryElement {
         return parties.get(player);
     }
 
-    public boolean isPartyPublic() {
-        return isPartyPublic;
-    }
-
     public void togglePartyPublic() {
-        isPartyPublic = !isPartyPublic;
+        partyPublic = !partyPublic;
     }
 
     @NotNull

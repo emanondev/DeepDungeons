@@ -114,7 +114,7 @@ public class DungeonCreatorCommand extends CoreCommand {
     @Nullable
     public List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
         return switch (args.length) {
-            case 1 -> this.complete(args[0], new String[]{"create", "start"});
+            case 1 -> this.complete(args[0], "create", "start");
             case 2 -> this.complete(args[1], DungeonInstanceManager.getInstance().getIds());
             default -> Collections.emptyList();
         };

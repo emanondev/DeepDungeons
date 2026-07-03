@@ -117,7 +117,7 @@ public class DungeonPopulatorCommand extends CoreCommand {
     @Nullable
     public List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
         return switch (args.length) {
-            case 1 -> this.complete(args[0], new String[]{"create"});
+            case 1 -> this.complete(args[0], "create");
             case 2 -> {
                 if (args[0].equalsIgnoreCase("create"))
                     yield this.complete(args[1], PopulatorTypeManager.getInstance().getPaperIds());

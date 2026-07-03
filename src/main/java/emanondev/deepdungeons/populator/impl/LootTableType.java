@@ -211,7 +211,7 @@ public class LootTableType extends APaperPopulatorType {
          */
         @Override
         public void fromItemLinesImpl(@NotNull List<String> lines) {
-            String[] args = lines.get(0).split(" ")[1].split(":");
+            String[] args = lines.getFirst().split(" ")[1].split(":");
             table = Bukkit.getLootTable(new NamespacedKey(args[0], args[1]));
         }
     }

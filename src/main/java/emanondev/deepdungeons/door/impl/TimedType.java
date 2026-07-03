@@ -64,7 +64,7 @@ public class TimedType extends DoorType {
                             1, getPlayer(), null, DeepDungeons.get());
 
                     mapGui.setButton(4, new NumberEditorFButton<>(mapGui, 1L, 1L, 10000L, () -> timeToUnlock,
-                            (time) -> timeToUnlock = Math.min(Math.max(1, time), 36000),
+                            (time) -> timeToUnlock = Math.clamp(time, 1, 36000),
                             () -> CUtils.createItem(getPlayer(), Material.REPEATER, "doorbuilder.timed_door_gui_item",
                                     "%value%", UtilsString.getTimeStringSeconds(getPlayer(), timeToUnlock),
                                     "%value_raw%", String.valueOf(timeToUnlock)), true));

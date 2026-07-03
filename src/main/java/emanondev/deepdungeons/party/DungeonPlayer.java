@@ -2,6 +2,8 @@ package emanondev.deepdungeons.party;
 
 import emanondev.core.PlayerSnapshot;
 import emanondev.deepdungeons.door.DoorType.DoorInstance.DoorHandler;
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
@@ -19,7 +21,9 @@ public class DungeonPlayer {
     private final List<Party> invites = new LinkedList<>();
     private PlayerSnapshot preEnterSnapshot = null;
     private PlayerSnapshot logoutSnapshot = null;
-    private boolean partyChat = false;
+    @Getter
+    @Setter
+    private boolean onPartyChat = false;
 
     /**
      * @see PartyManager#getDungeonPlayer(UUID)
@@ -97,7 +101,7 @@ public class DungeonPlayer {
             return;
         invites.add(party);
         if (invites.size() >= MAX_INVITES)
-            invites.remove(0);
+            invites.removeFirst();
     }
 
     public void revokeInvite(@NotNull Party party) {
@@ -108,11 +112,4 @@ public class DungeonPlayer {
         return invites.contains(targetParty);
     }
 
-    public boolean isOnPartyChat() {
-        return this.partyChat;
-    }
-
-    public void setPartyChat(boolean value) {
-        this.partyChat = value;
-    }
 }

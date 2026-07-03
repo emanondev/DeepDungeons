@@ -276,13 +276,13 @@ public abstract class DoorType extends DRegistryElement {
                     CUtils.showWEBound(player, roomBuilder.getTickCounter());
                     return;
                 }
-                ParticleUtility.spawnParticleBoxFaces(player, roomBuilder.getTickCounter() / 6, 3, Particle.REDSTONE,
+                ParticleUtility.spawnParticleBoxFaces(player, roomBuilder.getTickCounter() / 6, 3, Particle.DUST,
                         getArea().shift(getRoomOffset()), new Particle.DustOptions(color, 0.6F));
                 showFaceArrow(player, color);
 
                 Vector doorSpawn = getSpawnOffset();
                 if (doorSpawn != null) {
-                    ParticleUtility.spawnParticleCircle(player, Particle.REDSTONE, doorSpawn.add(getRoomOffset()), 0.25D,
+                    ParticleUtility.spawnParticleCircle(player, Particle.DUST, doorSpawn.add(getRoomOffset()), 0.25D,
                             roomBuilder.getTickCounter() % 4 == 0, new Particle.DustOptions(color, 0.6F));
                 }
             }
@@ -300,25 +300,25 @@ public abstract class DoorType extends DRegistryElement {
                 Vector r = area.getCenter().add(doorFace.getDirection().multiply(0.5D).multiply(new Vector(area.getWidthX(), area.getHeight(),
                         area.getWidthZ())).add(doorFace.getDirection().multiply(0.7))).add(getRoomOffset());
                 Vector dir = doorFace.getOppositeFace().getDirection();
-                ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir,
+                ParticleUtility.spawnParticleLine(player, Particle.DUST, r.getX(), r.getY(), r.getZ(), dir,
                         0.7, 0.1, dust);
                 if (doorFace == BlockFace.NORTH || doorFace == BlockFace.SOUTH) {
                     dir.add(new Vector(0, 0.4, 0));
                     for (int i = 0; i < 8; i++) {
                         dir.rotateAroundZ(Math.PI / 4);
-                        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir, 0.3, 0.1, dust);
+                        ParticleUtility.spawnParticleLine(player, Particle.DUST, r.getX(), r.getY(), r.getZ(), dir, 0.3, 0.1, dust);
                     }
                 } else if (doorFace == BlockFace.EAST || doorFace == BlockFace.WEST) {
                     dir.add(new Vector(0, 0.4, 0));
                     for (int i = 0; i < 8; i++) {
                         dir.rotateAroundX(Math.PI / 4);
-                        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir, 0.3, 0.1, dust);
+                        ParticleUtility.spawnParticleLine(player, Particle.DUST, r.getX(), r.getY(), r.getZ(), dir, 0.3, 0.1, dust);
                     }
                 } else {
                     dir.add(new Vector(0.4, 0, 0));
                     for (int i = 0; i < 8; i++) {
                         dir.rotateAroundY(Math.PI / 4);
-                        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir, 0.3, 0.1, dust);
+                        ParticleUtility.spawnParticleLine(player, Particle.DUST, r.getX(), r.getY(), r.getZ(), dir, 0.3, 0.1, dust);
                     }
                 }*/
             }

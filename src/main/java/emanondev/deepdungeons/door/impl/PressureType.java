@@ -102,7 +102,7 @@ public class PressureType extends DoorType {
         @Override
         protected void tickTimerImpl(@NotNull Player player, @NotNull Color color) {
             if (getRoomBuilder().getTickCounter() % 2 == 0)
-                blocks.forEach((block) -> ParticleUtility.spawnParticleCircle(player, Particle.REDSTONE, block.clone()
+                blocks.forEach((block) -> ParticleUtility.spawnParticleCircle(player, Particle.DUST, block.clone()
                                 .add(new Vector(0.5D, getRoomBuilder().getTickCounter() % 4 == 0 ? 0.1D : 0.2D, 0.5D)), getRoomBuilder().getTickCounter() % 4 == 0 ? 0.3D : 0.1D,
                         getRoomBuilder().getTickCounter() % 4 == 0, new Particle.DustOptions(color, 0.4F)));
 

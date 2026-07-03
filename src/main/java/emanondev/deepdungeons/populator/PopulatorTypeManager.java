@@ -81,7 +81,7 @@ public class PopulatorTypeManager extends DRegistry<APopulatorType> {
         List<String> lore = meta.getLore();
         if (lore.isEmpty())
             return null;
-        APopulatorType val = get(lore.get(0).split(" ")[1]);
+        APopulatorType val = get(lore.getFirst().split(" ")[1]);
         return val instanceof PaperPopulatorType paper ? paper : null;
     }
 
@@ -103,7 +103,7 @@ public class PopulatorTypeManager extends DRegistry<APopulatorType> {
         List<String> lore = meta.getLore();
         if (lore.isEmpty())
             return null;
-        APopulatorType type = get(lore.get(0).split(" ")[1]);
+        APopulatorType type = get(lore.getFirst().split(" ")[1]);
         if (type == null)
             return null;
         if (!(type instanceof PaperPopulatorType paperPop))

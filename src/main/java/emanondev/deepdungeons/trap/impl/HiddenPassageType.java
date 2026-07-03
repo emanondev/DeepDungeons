@@ -174,7 +174,7 @@ public class HiddenPassageType extends TrapType {
                         BoundingBox box = b.getBlock().getBoundingBox();
                         b.setType(Material.AIR);
                         b.update(true, true);
-                        b.getWorld().spawnParticle(Particle.BLOCK_CRACK, box.getCenter().toLocation(b.getWorld()), 20,
+                        b.getWorld().spawnParticle(Particle.BLOCK, box.getCenter().toLocation(b.getWorld()), 20,
                                 box.getWidthX() / 2, box.getHeight() / 2, box.getWidthZ() / 2, data);
                         i--;
                     }

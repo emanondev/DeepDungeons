@@ -30,12 +30,12 @@ public class CUtils {
 
     @ApiStatus.Internal
     public static double bound(double value, double min, double max) {
-        return Math.max(min, Math.min(max, value));
+        return Math.clamp(value, min, max);
     }
 
     @ApiStatus.Internal
     public static int bound(int value, int min, int max) {
-        return Math.max(min, Math.min(max, value));
+        return Math.clamp(value, min, max);
     }
 
     @NotNull
@@ -94,7 +94,9 @@ public class CUtils {
     @NotNull
     @ApiStatus.Internal
     public static ItemBuilder createIBuilder(Player player, Material material, int amount, boolean enchant, String langPath, String... holders) {
-        return new ItemBuilder(material).setGuiProperty().setAmount(Math.min(64, Math.max(1, amount))).addEnchantment(Enchantment.DURABILITY, enchant ? 1 : 0)
+        return new ItemBuilder(material).setGuiProperty()
+                .setAmount(Math.clamp(amount, 1, 64))
+                .addEnchantment(Enchantment.UNBREAKING, enchant ? 1 : 0)
                 .setDescription(new DMessage(DeepDungeons.get(), player).appendLang(langPath, holders));
     }
 
@@ -107,7 +109,9 @@ public class CUtils {
     @NotNull
     @ApiStatus.Internal
     public static ItemBuilder emptyIBuilder(Material material, int amount, boolean enchant) {
-        return new ItemBuilder(material).setGuiProperty().setAmount(Math.min(64, Math.max(1, amount))).addEnchantment(Enchantment.DURABILITY, enchant ? 1 : 0);
+        return new ItemBuilder(material).setGuiProperty()
+                .setAmount(Math.clamp(amount, 1, 64))
+                .addEnchantment(Enchantment.UNBREAKING, enchant ? 1 : 0);
     }
 
     @NotNull
@@ -145,29 +149,29 @@ public class CUtils {
     @ApiStatus.Internal
     public static void markBlock(Player player, BlockVector block, Color color) {
         Particle.DustOptions info = new Particle.DustOptions(color, 0.4F);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX(), block.getBlockY(),
+        ParticleUtility.spawnParticleLine(player, Particle.DUST, block.getBlockX(), block.getBlockY(),
                 block.getBlockZ(), BlockFace.UP.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX() + 1, block.getBlockY(),
+        ParticleUtility.spawnParticleLine(player, Particle.DUST, block.getBlockX() + 1, block.getBlockY(),
                 block.getBlockZ(), BlockFace.UP.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX(), block.getBlockY(),
+        ParticleUtility.spawnParticleLine(player, Particle.DUST, block.getBlockX(), block.getBlockY(),
                 block.getBlockZ() + 1, BlockFace.UP.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX() + 1, block.getBlockY(),
+        ParticleUtility.spawnParticleLine(player, Particle.DUST, block.getBlockX() + 1, block.getBlockY(),
                 block.getBlockZ() + 1, BlockFace.UP.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX(), block.getBlockY(),
+        ParticleUtility.spawnParticleLine(player, Particle.DUST, block.getBlockX(), block.getBlockY(),
                 block.getBlockZ(), BlockFace.EAST.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX(), block.getBlockY(),
+        ParticleUtility.spawnParticleLine(player, Particle.DUST, block.getBlockX(), block.getBlockY(),
                 block.getBlockZ(), BlockFace.SOUTH.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX(), block.getBlockY() + 1,
+        ParticleUtility.spawnParticleLine(player, Particle.DUST, block.getBlockX(), block.getBlockY() + 1,
                 block.getBlockZ(), BlockFace.EAST.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX(), block.getBlockY() + 1,
+        ParticleUtility.spawnParticleLine(player, Particle.DUST, block.getBlockX(), block.getBlockY() + 1,
                 block.getBlockZ(), BlockFace.SOUTH.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX() + 1, block.getBlockY(),
+        ParticleUtility.spawnParticleLine(player, Particle.DUST, block.getBlockX() + 1, block.getBlockY(),
                 block.getBlockZ() + 1, BlockFace.WEST.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX() + 1, block.getBlockY(),
+        ParticleUtility.spawnParticleLine(player, Particle.DUST, block.getBlockX() + 1, block.getBlockY(),
                 block.getBlockZ() + 1, BlockFace.NORTH.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX() + 1, block.getBlockY() + 1,
+        ParticleUtility.spawnParticleLine(player, Particle.DUST, block.getBlockX() + 1, block.getBlockY() + 1,
                 block.getBlockZ() + 1, BlockFace.WEST.getDirection(), 1, 0.25D, info);
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, block.getBlockX() + 1, block.getBlockY() + 1,
+        ParticleUtility.spawnParticleLine(player, Particle.DUST, block.getBlockX() + 1, block.getBlockY() + 1,
                 block.getBlockZ() + 1, BlockFace.NORTH.getDirection(), 1, 0.25D, info);
     }
 
@@ -175,7 +179,7 @@ public class CUtils {
     public static void showWEBound(@NotNull Player player, int tick) {
         try {
             if (WorldEditUtility.getSelectionRegion(player) != null)
-                ParticleUtility.spawnParticleBoxFaces(player, tick / 6 + 6, 4, Particle.REDSTONE,
+                ParticleUtility.spawnParticleBoxFaces(player, tick / 6 + 6, 4, Particle.DUST,
                         WorldEditUtility.getSelectionBoxExpanded(player), new Particle.DustOptions(Color.WHITE, 0.3F));
         } catch (Exception ignored) {
         }
@@ -185,25 +189,25 @@ public class CUtils {
         Particle.DustOptions dust = new Particle.DustOptions(color, 0.3F);
         Vector r = from.clone().add(direction.getDirection().multiply(0.7));
         Vector dir = direction.getOppositeFace().getDirection();
-        ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir,
+        ParticleUtility.spawnParticleLine(player, Particle.DUST, r.getX(), r.getY(), r.getZ(), dir,
                 0.7, 0.1, dust);
         if (direction == BlockFace.NORTH || direction == BlockFace.SOUTH) {
             dir.add(new Vector(0, 0.4, 0));
             for (int i = 0; i < 8; i++) {
                 dir.rotateAroundZ(Math.PI / 4);
-                ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir, 0.3, 0.1, dust);
+                ParticleUtility.spawnParticleLine(player, Particle.DUST, r.getX(), r.getY(), r.getZ(), dir, 0.3, 0.1, dust);
             }
         } else if (direction == BlockFace.EAST || direction == BlockFace.WEST) {
             dir.add(new Vector(0, 0.4, 0));
             for (int i = 0; i < 8; i++) {
                 dir.rotateAroundX(Math.PI / 4);
-                ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir, 0.3, 0.1, dust);
+                ParticleUtility.spawnParticleLine(player, Particle.DUST, r.getX(), r.getY(), r.getZ(), dir, 0.3, 0.1, dust);
             }
         } else {
             dir.add(new Vector(0.4, 0, 0));
             for (int i = 0; i < 8; i++) {
                 dir.rotateAroundY(Math.PI / 4);
-                ParticleUtility.spawnParticleLine(player, Particle.REDSTONE, r.getX(), r.getY(), r.getZ(), dir, 0.3, 0.1, dust);
+                ParticleUtility.spawnParticleLine(player, Particle.DUST, r.getX(), r.getY(), r.getZ(), dir, 0.3, 0.1, dust);
             }
         }
 

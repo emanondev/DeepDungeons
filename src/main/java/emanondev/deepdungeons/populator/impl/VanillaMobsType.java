@@ -12,6 +12,7 @@ import emanondev.deepdungeons.populator.APaperPopulatorType;
 import emanondev.deepdungeons.room.RoomType;
 import emanondev.deepdungeons.room.RoomType.RoomInstance;
 import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
+import lombok.Getter;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -58,7 +59,9 @@ public class VanillaMobsType extends APaperPopulatorType {
 
         private final List<Location> offsets = new ArrayList<>();
         private EntityType type = EntityType.ZOMBIE;
+        @Getter
         private int min = 1;
+        @Getter
         private int max = 1;
 
         public VanillaMobsBuilder(@NotNull RoomType.RoomBuilder room) {
@@ -129,10 +132,6 @@ public class VanillaMobsType extends APaperPopulatorType {
             createButtons(gui, player, () -> type, this::setEntityType, this::getMin, this::setMin, this::getMax, this::setMax);
         }
 
-        public int getMin() {
-            return min;
-        }
-
         public void setMin(int min) {
             if (min < 0)
                 min = 0;
@@ -141,10 +140,6 @@ public class VanillaMobsType extends APaperPopulatorType {
             if (min > max)
                 this.max = min;
             this.min = min;
-        }
-
-        public int getMax() {
-            return max;
         }
 
         public void setMax(int max) {
@@ -214,7 +209,9 @@ public class VanillaMobsType extends APaperPopulatorType {
     private class VanillaMobsPaperBuilder extends APaperPopulatorBuilder {
 
         private EntityType type = EntityType.ZOMBIE;
+        @Getter
         private int min = 1;
+        @Getter
         private int max = 1;
 
         @Override
@@ -242,7 +239,7 @@ public class VanillaMobsType extends APaperPopulatorType {
 
         @Override
         public void fromItemLinesImpl(@NotNull List<String> lines) {
-            type = EntityType.valueOf(lines.get(0).split(" ")[1]);
+            type = EntityType.valueOf(lines.getFirst().split(" ")[1]);
             min = Integer.parseInt(lines.get(1).split(" ")[1]);
             max = Integer.parseInt(lines.get(2).split(" ")[1]);
         }
@@ -250,10 +247,6 @@ public class VanillaMobsType extends APaperPopulatorType {
         @Override
         protected void craftGuiButtonsImpl(@NotNull PagedMapGui gui, @NotNull Player player) {
             createButtons(gui, player, () -> type, this::setEntityType, this::getMin, this::setMin, this::getMax, this::setMax);
-        }
-
-        public int getMin() {
-            return min;
         }
 
         public void setMin(int min) {
@@ -264,10 +257,6 @@ public class VanillaMobsType extends APaperPopulatorType {
             if (min > max)
                 this.max = min;
             this.min = min;
-        }
-
-        public int getMax() {
-            return max;
         }
 
         public void setMax(int max) {
@@ -293,8 +282,11 @@ public class VanillaMobsType extends APaperPopulatorType {
     private class VanillaMobsInstance extends APopulatorInstance implements MobPopulator {
 
         private final List<Location> offsets = new ArrayList<>();
+        @Getter
         private final EntityType entityType;
+        @Getter
         private final int min;
+        @Getter
         private final int max;
 
         public VanillaMobsInstance(RoomInstance room, @NotNull YMLSection section) {
@@ -303,19 +295,6 @@ public class VanillaMobsType extends APaperPopulatorType {
             min = section.getInt("min");
             max = section.getInt("max");
             section.getStringList("offsets", Collections.emptyList()).forEach(val -> offsets.add(Util.toLocationNoWorld(val)));
-        }
-
-        public int getMin() {
-            return min;
-        }
-
-        public int getMax() {
-            return max;
-        }
-
-        @NotNull
-        public EntityType getEntityType() {
-            return entityType;
         }
 
         @NotNull
@@ -332,7 +311,7 @@ public class VanillaMobsType extends APaperPopulatorType {
                     randomPick.addAll(offsets);
                     Collections.shuffle(randomPick, random);
                 }
-                Location location = CUtils.sum(handler.getLocation(), randomPick.remove(randomPick.size() - 1));
+                Location location = CUtils.sum(handler.getLocation(), randomPick.removeLast());
                 Entity entity = location.getWorld().spawnEntity(location, entityType, true);
                 entity.setPersistent(true);
                 if (entity.isValid())

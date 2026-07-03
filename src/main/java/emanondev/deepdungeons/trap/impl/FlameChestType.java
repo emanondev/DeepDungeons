@@ -15,6 +15,7 @@ import emanondev.deepdungeons.interfaces.InteractListener;
 import emanondev.deepdungeons.room.RoomType.RoomBuilder;
 import emanondev.deepdungeons.room.RoomType.RoomInstance;
 import emanondev.deepdungeons.trap.TrapType;
+import lombok.Getter;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
@@ -52,11 +53,12 @@ public class FlameChestType extends TrapType {
         return new FlameChestBuilder(room);
     }
 
+    @Getter
     public enum Type {
         FIRE(Particle.FLAME, Sound.BLOCK_FIRE_AMBIENT, 0.3F, 0.28),
         FREEZE(Particle.CLOUD, Sound.ENTITY_PLAYER_HURT_FREEZE, 0.3F, 0.28),
         POISON(Particle.SNEEZE, Sound.ENTITY_PANDA_PRE_SNEEZE, 1F, 0.28),
-        WITHER(Particle.SMOKE_NORMAL, Sound.ENTITY_WITHER_SHOOT, 0.3F, 0.33),
+        WITHER(Particle.SMOKE, Sound.ENTITY_WITHER_SHOOT, 0.3F, 0.33),
         NONE(null, null, 1F, 1);
 
         private final Sound sound;
@@ -75,22 +77,6 @@ public class FlameChestType extends TrapType {
 
         public static Type fromId(String id) {
             return valueOf(id.toUpperCase(Locale.ENGLISH));
-        }
-
-        public float getSoundPitch() {
-            return soundPitch;
-        }
-
-        public Sound getSound() {
-            return sound;
-        }
-
-        public Particle getParticle() {
-            return particle;
-        }
-
-        public double getSpeed() {
-            return speed;
         }
 
         public String getId() {

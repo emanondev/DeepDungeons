@@ -59,9 +59,9 @@ public abstract class APaperPopulatorType extends APopulatorType implements Pape
         @Contract("_ -> this")
         public final APaperPopulatorBuilder fromItemLines(@NotNull List<String> lines) {
             lines = new ArrayList<>(lines);
-            lines.remove(0);
+            lines.removeFirst();
             if (hasUseChance())
-                setUseChance(Double.parseDouble(lines.remove(lines.size() - 1).split(" ")[1]) / 100);
+                setUseChance(Double.parseDouble(lines.removeLast().split(" ")[1]) / 100);
             fromItemLinesImpl(lines);
             return this;
         }

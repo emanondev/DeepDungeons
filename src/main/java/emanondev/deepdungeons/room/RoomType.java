@@ -31,6 +31,8 @@ import emanondev.deepdungeons.trap.TrapType.TrapBuilder;
 import emanondev.deepdungeons.trap.TrapType.TrapInstance;
 import emanondev.deepdungeons.trap.TrapType.TrapInstance.TrapHandler;
 import emanondev.deepdungeons.trap.TrapTypeManager;
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -87,20 +89,23 @@ public abstract class RoomType extends DRegistryElement {
         private final HashSet<Material> breakableBlocks = new HashSet<>();
         private final HashSet<Material> placeableBlocks = new HashSet<>();
         private final CompletableFuture<RoomBuilder> completableFuture = new CompletableFuture<>();
-        private final UUID playerUuid;
+        @NotNull
+        private final UUID playerUUID;
         private final String schematicName;
+        @Setter
         private DoorBuilder entrance;
         private World world;
         private BoundingBox area;
         private boolean hasCompletedBreakableMaterials = false;
         private boolean hasCompletedExitsCreation = false;
         private boolean hasCompletedTrapsCreation = false;
+        @Getter
         private int tickCounter = 0;
         private boolean hasCompletedPopulatorCreation = false;
 
         protected RoomBuilder(@NotNull String id, @NotNull Player player) {
             super(id, RoomType.this);
-            this.playerUuid = player.getUniqueId();
+            this.playerUUID = player.getUniqueId();
             schematicName = this.getId() + ".schem";
         }
 
@@ -111,17 +116,12 @@ public abstract class RoomType extends DRegistryElement {
 
         @NotNull
         public final UUID getPlayerUUID() {
-            return playerUuid;
+            return playerUUID;
         }
 
         @Nullable
         public final Player getPlayer() {
-            return Bukkit.getPlayer(playerUuid);
-        }
-
-
-        public void setEntrance(DoorBuilder entrance) {
-            this.entrance = entrance;
+            return Bukkit.getPlayer(playerUUID);
         }
 
 
@@ -309,8 +309,8 @@ public abstract class RoomType extends DRegistryElement {
                 return;
             }
             if (!hasCompletedExitsCreation) {
-                if (!(exits.isEmpty() || exits.get(exits.size() - 1).getCompletableFuture().isDone())) {
-                    exits.get(exits.size() - 1).handleInteract(event);
+                if (!(exits.isEmpty() || exits.getLast().getCompletableFuture().isDone())) {
+                    exits.getLast().handleInteract(event);
                     return;
                 }
                 switch (heldSlot) {
@@ -360,8 +360,8 @@ public abstract class RoomType extends DRegistryElement {
                 return;
             }
             if (!hasCompletedTrapsCreation) {
-                if (!(traps.isEmpty() || traps.get(traps.size() - 1).getCompletableFuture().isDone())) {
-                    traps.get(traps.size() - 1).handleInteract(event);
+                if (!(traps.isEmpty() || traps.getLast().getCompletableFuture().isDone())) {
+                    traps.getLast().handleInteract(event);
                     return;
                 }
                 switch (heldSlot) {
@@ -411,8 +411,8 @@ public abstract class RoomType extends DRegistryElement {
                 return;
             }
             if (!this.hasCompletedPopulatorCreation) {
-                if (!(populatorBuilders.isEmpty() || populatorBuilders.get(populatorBuilders.size() - 1).getCompletableFuture().isDone())) {
-                    populatorBuilders.get(populatorBuilders.size() - 1).handleInteract(event);
+                if (!(populatorBuilders.isEmpty() || populatorBuilders.getLast().getCompletableFuture().isDone())) {
+                    populatorBuilders.getLast().handleInteract(event);
                     return;
                 }
                 switch (heldSlot) {
@@ -556,37 +556,37 @@ public abstract class RoomType extends DRegistryElement {
                 return;
             }
             if (!hasCompletedExitsCreation) {
-                if (exits.isEmpty() || exits.get(exits.size() - 1).getCompletableFuture().isDone()) {
+                if (exits.isEmpty() || exits.getLast().getCompletableFuture().isDone()) {
                     CUtils.setSlot(player, 0, inv, Material.PAPER, "roombuilder.base_exits_info");
                     CUtils.setSlot(player, 1, inv, Material.SPRUCE_DOOR, "roombuilder.base_exits_selector");
                     if (!exits.isEmpty())
                         CUtils.setSlot(player, 6, inv, Material.LIGHT_BLUE_DYE, "roombuilder.base_exits_confirm",
                                 "%value%", String.valueOf(exits.size()));
                 } else {
-                    exits.get(exits.size() - 1).setupTools();
+                    exits.getLast().setupTools();
                 }
                 return;
             }
             if (!hasCompletedTrapsCreation) {
-                if (traps.isEmpty() || traps.get(traps.size() - 1).getCompletableFuture().isDone()) {
+                if (traps.isEmpty() || traps.getLast().getCompletableFuture().isDone()) {
                     CUtils.setSlot(player, 0, inv, Material.PAPER, "roombuilder.base_traps_info");
                     CUtils.setSlot(player, 1, inv, Material.SPRUCE_DOOR, "roombuilder.base_traps_selector");
                     CUtils.setSlot(player, 6, inv, Material.LIGHT_BLUE_DYE, "roombuilder.base_traps_confirm",
                             "%value%", String.valueOf(traps.size()));
                 } else {
-                    traps.get(traps.size() - 1).setupTools();
+                    traps.getLast().setupTools();
                 }
                 return;
             }
 
             if (!hasCompletedPopulatorCreation) {
-                if (populatorBuilders.isEmpty() || populatorBuilders.get(populatorBuilders.size() - 1).getCompletableFuture().isDone()) {
+                if (populatorBuilders.isEmpty() || populatorBuilders.getLast().getCompletableFuture().isDone()) {
                     CUtils.setSlot(player, 0, inv, Material.PAPER, "roombuilder.base_populators_info");
                     CUtils.setSlot(player, 1, inv, Material.SPRUCE_DOOR, "roombuilder.base_populators_selector");
                     CUtils.setSlot(player, 6, inv, Material.LIGHT_BLUE_DYE, "roombuilder.base_populators_confirm",
                             "%value%", String.valueOf(populatorBuilders.size()));
                 } else {
-                    populatorBuilders.get(populatorBuilders.size() - 1).setupTools();
+                    populatorBuilders.getLast().setupTools();
                 }
                 return;
             }
@@ -604,10 +604,6 @@ public abstract class RoomType extends DRegistryElement {
             setupToolsImpl();
         }
 
-        public int getTickCounter() {
-            return tickCounter;
-        }
-
         public void timerTick() {
             tickCounter++;
             Player player = getPlayer();
@@ -615,7 +611,7 @@ public abstract class RoomType extends DRegistryElement {
                 return;
             if (tickCounter % 2 == 0) { //reduce particle amount = have a tick 5 time per second instead of 10
                 if (area != null)
-                    ParticleUtility.spawnParticleBoxFaces(player, (tickCounter) / 6, 8, Particle.REDSTONE, area,
+                    ParticleUtility.spawnParticleBoxFaces(player, (tickCounter) / 6, 8, Particle.DUST, area,
                             new Particle.DustOptions(Color.BLUE, 0.25F));
                 else
                     CUtils.showWEBound(player, getTickCounter());
@@ -724,7 +720,7 @@ public abstract class RoomType extends DRegistryElement {
                 e.printStackTrace();
                 throw new IllegalStateException();
             }
-            this.size = new BlockVector(dim.getBlockX(), dim.getBlockY(), dim.getBlockZ());
+            this.size = new BlockVector(dim.x(), dim.y(), dim.z());
         }
 
         @NotNull

@@ -64,7 +64,7 @@ public class ReverseTimedType extends DoorType {
                     MapGui mapGui = new MapGui(CUtils.craftMsg(getPlayer(), "doorbuilder.reversed_timed_door_gui_title"),
                             1, getPlayer(), null, DeepDungeons.get());
                     mapGui.setButton(4, new NumberEditorFButton<>(mapGui, 1L, 1L, 10000L, () -> timeToLock,
-                            (time) -> timeToLock = Math.min(Math.max(1, time), 36000),
+                            (time) -> timeToLock = Math.clamp(time, 1, 36000),
                             () -> CUtils.createItem(getPlayer(), Material.REPEATER, "doorbuilder.timed_door_gui_item",
                                     "%value%", UtilsString.getTimeStringSeconds(getPlayer(), timeToLock),
                                     "%value_raw%", String.valueOf(timeToLock)), true));

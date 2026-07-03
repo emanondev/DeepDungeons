@@ -15,6 +15,8 @@ import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
 import io.lumine.mythic.api.mobs.MythicMob;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -58,9 +60,13 @@ public class MythicMobsType extends APaperPopulatorType {
         private final List<Location> offsets = new ArrayList<>();
         @Nullable
         private MythicMob type = null;
+        @Getter
         private int min = 1;
+        @Getter
         private int max = 1;
+        @Getter
         private int levelMin = 1;
+        @Getter
         private int levelMax = 1;
 
         public MythicMobsBuilder(@NotNull RoomType.RoomBuilder room) {
@@ -136,10 +142,6 @@ public class MythicMobsType extends APaperPopulatorType {
                     this::getLevelMin, this::setLevelMin, this::getLevelMax, this::setLevelMax);
         }
 
-        public int getLevelMin() {
-            return levelMin;
-        }
-
         public void setLevelMin(int min) {
             if (min < 0)
                 min = 0;
@@ -148,10 +150,6 @@ public class MythicMobsType extends APaperPopulatorType {
             if (min > levelMax)
                 this.levelMax = min;
             this.levelMin = min;
-        }
-
-        public int getLevelMax() {
-            return levelMax;
         }
 
         public void setLevelMax(int max) {
@@ -164,10 +162,6 @@ public class MythicMobsType extends APaperPopulatorType {
             this.levelMax = max;
         }
 
-        public int getMin() {
-            return min;
-        }
-
         public void setMin(int min) {
             if (min < 0)
                 min = 0;
@@ -176,10 +170,6 @@ public class MythicMobsType extends APaperPopulatorType {
             if (min > max)
                 this.max = min;
             this.min = min;
-        }
-
-        public int getMax() {
-            return max;
         }
 
         public void setMax(int max) {
@@ -256,9 +246,13 @@ public class MythicMobsType extends APaperPopulatorType {
 
         @Nullable
         private MythicMob type = null;
+        @Getter
         private int min = 1;
+        @Getter
         private int max = 1;
+        @Getter
         private int levelMin = 1;
+        @Getter
         private int levelMax = 1;
 
         @Override
@@ -295,7 +289,7 @@ public class MythicMobsType extends APaperPopulatorType {
 
         @Override
         public void fromItemLinesImpl(@NotNull List<String> lines) {
-            type = MythicBukkit.inst().getMobManager().getMythicMob(lines.get(0).split(" ")[1]).orElse(null);
+            type = MythicBukkit.inst().getMobManager().getMythicMob(lines.getFirst().split(" ")[1]).orElse(null);
             min = Integer.parseInt(lines.get(1).split(" ")[1]);
             max = Integer.parseInt(lines.get(2).split(" ")[1]);
             levelMin = Integer.parseInt(lines.get(3).split(" ")[1]);
@@ -308,10 +302,6 @@ public class MythicMobsType extends APaperPopulatorType {
                     this::getLevelMin, this::setLevelMin, this::getLevelMax, this::setLevelMax);
         }
 
-        public int getLevelMin() {
-            return levelMin;
-        }
-
         public void setLevelMin(int min) {
             if (min < 0)
                 min = 0;
@@ -320,10 +310,6 @@ public class MythicMobsType extends APaperPopulatorType {
             if (min > levelMax)
                 this.levelMax = min;
             this.levelMin = min;
-        }
-
-        public int getLevelMax() {
-            return levelMax;
         }
 
         public void setLevelMax(int max) {
@@ -336,10 +322,6 @@ public class MythicMobsType extends APaperPopulatorType {
             this.levelMax = max;
         }
 
-        public int getMin() {
-            return min;
-        }
-
         public void setMin(int min) {
             if (min < 0)
                 min = 0;
@@ -348,10 +330,6 @@ public class MythicMobsType extends APaperPopulatorType {
             if (min > max)
                 this.max = min;
             this.min = min;
-        }
-
-        public int getMax() {
-            return max;
         }
 
         public void setMax(int max) {
@@ -373,7 +351,9 @@ public class MythicMobsType extends APaperPopulatorType {
 
         private final List<Location> offsets = new ArrayList<>();
         private final MythicMob entityType;
+        @Getter
         private final int min;
+        @Getter
         private final int max;
         private final int levelMin;
         private final int levelMax;
@@ -386,14 +366,6 @@ public class MythicMobsType extends APaperPopulatorType {
             levelMin = section.getInt("level_min", 1);
             levelMax = section.getInt("level_max", 1);
             section.getStringList("offsets", Collections.emptyList()).forEach(val -> offsets.add(Util.toLocationNoWorld(val)));
-        }
-
-        public int getMin() {
-            return min;
-        }
-
-        public int getMax() {
-            return max;
         }
 
         @NotNull
@@ -412,7 +384,7 @@ public class MythicMobsType extends APaperPopulatorType {
                     randomPick.addAll(offsets);
                     Collections.shuffle(randomPick, random);
                 }
-                Location location = CUtils.sum(handler.getLocation(), randomPick.remove(randomPick.size() - 1));
+                Location location = CUtils.sum(handler.getLocation(), randomPick.removeLast());
                 int level = new Random().nextInt() % (levelMax - levelMin + 1) + levelMin;
                 Entity entity = BukkitAdapter.adapt(entityType.spawn(BukkitAdapter.adapt(location), level).getEntity());
                 entity.setPersistent(true);

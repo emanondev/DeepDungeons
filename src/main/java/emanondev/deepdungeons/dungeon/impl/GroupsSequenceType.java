@@ -55,7 +55,7 @@ public class GroupsSequenceType extends DungeonType {
     public class GroupsSequenceBuilder extends DungeonBuilder {
 
         private final List<Group> groups = new ArrayList<>();
-        boolean[] resetButtons = new boolean[1];
+        private final boolean[] resetButtons = new boolean[1];
 
         public GroupsSequenceBuilder(@NotNull String id, @NotNull Player player) {
             super(id, player);
@@ -190,13 +190,13 @@ public class GroupsSequenceType extends DungeonType {
             }
 
             public void setMinLength(int value) {
-                minLength = Math.max(MIN_LEN, Math.min(MAX_LEN, value));
+                minLength = Math.clamp(value, MIN_LEN, MAX_LEN);
                 if (minLength > maxLength)
                     maxLength = minLength;
             }
 
             public void setMaxLength(int value) {
-                maxLength = Math.max(1, Math.min(MAX_LEN, value));
+                maxLength = Math.clamp(value, 1, MAX_LEN);
                 if (minLength > maxLength)
                     minLength = maxLength;
             }
@@ -363,7 +363,7 @@ public class GroupsSequenceType extends DungeonType {
 
             public GroupsSequenceHandler(@Nullable World world) {
                 super();
-                RoomHandler startRoom = RoomInstanceManager.getInstance().get(groups.get(0).rooms.getItem()).createRoomHandler(this);
+                RoomHandler startRoom = RoomInstanceManager.getInstance().get(groups.getFirst().rooms.getItem()).createRoomHandler(this);
                 rooms.add(startRoom);
                 this.start = startRoom.getEntrance();
                 //rooms.add(start.getRoom());
@@ -497,9 +497,9 @@ public class GroupsSequenceType extends DungeonType {
                     pasting.add(removeEntity);
                 });
                 for (RoomHandler room : rooms) {
-                    pasting.get(pasting.size() - 1).whenComplete((session, t) -> pasting.add(room.paste(true)));
+                    pasting.getLast().whenComplete((session, t) -> pasting.add(room.paste(true)));
                 }
-                pasting.get(pasting.size() - 1).thenAccept((session) -> {
+                pasting.getLast().thenAccept((session) -> {
                     this.state = State.READY;
                     AreaManager.getInstance().flagReady(this);
                     //TODO debug

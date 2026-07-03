@@ -1,15 +1,13 @@
 package emanondev.deepdungeons.event;
 
 import emanondev.deepdungeons.room.RoomType.RoomInstance.RoomHandler;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class PlayerEnteredDungeonEvent extends PlayerEvent {
-    private final RoomHandler toRoom;
+    private static final HandlerList HANDLERS = new HandlerList();
 
 //    @NotNull
 //    @Contract(pure = true,value="-> new")
@@ -18,6 +16,7 @@ public class PlayerEnteredDungeonEvent extends PlayerEvent {
 //    }
 //
 //    private final Location fromLocation;
+    private final RoomHandler toRoom;
 
     public PlayerEnteredDungeonEvent(@NotNull Player player, @NotNull RoomHandler toRoom) {//, @NotNull Location fromLocation) {
         super(player);
@@ -25,7 +24,6 @@ public class PlayerEnteredDungeonEvent extends PlayerEvent {
         //this.fromLocation = fromLocation.clone();
     }
 
-    private static final HandlerList HANDLERS = new HandlerList();
     public static HandlerList getHandlerList() {
         return HANDLERS;
     }
@@ -35,6 +33,7 @@ public class PlayerEnteredDungeonEvent extends PlayerEvent {
     public HandlerList getHandlers() {
         return HANDLERS;
     }
+
     @NotNull
     public RoomHandler getToRoom() {
         return toRoom;

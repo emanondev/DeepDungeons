@@ -206,13 +206,13 @@ public class AreaManager implements Listener {
 
     /**
      * @param instance what kind
-     * @return an usable DungeonHandler for selected instance, if any
+     * @return a usable DungeonHandler for selected instance, if any
      */
     @Contract(pure = true)
     @Nullable
     public DungeonHandler getReady(@NotNull DungeonInstance instance) {
         List<DungeonHandler> handlers = ready.get(instance);
-        return handlers == null ? null : handlers.isEmpty() ? null : handlers.get(0);
+        return handlers == null ? null : handlers.isEmpty() ? null : handlers.getFirst();
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -382,7 +382,7 @@ public class AreaManager implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void event(PortalCreateEvent event) {
-        BlockState block = event.getBlocks().get(0);
+        BlockState block = event.getBlocks().getFirst();
         List<DungeonHandler> list = started.get(block.getWorld());
         if (list != null) for (DungeonHandler handler : list) {
             if (handler.contains(block)) {
