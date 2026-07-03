@@ -261,8 +261,6 @@ public abstract class RoomType extends DRegistryElement {
             });
         }
 
-        protected abstract void writeToImpl(@NotNull YMLSection section);
-
         @Nullable
         public final BlockVector getSize() {
             return area == null ? null : new BlockVector(area.getWidthX(), area.getHeight(), area.getWidthZ());
@@ -644,12 +642,6 @@ public abstract class RoomType extends DRegistryElement {
             timerTickImpl();
         }
 
-        protected abstract void timerTickImpl();
-
-        protected abstract void handleInteractImpl(PlayerInteractEvent event);
-
-        protected abstract void setupToolsImpl();
-
         public boolean contains(@NotNull Location loc) {
             return Objects.equals(loc.getWorld(), world) && area.contains(loc.toVector());
         }
@@ -664,14 +656,22 @@ public abstract class RoomType extends DRegistryElement {
             return area == null ? null : area.clone();
         }
 
-        protected void setArea(@NotNull World world, @NotNull BoundingBox box) {
-            this.world = world;
-            area = box.clone();
-        }
-
         @Nullable
         public World getWorld() {
             return world;
+        }
+
+        protected abstract void writeToImpl(@NotNull YMLSection section);
+
+        protected abstract void timerTickImpl();
+
+        protected abstract void handleInteractImpl(PlayerInteractEvent event);
+
+        protected abstract void setupToolsImpl();
+
+        protected void setArea(@NotNull World world, @NotNull BoundingBox box) {
+            this.world = world;
+            area = box.clone();
         }
     }
 
@@ -759,11 +759,6 @@ public abstract class RoomType extends DRegistryElement {
         }
 
         @NotNull
-        private String getSchematicName() {
-            return this.schematicName;
-        }
-
-        @NotNull
         public CompletableFuture<Clipboard> getClipboard(boolean async) {
             Clipboard clip = clipboard == null ? null : clipboard.get();
             if (clip != null)
@@ -776,11 +771,6 @@ public abstract class RoomType extends DRegistryElement {
             this.futureClipboard = result;
             result.whenComplete((value, e) -> this.futureClipboard = null);
             return result;
-        }
-
-        @NotNull
-        private CompletableFuture<EditSession> paste(@NotNull RoomHandler handler, boolean async) {
-            return paste(handler.getLocation(), async);
         }
 
         @NotNull
@@ -801,6 +791,16 @@ public abstract class RoomType extends DRegistryElement {
         public void addPopulators(@NotNull Collection<PopulatorType.PopulatorInstance> populators) {
             this.populators.addAll(populators);
             this.populators.sort(Comparator.comparingInt(p -> p.getPriority().ordinal()));
+        }
+
+        @NotNull
+        private String getSchematicName() {
+            return this.schematicName;
+        }
+
+        @NotNull
+        private CompletableFuture<EditSession> paste(@NotNull RoomHandler handler, boolean async) {
+            return paste(handler.getLocation(), async);
         }
 
         private List<PopulatorInstance> getPopulators() {
@@ -931,20 +931,6 @@ public abstract class RoomType extends DRegistryElement {
              * @param event
              */
             public void onPlayerTeleport(@NotNull PlayerTeleportEvent event) {
-            }
-
-            protected void onFirstPlayerEntered(@NotNull Player player) {
-                List<PopulatorInstance> populators = new ArrayList<>();
-                this.getRoomInstance().getPopulators().forEach(pop -> {
-                    if (pop.rollUseChance()) populators.add(pop);
-                });
-                PrePopulateEvent event = new PrePopulateEvent(this,populators);
-                Bukkit.getPluginManager().callEvent(event);
-                if (!event.isCancelled())
-                    event.getPopulators().forEach(pop->pop.populate(this,player));
-                this.entranceHandler.onFirstPlayerEnter(player);
-                this.exits.forEach(e -> e.onFirstPlayerEnter(player));
-                this.traps.forEach(e -> e.onFirstPlayerEnter(player));
             }
 
             public void onBlockPlace(@NotNull BlockPlaceEvent event) {
@@ -1080,6 +1066,20 @@ public abstract class RoomType extends DRegistryElement {
             }
 
             public void onEntityPlace(EntityPlaceEvent event) {
+            }
+
+            protected void onFirstPlayerEntered(@NotNull Player player) {
+                List<PopulatorInstance> populators = new ArrayList<>();
+                this.getRoomInstance().getPopulators().forEach(pop -> {
+                    if (pop.rollUseChance()) populators.add(pop);
+                });
+                PrePopulateEvent event = new PrePopulateEvent(this, populators);
+                Bukkit.getPluginManager().callEvent(event);
+                if (!event.isCancelled())
+                    event.getPopulators().forEach(pop -> pop.populate(this, player));
+                this.entranceHandler.onFirstPlayerEnter(player);
+                this.exits.forEach(e -> e.onFirstPlayerEnter(player));
+                this.traps.forEach(e -> e.onFirstPlayerEnter(player));
             }
         }
     }

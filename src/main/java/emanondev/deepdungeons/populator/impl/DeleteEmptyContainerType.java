@@ -58,6 +58,17 @@ public class DeleteEmptyContainerType extends APaperPopulatorType {
             super(room);
         }
 
+        public void toggleOffset(@NotNull Location location) {
+            location = location.clone();
+            location.setWorld(null);
+            location.subtract(getRoomOffset());
+            location.setX(location.getBlockX() + 0.5D);
+            location.setY(location.getBlockY());
+            location.setZ(location.getBlockZ() + 0.5D);
+            if (!offsets.remove(location))
+                offsets.add(location);
+        }
+
         @Override
         protected void handleInteractImpl(@NotNull PlayerInteractEvent event) {
             switch (event.getPlayer().getInventory().getHeldItemSlot()) {
@@ -94,17 +105,6 @@ public class DeleteEmptyContainerType extends APaperPopulatorType {
 
         }
 
-        public void toggleOffset(@NotNull Location location) {
-            location = location.clone();
-            location.setWorld(null);
-            location.subtract(getRoomOffset());
-            location.setX(location.getBlockX() + 0.5D);
-            location.setY(location.getBlockY());
-            location.setZ(location.getBlockZ() + 0.5D);
-            if (!offsets.remove(location))
-                offsets.add(location);
-        }
-
         @Override
         protected void writeToImpl(@NotNull YMLSection section) throws Exception {
 
@@ -119,6 +119,10 @@ public class DeleteEmptyContainerType extends APaperPopulatorType {
         }
 
         @Override
+        public void fromItemLinesImpl(@NotNull List<String> lines) {
+        }
+
+        @Override
         @NotNull
         protected List<String> toItemLinesImpl() {
             return Collections.emptyList();
@@ -130,10 +134,6 @@ public class DeleteEmptyContainerType extends APaperPopulatorType {
             if (offset == null)
                 throw new Exception("Location not set");
             section.set("offsets", List.of(Util.toStringNoWorld(offset)));
-        }
-
-        @Override
-        public void fromItemLinesImpl(@NotNull List<String> lines) {
         }
 
         @Override

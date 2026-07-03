@@ -69,6 +69,16 @@ public class DungeonCreatorCommand extends CoreCommand {
         sender.sendMessage("Help Message not implemented");
     }
 
+    @Override
+    @Nullable
+    public List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
+        return switch (args.length) {
+            case 1 -> this.complete(args[0], "create", "start");
+            case 2 -> this.complete(args[1], DungeonInstanceManager.getInstance().getIds());
+            default -> Collections.emptyList();
+        };
+    }
+
     private void start(CommandSender sender, String label, String[] args) {
         if (!(sender instanceof Player player)) {
             return;
@@ -108,15 +118,5 @@ public class DungeonCreatorCommand extends CoreCommand {
                 + sender.getName() + " " + loc.getBlockX() + " " + (loc.getBlockY() + handler.getBoundingBox().getHeight() * 0.5 + 10) + " " + loc.getBlockZ()
                 + "'><hover:show_text:'teleport to " + loc.getBlockX() + " " + (loc.getBlockY() + handler.getBoundingBox().getHeight() * 0.5 + 10) + " "
                 + loc.getBlockZ() + "'><yellow>[TP]</yellow></hover></click>").send();
-    }
-
-    @Override
-    @Nullable
-    public List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
-        return switch (args.length) {
-            case 1 -> this.complete(args[0], "create", "start");
-            case 2 -> this.complete(args[1], DungeonInstanceManager.getInstance().getIds());
-            default -> Collections.emptyList();
-        };
     }
 }

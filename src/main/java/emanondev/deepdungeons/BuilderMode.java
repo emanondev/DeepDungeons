@@ -156,6 +156,55 @@ public class BuilderMode implements Listener {
         return true;
     }
 
+    /**
+     * @param player who
+     * @return true if player has a suspended builder
+     */
+    public boolean isOnPausedEditorMode(@NotNull Player player) {
+        return paused.containsKey(player.getUniqueId());
+    }
+
+    /**
+     * Suspend current player builder
+     *
+     * @param player who
+     * @return true if operation was successful
+     */
+    public boolean pauseBuilder(@NotNull Player player) {
+        ActiveBuilder builder = builderMode.get(player);
+        if (builder == null)
+            return false;
+        exitBuilderMode(player);
+        if (paused.isEmpty())
+            DeepDungeons.get().registerListener(pauseListener);
+        paused.put(player.getUniqueId(), builder);
+        return true;
+    }
+
+    /**
+     * Resume player suspended builder
+     *
+     * @param player who
+     * @return true if operation was successful
+     */
+    public boolean unpauseBuilder(@NotNull Player player) {
+        ActiveBuilder builder = paused.remove(player.getUniqueId());
+        if (builder == null)
+            return false;
+        enterBuilderMode(player, builder);
+        if (paused.isEmpty())
+            DeepDungeons.get().unregisterListener(pauseListener);
+        return true;
+    }
+
+    /**
+     * Kicks builders out of Builder mode
+     */
+    public void disable() {
+        for (Player player : new ArrayList<>(builderMode.keySet()))
+            exitBuilderMode(player);
+    }
+
     @EventHandler
     private void event(@NotNull EntityPickupItemEvent event) {
         if (event.getEntity() instanceof Player && isOnEditorMode((Player) event.getEntity()))
@@ -230,55 +279,6 @@ public class BuilderMode implements Listener {
     @EventHandler
     private void event(@NotNull PlayerQuitEvent event) {
         pauseBuilder(event.getPlayer());
-    }
-
-    /**
-     * @param player who
-     * @return true if player has a suspended builder
-     */
-    public boolean isOnPausedEditorMode(@NotNull Player player) {
-        return paused.containsKey(player.getUniqueId());
-    }
-
-    /**
-     * Suspend current player builder
-     *
-     * @param player who
-     * @return true if operation was successful
-     */
-    public boolean pauseBuilder(@NotNull Player player) {
-        ActiveBuilder builder = builderMode.get(player);
-        if (builder == null)
-            return false;
-        exitBuilderMode(player);
-        if (paused.isEmpty())
-            DeepDungeons.get().registerListener(pauseListener);
-        paused.put(player.getUniqueId(), builder);
-        return true;
-    }
-
-    /**
-     * Resume player suspended builder
-     *
-     * @param player who
-     * @return true if operation was successful
-     */
-    public boolean unpauseBuilder(@NotNull Player player) {
-        ActiveBuilder builder = paused.remove(player.getUniqueId());
-        if (builder == null)
-            return false;
-        enterBuilderMode(player, builder);
-        if (paused.isEmpty())
-            DeepDungeons.get().unregisterListener(pauseListener);
-        return true;
-    }
-
-    /**
-     * Kicks builders out of Builder mode
-     */
-    public void disable() {
-        for (Player player : new ArrayList<>(builderMode.keySet()))
-            exitBuilderMode(player);
     }
 
     private class PauseListener implements Listener {

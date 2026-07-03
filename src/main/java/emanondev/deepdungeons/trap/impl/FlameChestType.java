@@ -213,21 +213,6 @@ public class FlameChestType extends TrapType {
             }
         }
 
-        private String[] getTypeHolders() {
-            final int[] sum = {0};
-            weights.values().forEach(v -> sum[0] += v);
-            String[] holders = new String[Type.values().length * 4 + 2];
-            for (Type kind : Type.values()) {
-                holders[kind.ordinal() * 4] = "%" + kind.getId() + "%";
-                holders[kind.ordinal() * 4 + 1] = String.valueOf(weights.get(kind));
-                holders[kind.ordinal() * 4 + 2] = "%" + kind.getId() + "_perc%";
-                holders[kind.ordinal() * 4 + 3] = UtilsString.formatOptional2Digit(weights.get(kind) * 100D / sum[0]);
-            }
-            holders[holders.length - 2] = "%max%";
-            holders[holders.length - 1] = String.valueOf(sum[0]);
-            return holders;
-        }
-
         @Override
         protected void setupToolsImpl() {
             Player p = getPlayer();
@@ -243,6 +228,21 @@ public class FlameChestType extends TrapType {
             for (Block block : blocks)
                 if (block != null && getRoomBuilder().getTickCounter() % 2 == 0)
                     CUtils.markBlock(player, block, color);
+        }
+
+        private String[] getTypeHolders() {
+            final int[] sum = {0};
+            weights.values().forEach(v -> sum[0] += v);
+            String[] holders = new String[Type.values().length * 4 + 2];
+            for (Type kind : Type.values()) {
+                holders[kind.ordinal() * 4] = "%" + kind.getId() + "%";
+                holders[kind.ordinal() * 4 + 1] = String.valueOf(weights.get(kind));
+                holders[kind.ordinal() * 4 + 2] = "%" + kind.getId() + "_perc%";
+                holders[kind.ordinal() * 4 + 3] = UtilsString.formatOptional2Digit(weights.get(kind) * 100D / sum[0]);
+            }
+            holders[holders.length - 2] = "%max%";
+            holders[holders.length - 1] = String.valueOf(sum[0]);
+            return holders;
         }
     }
 

@@ -54,6 +54,49 @@ public class VanillaMobsType extends APaperPopulatorType {
         return new VanillaMobsPaperBuilder();
     }
 
+    private static void createButtons(PagedMapGui gui, Player player, Supplier<EntityType> getMob, Consumer<EntityType> setMob,
+                                      Supplier<Integer> getMin, Consumer<Integer> setMin,
+                                      Supplier<Integer> getMax, Consumer<Integer> setMax) {
+        gui.addButton(new ResearchFButton<>(gui, () ->
+                CUtils.createItem(player, Material.SPAWNER, "mythicmob_guimobselector", "%type%",
+                        (getMob.get().getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
+                                getMob.get().getKey().toString().substring(10) : getMob.get().getKey().toString())),
+                (String text, EntityType type) -> {
+                    String[] split = text.split(" ");
+                    for (String s : split) {
+                        if (!(type.name().toLowerCase(Locale.ENGLISH).contains(s.toLowerCase(Locale.ENGLISH))
+                                || type.getKey().toString().contains(s.toLowerCase(Locale.ENGLISH))))
+                            return false;
+                    }
+                    return true;
+                },
+                (InventoryClickEvent event, EntityType type) -> {
+                    setMob.accept(type);
+                    gui.open(player);
+                    return false;
+                },
+                (EntityType type) ->
+                        CUtils.createItem(player, Material.SPAWNER, "mythicmob_guimobitem", "%name%", type.name(), "%type%",
+                                (type.getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
+                                        type.getKey().toString().substring(10) : type.getKey().toString())),
+                () -> {
+                    ArrayList<EntityType> list = new ArrayList<>(Arrays.asList(EntityType.values()));
+                    list.removeIf((type) -> !type.isSpawnable() || !type.isAlive());
+                    list.sort(Comparator.comparing(Enum::name));
+                    return list;
+                }));
+        gui.addButton(new NumberEditorFButton<>(
+                gui, 1, 1, 100, getMin, setMin, () ->
+                CUtils.createItem(player, Material.REPEATER, getMin.get(), false, "mythicmob_guimobmin",
+                        "%min%", String.valueOf(getMin.get()),
+                        "%max%", String.valueOf(getMax.get())), true
+        ));
+        gui.addButton(new NumberEditorFButton<>(
+                gui, 1, 1, 100, getMax, setMax, () ->
+                CUtils.createItem(player, Material.REPEATER, getMax.get(), false, "mythicmob_guimobmax",
+                        "%min%", String.valueOf(getMin.get()),
+                        "%max%", String.valueOf(getMax.get())), true));
+    }
 
     public class VanillaMobsBuilder extends APopulatorBuilder {
 
@@ -68,6 +111,46 @@ public class VanillaMobsType extends APaperPopulatorType {
             super(room);
         }
 
+        public void toggleOffset(@NotNull Location location) {
+            location = location.clone();
+            location.setWorld(null);
+            location.subtract(getRoomOffset());
+            location.setX(location.getBlockX() + 0.5D);
+            location.setY(location.getBlockY());
+            location.setZ(location.getBlockZ() + 0.5D);
+            Location finalLocation = location;
+            if (!offsets.removeIf(loc -> CUtils.isEqual(loc, finalLocation)))
+                offsets.add(location);
+        }
+
+        public void setMin(int min) {
+            if (min < 0)
+                min = 0;
+            if (min > 100)
+                min = 100;
+            if (min > max)
+                this.max = min;
+            this.min = min;
+        }
+
+        public void setMax(int max) {
+            if (max < 1)
+                max = 1;
+            if (max > 100)
+                max = 100;
+            if (max < min)
+                this.min = max;
+            this.max = max;
+        }
+
+        @NotNull
+        public EntityType getEntityType() {
+            return type;
+        }
+
+        public void setEntityType(@NotNull EntityType type) {
+            this.type = type;
+        }
 
         @Override
         protected void writeToImpl(@NotNull YMLSection section) throws Exception {
@@ -79,18 +162,6 @@ public class VanillaMobsType extends APaperPopulatorType {
             List<String> offsetsString = new ArrayList<>();
             offsets.forEach(off -> offsetsString.add(Util.toStringNoWorld(off)));
             section.set("offsets", offsetsString);
-        }
-
-        public void toggleOffset(@NotNull Location location) {
-            location = location.clone();
-            location.setWorld(null);
-            location.subtract(getRoomOffset());
-            location.setX(location.getBlockX() + 0.5D);
-            location.setY(location.getBlockY());
-            location.setZ(location.getBlockZ() + 0.5D);
-            Location finalLocation = location;
-            if (!offsets.removeIf(loc -> CUtils.isEqual(loc, finalLocation)))
-                offsets.add(location);
         }
 
         @Override
@@ -131,6 +202,27 @@ public class VanillaMobsType extends APaperPopulatorType {
         protected void craftGuiButtonsImpl(@NotNull PagedMapGui gui, @NotNull Player player) {
             createButtons(gui, player, () -> type, this::setEntityType, this::getMin, this::setMin, this::getMax, this::setMax);
         }
+    }
+
+    private class VanillaMobsPaperBuilder extends APaperPopulatorBuilder {
+
+        private EntityType type = EntityType.ZOMBIE;
+        @Getter
+        private int min = 1;
+        @Getter
+        private int max = 1;
+
+        @Override
+        public boolean preserveContainer() {
+            return false;
+        }
+
+        @Override
+        public void fromItemLinesImpl(@NotNull List<String> lines) {
+            type = EntityType.valueOf(lines.getFirst().split(" ")[1]);
+            min = Integer.parseInt(lines.get(1).split(" ")[1]);
+            max = Integer.parseInt(lines.get(2).split(" ")[1]);
+        }
 
         public void setMin(int min) {
             if (min < 0)
@@ -159,64 +251,6 @@ public class VanillaMobsType extends APaperPopulatorType {
 
         public void setEntityType(@NotNull EntityType type) {
             this.type = type;
-        }
-    }
-
-    private static void createButtons(PagedMapGui gui, Player player, Supplier<EntityType> getMob, Consumer<EntityType> setMob,
-                                      Supplier<Integer> getMin, Consumer<Integer> setMin,
-                                      Supplier<Integer> getMax, Consumer<Integer> setMax) {
-        gui.addButton(new ResearchFButton<>(gui, () ->
-                CUtils.createItem(player, Material.SPAWNER, "mythicmob_guimobselector", "%type%",
-                        (getMob.get().getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
-                                getMob.get().getKey().toString().substring(10) : getMob.get().getKey().toString())),
-                (String text, EntityType type) -> {
-                    String[] split = text.split(" ");
-                    for (String s : split) {
-                        if (!(type.name().toLowerCase(Locale.ENGLISH).contains(s.toLowerCase(Locale.ENGLISH))
-                                || type.getKey().toString().contains(s.toLowerCase(Locale.ENGLISH))))
-                            return false;
-                    }
-                    return true;
-                },
-                (InventoryClickEvent event, EntityType type) -> {
-                    setMob.accept(type);
-                    gui.open(player);
-                    return false;
-                },
-                (EntityType type) ->
-                        CUtils.createItem(player, Material.SPAWNER, "mythicmob_guimobitem", "%name%",type.name(),"%type%",
-                                (type.getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
-                                        type.getKey().toString().substring(10) : type.getKey().toString())),
-                () -> {
-                    ArrayList<EntityType> list = new ArrayList<>(Arrays.asList(EntityType.values()));
-                    list.removeIf((type) -> !type.isSpawnable() || !type.isAlive());
-                    list.sort(Comparator.comparing(Enum::name));
-                    return list;
-                }));
-        gui.addButton(new NumberEditorFButton<>(
-                gui, 1, 1, 100, getMin, setMin, () ->
-                CUtils.createItem(player, Material.REPEATER, getMin.get(), false, "mythicmob_guimobmin",
-                        "%min%", String.valueOf(getMin.get()),
-                        "%max%", String.valueOf(getMax.get())), true
-        ));
-        gui.addButton(new NumberEditorFButton<>(
-                gui, 1, 1, 100, getMax, setMax, () ->
-                CUtils.createItem(player, Material.REPEATER, getMax.get(), false, "mythicmob_guimobmax",
-                        "%min%", String.valueOf(getMin.get()),
-                        "%max%", String.valueOf(getMax.get())), true));
-    }
-
-    private class VanillaMobsPaperBuilder extends APaperPopulatorBuilder {
-
-        private EntityType type = EntityType.ZOMBIE;
-        @Getter
-        private int min = 1;
-        @Getter
-        private int max = 1;
-
-        @Override
-        public boolean preserveContainer() {
-            return false;
         }
 
         @Override
@@ -238,44 +272,8 @@ public class VanillaMobsType extends APaperPopulatorType {
         }
 
         @Override
-        public void fromItemLinesImpl(@NotNull List<String> lines) {
-            type = EntityType.valueOf(lines.getFirst().split(" ")[1]);
-            min = Integer.parseInt(lines.get(1).split(" ")[1]);
-            max = Integer.parseInt(lines.get(2).split(" ")[1]);
-        }
-
-        @Override
         protected void craftGuiButtonsImpl(@NotNull PagedMapGui gui, @NotNull Player player) {
             createButtons(gui, player, () -> type, this::setEntityType, this::getMin, this::setMin, this::getMax, this::setMax);
-        }
-
-        public void setMin(int min) {
-            if (min < 0)
-                min = 0;
-            if (min > 100)
-                min = 100;
-            if (min > max)
-                this.max = min;
-            this.min = min;
-        }
-
-        public void setMax(int max) {
-            if (max < 1)
-                max = 1;
-            if (max > 100)
-                max = 100;
-            if (max < min)
-                this.min = max;
-            this.max = max;
-        }
-
-        @NotNull
-        public EntityType getEntityType() {
-            return type;
-        }
-
-        public void setEntityType(@NotNull EntityType type) {
-            this.type = type;
         }
     }
 

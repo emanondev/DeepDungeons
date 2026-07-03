@@ -40,6 +40,7 @@ public class Info implements Listener {
     private final HashMap<DungeonHandler, World> handlerWorld = new HashMap<>();
     private final HashMap<World, HashMap<RegionLoc, DungeonHandler>> regionDungeon = new HashMap<>();
     private final HashSet<Player> teleporting = new HashSet<>();
+
     private Info() {
         DeepDungeons.get().registerListener(this);
     }
@@ -210,21 +211,21 @@ public class Info implements Listener {
         }
         RoomHandler fromRoom = getRoom(player);
         if (Objects.equals(fromRoom, toRoom)) {
-            log.error("Wrong use of moveToRoom",new Exception());
+            log.error("Wrong use of moveToRoom", new Exception());
             return false;
         }
         if (toRoom != null && !toRoom.contains(to)) {
-            log.error("target location doesn't match room location",new Exception());
+            log.error("target location doesn't match room location", new Exception());
             return false;
         }
         if (toRoom == null && getDungeon(to) != null) {
-            log.error("target location has no room but has dungeon",new Exception()); //TODO quit may take you to another dungeon
+            log.error("target location has no room but has dungeon", new Exception()); //TODO quit may take you to another dungeon
             return false;
         }
         if (toRoom != null)
             switch (toRoom.getDungeonHandler().getState()) {
                 case LOADING, COMPLETED -> {
-                    log.error("Invalid dungeon state",new Exception());
+                    log.error("Invalid dungeon state", new Exception());
                     return false;
                 }
             }

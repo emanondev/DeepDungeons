@@ -80,10 +80,6 @@ public abstract class APopulatorType extends DRegistryElement implements Populat
             this.setupToolsImpl(inv, player);
         }
 
-        protected abstract void handleInteractImpl(@NotNull PlayerInteractEvent event);
-
-        protected abstract void setupToolsImpl(@NotNull PlayerInventory inv, @NotNull Player player);
-
         @Override
         public void handleInteract(@NotNull PlayerInteractEvent event) {
             switch (event.getPlayer().getInventory().getHeldItemSlot()) {
@@ -102,6 +98,10 @@ public abstract class APopulatorType extends DRegistryElement implements Populat
         public void timerTick(@NotNull Player player, @NotNull Color color) {
             this.tickTimerImpl(player, color);
         }
+
+        protected abstract void handleInteractImpl(@NotNull PlayerInteractEvent event);
+
+        protected abstract void setupToolsImpl(@NotNull PlayerInventory inv, @NotNull Player player);
 
         protected abstract void tickTimerImpl(@NotNull Player player, @NotNull Color color);
 
@@ -132,8 +132,6 @@ public abstract class APopulatorType extends DRegistryElement implements Populat
                 section.set("useChance", useChance);
         }
 
-        protected abstract void writeToImpl(@NotNull YMLSection section) throws Exception;
-
         public void openGui(Player player) {
             craftGui(player).open(player);
         }
@@ -146,6 +144,7 @@ public abstract class APopulatorType extends DRegistryElement implements Populat
             useChance = CUtils.bound(value, 0D, 1D);
         }
 
+        protected abstract void writeToImpl(@NotNull YMLSection section) throws Exception;
 
         protected PagedMapGui craftGui(@NotNull Player player) {
             PagedMapGui gui = new PagedMapGui(new DMessage(DeepDungeons.get()).appendLang("populatorbuilder.settings_guititle",
@@ -184,7 +183,7 @@ public abstract class APopulatorType extends DRegistryElement implements Populat
 
         @Override
         @NotNull
-        public final PopulatorType getPopulatorType(){
+        public final PopulatorType getPopulatorType() {
             return APopulatorType.this;
         }
 

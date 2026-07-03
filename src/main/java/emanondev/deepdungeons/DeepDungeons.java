@@ -37,11 +37,6 @@ public class DeepDungeons extends CorePlugin {
     }
 
     @Override
-    protected boolean registerReloadCommand() {
-        return false;
-    }
-
-    @Override
     public void disable() {
         BuilderMode.getInstance().disable();
     }
@@ -78,6 +73,11 @@ public class DeepDungeons extends CorePlugin {
     @Override
     public void load() {
         instance = this;
+    }
+
+    @Override
+    protected boolean registerReloadCommand() {
+        return false;
     }
 
 }

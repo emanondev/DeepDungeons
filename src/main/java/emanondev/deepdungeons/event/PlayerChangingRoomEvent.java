@@ -10,9 +10,11 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class PlayerChangingRoomEvent extends PlayerEvent implements Cancellable {
+    private static final HandlerList HANDLERS = new HandlerList();
     private final RoomHandler fromRoom;
     private final RoomHandler toRoom;
     private final Location toLocation;
+    private boolean cancelled = false;
 
     public PlayerChangingRoomEvent(@NotNull Player player, @NotNull RoomHandler fromRoom, @NotNull RoomHandler toRoom, @NotNull Location toLocation) {
         super(player);
@@ -20,23 +22,25 @@ public class PlayerChangingRoomEvent extends PlayerEvent implements Cancellable 
         this.toRoom = toRoom;
         this.toLocation = toLocation.clone();
     }
+
+    public static HandlerList getHandlerList() {
+        return HANDLERS;
+    }
+
     @NotNull
     public RoomHandler getFromRoom() {
         return fromRoom;
     }
+
     @NotNull
     public RoomHandler getToRoom() {
         return toRoom;
     }
+
     @NotNull
-    @Contract(pure = true,value="-> new")
+    @Contract(pure = true, value = "-> new")
     public Location getToLocation() {
         return toLocation.clone();
-    }
-
-    private static final HandlerList HANDLERS = new HandlerList();
-    public static HandlerList getHandlerList() {
-        return HANDLERS;
     }
 
     @NotNull
@@ -45,7 +49,6 @@ public class PlayerChangingRoomEvent extends PlayerEvent implements Cancellable 
         return HANDLERS;
     }
 
-    private boolean cancelled = false;
     @Override
     public boolean isCancelled() {
         return this.cancelled;

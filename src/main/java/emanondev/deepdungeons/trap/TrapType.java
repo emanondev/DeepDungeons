@@ -44,8 +44,6 @@ public abstract class TrapType extends DRegistryElement {
             writeToImpl(section);
         }
 
-        protected abstract void writeToImpl(@NotNull YMLSection section) throws Exception;
-
         @NotNull
         public CompletableFuture<TrapBuilder> getCompletableFuture() {
             return completableFuture;
@@ -69,10 +67,6 @@ public abstract class TrapType extends DRegistryElement {
             this.setupToolsImpl();
         }
 
-        protected abstract void handleInteractImpl(@NotNull PlayerInteractEvent event);
-
-        protected abstract void setupToolsImpl();
-
         public void handleInteract(@NotNull PlayerInteractEvent event) {
             this.handleInteractImpl(event);
         }
@@ -90,6 +84,12 @@ public abstract class TrapType extends DRegistryElement {
         public void timerTick(@NotNull Player player, @NotNull Color color) {
             this.tickTimerImpl(player, color);
         }
+
+        protected abstract void writeToImpl(@NotNull YMLSection section) throws Exception;
+
+        protected abstract void handleInteractImpl(@NotNull PlayerInteractEvent event);
+
+        protected abstract void setupToolsImpl();
 
         protected abstract void tickTimerImpl(@NotNull Player player, @NotNull Color color);
 

@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 @Deprecated
 public class PlayerLeavingRoomEvent extends RoomEvent implements Cancellable {
+    private static final HandlerList HANDLERS = new HandlerList();
     private final PlayerTeleportEvent teleport;
 
     public PlayerLeavingRoomEvent(@NotNull PlayerTeleportEvent event, @NotNull RoomHandler roomHandler) {
@@ -17,7 +18,6 @@ public class PlayerLeavingRoomEvent extends RoomEvent implements Cancellable {
         this.teleport = event;
     }
 
-    private static final HandlerList HANDLERS = new HandlerList();
     public static HandlerList getHandlerList() {
         return HANDLERS;
     }
@@ -37,6 +37,7 @@ public class PlayerLeavingRoomEvent extends RoomEvent implements Cancellable {
     public void setCancelled(boolean b) {
         teleport.setCancelled(b);
     }
+
     @NotNull
     public Player getPlayer() {
         return teleport.getPlayer();

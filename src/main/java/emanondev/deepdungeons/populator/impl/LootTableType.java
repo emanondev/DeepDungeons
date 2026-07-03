@@ -34,6 +34,24 @@ public class LootTableType extends APaperPopulatorType {
         super("loottable");
     }
 
+    @Override
+    @NotNull
+    public LootTableInstance read(@NotNull RoomInstance room, @NotNull YMLSection sub) {
+        return new LootTableInstance(room, sub);
+    }
+
+    @NotNull
+    @Override
+    public APopulatorBuilder getBuilder(@NotNull RoomBuilder room) {
+        return new LootTableBuilder(room);
+    }
+
+    @Override
+    @NotNull
+    public LootTablePaperBuilder getPaperBuilder() {
+        return new LootTablePaperBuilder();
+    }
+
     private static void createButtons(PagedMapGui gui, Player player, Consumer<LootTable> consumer, Supplier<LootTable> supplier) {
         gui.addButton(new ResearchFButton<>(gui, () ->
                 CUtils.createItem(player, Material.CHEST, "populatorbuilder.loottable_tableselector",
@@ -66,24 +84,6 @@ public class LootTableType extends APaperPopulatorType {
         ));
     }
 
-    @Override
-    @NotNull
-    public LootTableInstance read(@NotNull RoomInstance room, @NotNull YMLSection sub) {
-        return new LootTableInstance(room, sub);
-    }
-
-    @NotNull
-    @Override
-    public APopulatorBuilder getBuilder(@NotNull RoomBuilder room) {
-        return new LootTableBuilder(room);
-    }
-
-    @Override
-    @NotNull
-    public LootTablePaperBuilder getPaperBuilder() {
-        return new LootTablePaperBuilder();
-    }
-
     public class LootTableBuilder extends APopulatorBuilder {
 
         private final List<Location> offsets = new ArrayList<>();
@@ -92,6 +92,26 @@ public class LootTableType extends APaperPopulatorType {
 
         public LootTableBuilder(@NotNull RoomBuilder room) {
             super(room);
+        }
+
+        @NotNull
+        public LootTable getTable() {
+            return table;
+        }
+
+        public void setTable(@NotNull LootTable table) {
+            this.table = table;
+        }
+
+        public void toggleOffset(@NotNull Location location) {
+            location = location.clone();
+            location.setWorld(null);
+            location.subtract(getRoomOffset());
+            location.setX(location.getBlockX() + 0.5D);
+            location.setY(location.getBlockY());
+            location.setZ(location.getBlockZ() + 0.5D);
+            if (!offsets.remove(location))
+                offsets.add(location);
         }
 
         @Override
@@ -129,15 +149,6 @@ public class LootTableType extends APaperPopulatorType {
             offsets.forEach(loc -> CUtils.markBlock(player, loc.toVector().add(getRoomOffset()).toBlockVector(), color));
         }
 
-        @NotNull
-        public LootTable getTable() {
-            return table;
-        }
-
-        public void setTable(@NotNull LootTable table) {
-            this.table = table;
-        }
-
         @Override
         protected void writeToImpl(@NotNull YMLSection section) throws Exception {
             if (table == null || offsets.isEmpty())
@@ -151,17 +162,6 @@ public class LootTableType extends APaperPopulatorType {
         @Override
         protected void craftGuiButtonsImpl(@NotNull PagedMapGui gui, @NotNull Player player) {
             createButtons(gui, player, (LootTable lootTable) -> table = lootTable, () -> table);
-        }
-
-        public void toggleOffset(@NotNull Location location) {
-            location = location.clone();
-            location.setWorld(null);
-            location.subtract(getRoomOffset());
-            location.setX(location.getBlockX() + 0.5D);
-            location.setY(location.getBlockY());
-            location.setZ(location.getBlockZ() + 0.5D);
-            if (!offsets.remove(location))
-                offsets.add(location);
         }
 
     }
@@ -184,6 +184,17 @@ public class LootTableType extends APaperPopulatorType {
             this.table = table;
         }
 
+        /**
+         * first line contains the type and shall be ignored
+         *
+         * @param lines
+         */
+        @Override
+        public void fromItemLinesImpl(@NotNull List<String> lines) {
+            String[] args = lines.getFirst().split(" ")[1].split(":");
+            table = Bukkit.getLootTable(new NamespacedKey(args[0], args[1]));
+        }
+
         @Override
         @NotNull
         protected List<String> toItemLinesImpl() {
@@ -202,17 +213,6 @@ public class LootTableType extends APaperPopulatorType {
         @Override
         protected void craftGuiButtonsImpl(@NotNull PagedMapGui gui, @NotNull Player player) {
             createButtons(gui, player, (LootTable lootTable) -> table = lootTable, () -> table);
-        }
-
-        /**
-         * first line contains the type and shall be ignored
-         *
-         * @param lines
-         */
-        @Override
-        public void fromItemLinesImpl(@NotNull List<String> lines) {
-            String[] args = lines.getFirst().split(" ")[1].split(":");
-            table = Bukkit.getLootTable(new NamespacedKey(args[0], args[1]));
         }
     }
 

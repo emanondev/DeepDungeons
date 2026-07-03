@@ -38,16 +38,6 @@ public class Party extends DRegistryElement {
         parties.put(leader.getUniqueId(), this);
     }
 
-    @Nullable
-    static Party getParty(@NotNull OfflinePlayer player) {
-        return getParty(player.getUniqueId());
-    }
-
-    @Nullable
-    static Party getParty(@NotNull UUID player) {
-        return parties.get(player);
-    }
-
     public void togglePartyPublic() {
         partyPublic = !partyPublic;
     }
@@ -87,16 +77,16 @@ public class Party extends DRegistryElement {
             result |= enterDungeon(player);
         }
         if (!result)
-            this.dungeon=null;
+            this.dungeon = null;
         return result;
     }
 
     public boolean enterDungeon(Player player) {
-        if (dungeon==null)
+        if (dungeon == null)
             throw new IllegalStateException();
         DungeonPlayer dp = PartyManager.getInstance().getDungeonPlayer(player);
         dp.setPreEnterSnapshot(player);
-        PlayerEnteringDungeonEvent event = new PlayerEnteringDungeonEvent(player,dungeon.getEntrance().getRoomHandler());
+        PlayerEnteringDungeonEvent event = new PlayerEnteringDungeonEvent(player, dungeon.getEntrance().getRoomHandler());
         Bukkit.getPluginManager().callEvent(event);
         boolean result = !event.isCancelled() && dungeon.getEntrance().teleportIn(player);
         if (!result)
@@ -111,7 +101,6 @@ public class Party extends DRegistryElement {
     public boolean isExploringDungeon() {
         return dungeon != null;
     }
-
 
     public boolean addPlayer(Player player) {
         if (parties.containsKey(player.getUniqueId()))
@@ -202,6 +191,28 @@ public class Party extends DRegistryElement {
         }
     }
 
+    public void setLeader(@NotNull Player newLeader) {
+        if (!this.equals(getParty(newLeader)))
+            throw new IllegalArgumentException();
+        leader = newLeader.getUniqueId();
+    }
+
+    public void chatMessage(@NotNull Player sender, @NotNull String message) {
+        getPlayers().forEach(player -> player.sendMessage(CUtils.craftMsg(player, "party.chat_prefix",
+                "%sender%", sender.getName(), "%msg%", "%msg%").toLegacy().replace("%msg%", message)));
+        //TODO choosable partychat color
+    }
+
+    @Nullable
+    static Party getParty(@NotNull OfflinePlayer player) {
+        return getParty(player.getUniqueId());
+    }
+
+    @Nullable
+    static Party getParty(@NotNull UUID player) {
+        return parties.get(player);
+    }
+
     void onPlayerQuit(Player player) {
         if (!isInsideDungeon(player))
             return;
@@ -216,17 +227,5 @@ public class Party extends DRegistryElement {
             dp.setPreEnterSnapshot(player);
             dp.getAndDeleteLogoutSnapshot().apply(player);
         }
-    }
-
-    public void setLeader(@NotNull Player newLeader) {
-        if (!this.equals(getParty(newLeader)))
-            throw new IllegalArgumentException();
-        leader = newLeader.getUniqueId();
-    }
-
-    public void chatMessage(@NotNull Player sender, @NotNull String message) {
-        getPlayers().forEach(player -> player.sendMessage(CUtils.craftMsg(player, "party.chat_prefix",
-                "%sender%", sender.getName(), "%msg%", "%msg%").toLegacy().replace("%msg%", message)));
-        //TODO choosable partychat color
     }
 }

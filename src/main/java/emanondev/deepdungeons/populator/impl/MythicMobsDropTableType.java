@@ -38,6 +38,24 @@ public class MythicMobsDropTableType extends APaperPopulatorType {
         super("mythicmobsloottable");
     }
 
+    @Override
+    @NotNull
+    public MythicMobsDropTableInstance read(@NotNull RoomInstance room, @NotNull YMLSection sub) {
+        return new MythicMobsDropTableInstance(room, sub);
+    }
+
+    @NotNull
+    @Override
+    public APopulatorBuilder getBuilder(@NotNull RoomType.RoomBuilder room) {
+        return new MythicMobsDropTableBuilder(room);
+    }
+
+    @Override
+    @NotNull
+    public MythicMobsDropTablePaperBuilder getPaperBuilder() {
+        return new MythicMobsDropTablePaperBuilder();
+    }
+
     private static void createButtons(PagedMapGui gui, Player player, Consumer<DropTable> consumer, Supplier<DropTable> supplier) {
         gui.addButton(new ResearchFButton<>(gui, () -> CUtils.createItem(player, Material.CHEST,
                 "populatorbuilder.mythicmobsloottable_tableselector", "%table%", (supplier.get() == null ? "null" : supplier.get().getInternalName())),
@@ -64,24 +82,6 @@ public class MythicMobsDropTableType extends APaperPopulatorType {
         ));
     }
 
-    @Override
-    @NotNull
-    public MythicMobsDropTableInstance read(@NotNull RoomInstance room, @NotNull YMLSection sub) {
-        return new MythicMobsDropTableInstance(room, sub);
-    }
-
-    @NotNull
-    @Override
-    public APopulatorBuilder getBuilder(@NotNull RoomType.RoomBuilder room) {
-        return new MythicMobsDropTableBuilder(room);
-    }
-
-    @Override
-    @NotNull
-    public MythicMobsDropTablePaperBuilder getPaperBuilder() {
-        return new MythicMobsDropTablePaperBuilder();
-    }
-
     public class MythicMobsDropTableBuilder extends APopulatorBuilder {
 
         private final List<Location> offsets = new ArrayList<>();
@@ -89,6 +89,17 @@ public class MythicMobsDropTableType extends APaperPopulatorType {
 
         public MythicMobsDropTableBuilder(@NotNull RoomType.RoomBuilder room) {
             super(room);
+        }
+
+        public void toggleOffset(@NotNull Location location) {
+            location = location.clone();
+            location.setWorld(null);
+            location.subtract(getRoomOffset());
+            location.setX(location.getBlockX() + 0.5D);
+            location.setY(location.getBlockY());
+            location.setZ(location.getBlockZ() + 0.5D);
+            if (!offsets.remove(location))
+                offsets.add(location);
         }
 
         @Override
@@ -140,17 +151,6 @@ public class MythicMobsDropTableType extends APaperPopulatorType {
             offsets.forEach(off -> offsetsString.add(Util.toStringNoWorld(off)));
             section.set("offsets", offsetsString);
         }
-
-        public void toggleOffset(@NotNull Location location) {
-            location = location.clone();
-            location.setWorld(null);
-            location.subtract(getRoomOffset());
-            location.setX(location.getBlockX() + 0.5D);
-            location.setY(location.getBlockY());
-            location.setZ(location.getBlockZ() + 0.5D);
-            if (!offsets.remove(location))
-                offsets.add(location);
-        }
     }
 
     public class MythicMobsDropTablePaperBuilder extends APaperPopulatorBuilder {
@@ -164,6 +164,14 @@ public class MythicMobsDropTableType extends APaperPopulatorType {
         @Override
         public boolean preserveContainer() {
             return true;
+        }
+
+        /**
+         * first line contains the type and shall be ignored
+         */
+        @Override
+        public void fromItemLinesImpl(@NotNull List<String> lines) {
+            table = MythicBukkit.inst().getDropManager().getDropTable(lines.getFirst().split(" ")[1]).orElse(null);
         }
 
         @Override
@@ -182,15 +190,6 @@ public class MythicMobsDropTableType extends APaperPopulatorType {
             section.set("table", table.getInternalName());
             section.set("offsets", List.of(Util.toStringNoWorld(offset)));
         }
-
-        /**
-         * first line contains the type and shall be ignored
-         */
-        @Override
-        public void fromItemLinesImpl(@NotNull List<String> lines) {
-            table = MythicBukkit.inst().getDropManager().getDropTable(lines.getFirst().split(" ")[1]).orElse(null);
-        }
-
 
         @Override
         protected void craftGuiButtonsImpl(@NotNull PagedMapGui gui, @NotNull Player player) {

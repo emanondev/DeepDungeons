@@ -31,16 +31,6 @@ public class SimpleType extends RoomType {
         }
 
         @Override
-        protected void writeToImpl(@NotNull YMLSection section) {
-
-        }
-
-        @Override
-        protected void timerTickImpl() {
-
-        }
-
-        @Override
         public void handleInteractImpl(@NotNull PlayerInteractEvent event) {
 
         }
@@ -48,6 +38,16 @@ public class SimpleType extends RoomType {
         @Override
         public void setupToolsImpl() {
             this.getCompletableFuture().complete(this);
+        }
+
+        @Override
+        protected void writeToImpl(@NotNull YMLSection section) {
+
+        }
+
+        @Override
+        protected void timerTickImpl() {
+
         }
     }
 

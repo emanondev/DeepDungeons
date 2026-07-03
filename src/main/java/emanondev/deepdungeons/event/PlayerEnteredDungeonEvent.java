@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 public class PlayerEnteredDungeonEvent extends PlayerEvent {
     private static final HandlerList HANDLERS = new HandlerList();
 
-//    @NotNull
+    //    @NotNull
 //    @Contract(pure = true,value="-> new")
 //    public Location getFromLocation() {
 //        return fromLocation.clone();

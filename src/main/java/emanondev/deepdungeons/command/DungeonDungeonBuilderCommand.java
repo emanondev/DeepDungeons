@@ -45,6 +45,29 @@ public class DungeonDungeonBuilderCommand extends CoreCommand {
         help(sender, label, args);
     }
 
+    @Override
+    @Nullable
+    public List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
+        if (!(sender instanceof Player player)) return Collections.emptyList();
+
+
+        return switch (args.length) {
+            case 1 -> {
+                if (BuilderMode.getInstance().isOnEditorMode(player))
+                    yield this.complete(args[0], "pause");
+                if (BuilderMode.getInstance().isOnPausedEditorMode(player))
+                    yield this.complete(args[0], "continue");
+                yield this.complete(args[0], "create");
+            }
+            case 2 -> {
+                if (args[0].equalsIgnoreCase("create"))
+                    yield this.complete(args[1], DungeonTypeManager.getInstance().getIds());
+                yield Collections.emptyList();
+            }
+            default -> Collections.emptyList();
+        };
+    }
+
     private void continueCreate(CommandSender sender, String label, String[] args) {
         if (!(sender instanceof Player player)) {
             this.playerOnlyNotify(sender);
@@ -94,28 +117,5 @@ public class DungeonDungeonBuilderCommand extends CoreCommand {
             sender.sendMessage("Message not implemented yet (can't start, already on builder mode or on pause (do /ddungeon continue)?)");//TODO
             return;
         }
-    }
-
-    @Override
-    @Nullable
-    public List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
-        if (!(sender instanceof Player player)) return Collections.emptyList();
-
-
-        return switch (args.length) {
-            case 1 -> {
-                if (BuilderMode.getInstance().isOnEditorMode(player))
-                    yield this.complete(args[0], "pause");
-                if (BuilderMode.getInstance().isOnPausedEditorMode(player))
-                    yield this.complete(args[0], "continue");
-                yield this.complete(args[0], "create");
-            }
-            case 2 -> {
-                if (args[0].equalsIgnoreCase("create"))
-                    yield this.complete(args[1], DungeonTypeManager.getInstance().getIds());
-                yield Collections.emptyList();
-            }
-            default -> Collections.emptyList();
-        };
     }
 }

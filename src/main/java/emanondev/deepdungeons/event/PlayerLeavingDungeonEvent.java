@@ -9,16 +9,16 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 public class PlayerLeavingDungeonEvent extends PlayerEvent {
+    private static final HandlerList HANDLERS = new HandlerList();
     private final RoomHandler fromRoom;
     private final Location toLocation;
 
-    public PlayerLeavingDungeonEvent(@NotNull Player player,@NotNull RoomHandler fromRoom, @NotNull Location toLocation) {
+    public PlayerLeavingDungeonEvent(@NotNull Player player, @NotNull RoomHandler fromRoom, @NotNull Location toLocation) {
         super(player);
         this.fromRoom = fromRoom;
         this.toLocation = toLocation.clone();
     }
 
-    private static final HandlerList HANDLERS = new HandlerList();
     public static HandlerList getHandlerList() {
         return HANDLERS;
     }
@@ -28,11 +28,13 @@ public class PlayerLeavingDungeonEvent extends PlayerEvent {
     public HandlerList getHandlers() {
         return HANDLERS;
     }
+
     @NotNull
-    @Contract(pure = true,value="-> new")
+    @Contract(pure = true, value = "-> new")
     public Location getToLocation() {
         return toLocation.clone();
     }
+
     @NotNull
     public RoomHandler getFromRoom() {
         return fromRoom;

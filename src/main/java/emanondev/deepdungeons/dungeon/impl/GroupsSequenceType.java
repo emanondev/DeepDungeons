@@ -447,6 +447,59 @@ public class GroupsSequenceType extends DungeonType {
                 return Collections.unmodifiableList(rooms);
             }
 
+            @Override
+            @Contract(pure = true)
+            @NotNull
+            public DoorHandler getEntrance() {
+                return start;
+            }
+
+            @Override
+            @Contract(value = "-> new", pure = true)
+            @NotNull
+            public Location getLocation() {
+                return location.clone();
+            }
+
+            @Override
+            @Contract(value = "-> new", pure = true)
+            @NotNull
+            public BoundingBox getBoundingBox() {
+                return boundingBox;
+            }
+
+            @Override
+            @NotNull
+            public State getState() {
+                return this.state;
+            }
+
+            @Override
+            @NotNull
+            public World getWorld() {
+                return location.getWorld();
+            }
+
+            @Override
+            public boolean contains(@NotNull Vector vector) {
+                return boundingBox.contains(vector);
+            }
+
+            @Override
+            public boolean overlaps(@NotNull BoundingBox box) {
+                return boundingBox.overlaps(box);
+            }
+
+            @Override
+            public void flagCompleted() {
+                state = State.COMPLETED;
+            }
+
+            @Override
+            protected void startImpl(@NotNull Party party) {
+                state = State.STARTED;
+            }
+
             private void paste() {
                 //TODO debug
                 DeepDungeons.get().logInfo("Pasting &e" + this.getDungeonInstance().getId() + " &fat &e" + getWorld().getName() + " " + Util.toString(location.toVector().toBlockVector()).replace(";", " "));
@@ -505,59 +558,6 @@ public class GroupsSequenceType extends DungeonType {
                     //TODO debug
                     DeepDungeons.get().logInfo("Pasted &e" + this.getDungeonInstance().getId() + " &fat &e" + getWorld().getName() + " " + Util.toString(location.toVector().toBlockVector()).replace(";", " ") + "&f took &e" + (System.currentTimeMillis() - before) + " &fms");
                 });
-            }
-
-            @Override
-            @Contract(pure = true)
-            @NotNull
-            public DoorHandler getEntrance() {
-                return start;
-            }
-
-            @Override
-            @Contract(value = "-> new", pure = true)
-            @NotNull
-            public Location getLocation() {
-                return location.clone();
-            }
-
-            @Override
-            @Contract(value = "-> new", pure = true)
-            @NotNull
-            public BoundingBox getBoundingBox() {
-                return boundingBox;
-            }
-
-            @Override
-            @NotNull
-            public State getState() {
-                return this.state;
-            }
-
-            @Override
-            @NotNull
-            public World getWorld() {
-                return location.getWorld();
-            }
-
-            @Override
-            public boolean contains(@NotNull Vector vector) {
-                return boundingBox.contains(vector);
-            }
-
-            @Override
-            public boolean overlaps(@NotNull BoundingBox box) {
-                return boundingBox.overlaps(box);
-            }
-
-            @Override
-            protected void startImpl(@NotNull Party party) {
-                state = State.STARTED;
-            }
-
-            @Override
-            public void flagCompleted() {
-                state = State.COMPLETED;
             }
 
             private void generate(RoomGroup group, RoomHandler groupStart, List<DoorHandler> deathEnds, int depth) {

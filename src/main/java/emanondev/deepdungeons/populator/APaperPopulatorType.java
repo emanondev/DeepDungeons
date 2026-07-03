@@ -37,9 +37,6 @@ public abstract class APaperPopulatorType extends APopulatorType implements Pape
             return PaperPopulatorBuilder.super.toItem();
         }
 
-        @NotNull
-        protected abstract List<String> toItemLinesImpl();
-
         /**
          * @return a mutable list with prefilled first two lines
          */
@@ -54,7 +51,6 @@ public abstract class APaperPopulatorType extends APopulatorType implements Pape
             return list;
         }
 
-
         @Override
         @Contract("_ -> this")
         public final APaperPopulatorBuilder fromItemLines(@NotNull List<String> lines) {
@@ -66,9 +62,6 @@ public abstract class APaperPopulatorType extends APopulatorType implements Pape
             return this;
         }
 
-        protected abstract void fromItemLinesImpl(@NotNull List<String> lines);
-
-
         @Nullable
         public Location getOffset() {
             return offset.clone();
@@ -79,6 +72,10 @@ public abstract class APaperPopulatorType extends APopulatorType implements Pape
             this.offset.setWorld(null);
         }
 
+        @NotNull
+        protected abstract List<String> toItemLinesImpl();
+
+        protected abstract void fromItemLinesImpl(@NotNull List<String> lines);
 
         protected PagedMapGui craftGui(@NotNull Player player) {
             PagedMapGui gui = new PagedMapGui(CUtils.craftMsg(player, "populatorbuilder.settings_guititle",

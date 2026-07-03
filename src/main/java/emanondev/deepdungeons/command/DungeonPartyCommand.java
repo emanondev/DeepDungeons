@@ -52,6 +52,93 @@ public class DungeonPartyCommand extends CoreCommand {
 
     }
 
+    @Override
+    @Nullable
+    public List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
+        if (!(sender instanceof Player player))
+            return Collections.emptyList();
+        return switch (args.length) {
+            case 1 -> {
+                Party party = PartyManager.getInstance().getParty(player);
+                ArrayList<String> list = new ArrayList<>();
+                if (party == null) {
+                    if (player.hasPermission(Perms.PARTY_CREATE))
+                        list.addAll(this.complete(args[0], Collections.singleton("create")));
+                    if (player.hasPermission(Perms.PARTY_JOIN))
+                        list.addAll(this.complete(args[0], Collections.singleton("join")));
+                } else {
+                    boolean leader = player.equals(party.getLeader());
+                    if (leader && player.hasPermission(Perms.PARTY_DISBAND))
+                        list.addAll(this.complete(args[0], Collections.singleton("disband")));
+                    if (leader && player.hasPermission(Perms.PARTY_KICK))
+                        list.addAll(this.complete(args[0], Collections.singleton("kick")));
+                    if (leader && player.hasPermission(Perms.PARTY_LEADER))
+                        list.addAll(this.complete(args[0], Collections.singleton("leader")));
+                    if (leader && player.hasPermission(Perms.PARTY_TOGGLE_PUBLIC))
+                        list.addAll(this.complete(args[0], Collections.singleton("open")));
+                    if (leader && player.hasPermission(Perms.PARTY_TOGGLE_PUBLIC))
+                        list.addAll(this.complete(args[0], Collections.singleton("close")));
+                    if ((leader || party.isPartyPublic()) && player.hasPermission(Perms.PARTY_INVITE))
+                        list.addAll(this.complete(args[0], Collections.singleton("invite")));
+                    if (!leader && player.hasPermission(Perms.PARTY_LEAVE))
+                        list.addAll(this.complete(args[0], Collections.singleton("leave")));
+                    if (player.hasPermission(Perms.PARTY_CHAT))
+                        list.addAll(this.complete(args[0], Collections.singleton("chat")));
+                }
+                if (player.hasPermission(Perms.PARTY_INFO))
+                    list.addAll(this.complete(args[0], Collections.singleton("info")));
+                if (player.hasPermission(Perms.PARTY_LIST))
+                    list.addAll(this.complete(args[0], Collections.singleton("list")));
+                if (player.hasPermission(Perms.PARTY_HELP))
+                    list.addAll(this.complete(args[0], Collections.singleton("help")));
+                yield list;
+            }
+            case 2 -> switch (args[0].toLowerCase(Locale.ENGLISH)) {
+                case "help" ->
+                        player.hasPermission(Perms.PARTY_HELP) ? this.complete(args[1], List.of("1", "2")) : Collections.emptyList();
+                case "info" -> player.hasPermission(Perms.PARTY_INFO) ? this.completePlayerNames(sender, args[1],
+                        (p) -> PartyManager.getInstance().getParty(p) != null) : Collections.emptyList();
+                case "list" ->
+                        player.hasPermission(Perms.PARTY_LIST) ? this.complete(args[1], List.of("1", "2", "3", "4", "5")) : Collections.emptyList();
+                case "leader" -> {
+                    Party party = PartyManager.getInstance().getParty(player);
+                    if (party != null && player.equals(party.getLeader()) && player.hasPermission(Perms.PARTY_LEADER)) {
+                        yield this.completePlayerNames(player, args[1], party.getPlayers(), (p) -> !p.equals(player));
+                    }
+                    yield Collections.emptyList();
+                }
+                case "invite" -> {
+                    Party party = PartyManager.getInstance().getParty(player);
+                    if (party != null && player.hasPermission(Perms.PARTY_INVITE) && (player.equals(party.getLeader())
+                            || party.isPartyPublic())) {
+                        yield this.completePlayerNames(player, args[1], (p) -> PartyManager.getInstance().getParty(p) == null);
+                    }
+                    yield Collections.emptyList();
+                }
+                case "kick" -> {
+                    Party party = PartyManager.getInstance().getParty(player);
+                    if (party != null && player.equals(party.getLeader()) && player.hasPermission(Perms.PARTY_KICK)) {
+                        yield this.complete(args[1], party.getPlayersUUID(), (uuid) -> Bukkit.getOfflinePlayer(uuid).getName(),
+                                (uuid) -> !uuid.equals(party.getLeaderUUID()));
+                    }
+                    yield Collections.emptyList();
+                }
+                case "join" -> {
+                    Party party = PartyManager.getInstance().getParty(player);
+                    if (party == null && player.hasPermission(Perms.PARTY_JOIN)) {
+                        DungeonPlayer dPlayer = PartyManager.getInstance().getDungeonPlayer(player);
+                        yield this.completePlayerNames(sender, args[1], (p) -> {
+                            Party partyT = PartyManager.getInstance().getParty(p);
+                            return partyT != null && (partyT.isPartyPublic() || dPlayer.hasInvite(partyT));
+                        });
+                    }
+                    yield Collections.emptyList();
+                }
+                default -> Collections.emptyList();
+            };
+            default -> Collections.emptyList();
+        };
+    }
 
     private void chat(CommandSender sender, String label, String[] args) {
         if (!(sender instanceof Player player)) {
@@ -515,91 +602,5 @@ public class DungeonPartyCommand extends CoreCommand {
         }
         PartyManager.getInstance().createParty(player);
         CUtils.sendMsg(player, "party.success_create", "%label%", label);
-    }
-
-    @Override
-    @Nullable
-    public List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
-        if (!(sender instanceof Player player))
-            return Collections.emptyList();
-        return switch (args.length) {
-            case 1 -> {
-                Party party = PartyManager.getInstance().getParty(player);
-                ArrayList<String> list = new ArrayList<>();
-                if (party == null) {
-                    if (player.hasPermission(Perms.PARTY_CREATE))
-                        list.addAll(this.complete(args[0], Collections.singleton("create")));
-                    if (player.hasPermission(Perms.PARTY_JOIN))
-                        list.addAll(this.complete(args[0], Collections.singleton("join")));
-                } else {
-                    boolean leader = player.equals(party.getLeader());
-                    if (leader && player.hasPermission(Perms.PARTY_DISBAND))
-                        list.addAll(this.complete(args[0], Collections.singleton("disband")));
-                    if (leader && player.hasPermission(Perms.PARTY_KICK))
-                        list.addAll(this.complete(args[0], Collections.singleton("kick")));
-                    if (leader && player.hasPermission(Perms.PARTY_LEADER))
-                        list.addAll(this.complete(args[0], Collections.singleton("leader")));
-                    if (leader && player.hasPermission(Perms.PARTY_TOGGLE_PUBLIC))
-                        list.addAll(this.complete(args[0], Collections.singleton("open")));
-                    if (leader && player.hasPermission(Perms.PARTY_TOGGLE_PUBLIC))
-                        list.addAll(this.complete(args[0], Collections.singleton("close")));
-                    if ((leader || party.isPartyPublic()) && player.hasPermission(Perms.PARTY_INVITE))
-                        list.addAll(this.complete(args[0], Collections.singleton("invite")));
-                    if (!leader && player.hasPermission(Perms.PARTY_LEAVE))
-                        list.addAll(this.complete(args[0], Collections.singleton("leave")));
-                    if (player.hasPermission(Perms.PARTY_CHAT))
-                        list.addAll(this.complete(args[0], Collections.singleton("chat")));
-                }
-                if (player.hasPermission(Perms.PARTY_INFO))
-                    list.addAll(this.complete(args[0], Collections.singleton("info")));
-                if (player.hasPermission(Perms.PARTY_LIST))
-                    list.addAll(this.complete(args[0], Collections.singleton("list")));
-                if (player.hasPermission(Perms.PARTY_HELP))
-                    list.addAll(this.complete(args[0], Collections.singleton("help")));
-                yield list;
-            }
-            case 2 -> switch (args[0].toLowerCase(Locale.ENGLISH)) {
-                case "help" -> player.hasPermission(Perms.PARTY_HELP) ? this.complete(args[1], List.of("1", "2")) : Collections.emptyList();
-                case "info" -> player.hasPermission(Perms.PARTY_INFO) ? this.completePlayerNames(sender, args[1],
-                        (p) -> PartyManager.getInstance().getParty(p) != null) : Collections.emptyList();
-                case "list" -> player.hasPermission(Perms.PARTY_LIST) ? this.complete(args[1], List.of("1", "2", "3", "4", "5")) : Collections.emptyList();
-                case "leader" -> {
-                    Party party = PartyManager.getInstance().getParty(player);
-                    if (party != null && player.equals(party.getLeader()) && player.hasPermission(Perms.PARTY_LEADER)) {
-                        yield this.completePlayerNames(player, args[1], party.getPlayers(), (p) -> !p.equals(player));
-                    }
-                    yield Collections.emptyList();
-                }
-                case "invite" -> {
-                    Party party = PartyManager.getInstance().getParty(player);
-                    if (party != null && player.hasPermission(Perms.PARTY_INVITE) && (player.equals(party.getLeader())
-                            || party.isPartyPublic())) {
-                        yield this.completePlayerNames(player, args[1], (p) -> PartyManager.getInstance().getParty(p) == null);
-                    }
-                    yield Collections.emptyList();
-                }
-                case "kick" -> {
-                    Party party = PartyManager.getInstance().getParty(player);
-                    if (party != null && player.equals(party.getLeader()) && player.hasPermission(Perms.PARTY_KICK)) {
-                        yield this.complete(args[1], party.getPlayersUUID(), (uuid) -> Bukkit.getOfflinePlayer(uuid).getName(),
-                                (uuid) -> !uuid.equals(party.getLeaderUUID()));
-                    }
-                    yield Collections.emptyList();
-                }
-                case "join" -> {
-                    Party party = PartyManager.getInstance().getParty(player);
-                    if (party == null && player.hasPermission(Perms.PARTY_JOIN)) {
-                        DungeonPlayer dPlayer = PartyManager.getInstance().getDungeonPlayer(player);
-                        yield this.completePlayerNames(sender, args[1], (p) -> {
-                            Party partyT = PartyManager.getInstance().getParty(p);
-                            return partyT != null && (partyT.isPartyPublic() || dPlayer.hasInvite(partyT));
-                        });
-                    }
-                    yield Collections.emptyList();
-                }
-                default -> Collections.emptyList();
-            };
-            default -> Collections.emptyList();
-        };
     }
 }

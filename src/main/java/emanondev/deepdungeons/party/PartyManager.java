@@ -47,7 +47,7 @@ public class PartyManager extends DRegistry<Party> implements Listener {
         if (party.isExploringDungeon())
             throw new IllegalStateException();
         dungeon.start(party);
-        if (!party.start(dungeon, players)){
+        if (!party.start(dungeon, players)) {
             DeepDungeons.get().logIssue("Unable to start dungeon!");
             dungeon.flagCompleted();
         }
@@ -56,6 +56,21 @@ public class PartyManager extends DRegistry<Party> implements Listener {
     @Nullable
     public Party getParty(OfflinePlayer player) {
         return Party.getParty(player.getUniqueId());
+    }
+
+    @NotNull
+    public DungeonPlayer getDungeonPlayer(@NotNull OfflinePlayer player) {
+        return getDungeonPlayer(player.getUniqueId());
+    }
+
+    @NotNull
+    public DungeonPlayer getDungeonPlayer(@NotNull UUID uuid) {
+        DungeonPlayer value = dungeonPlayers.get(uuid);
+        if (value != null)
+            return value;
+        value = new DungeonPlayer();
+        dungeonPlayers.put(uuid, value);
+        return value;
     }
 
     @EventHandler
@@ -74,7 +89,6 @@ public class PartyManager extends DRegistry<Party> implements Listener {
         party.onPlayerJoin(event.getPlayer());
     }
 
-
     @EventHandler(ignoreCancelled = true)
     private void event(@NotNull AsyncPlayerChatEvent event) {
         if (!event.getPlayer().hasPermission(Perms.PARTY_CHAT))
@@ -87,20 +101,5 @@ public class PartyManager extends DRegistry<Party> implements Listener {
             return;
         event.setCancelled(true);
         party.chatMessage(event.getPlayer(), event.getMessage());
-    }
-
-    @NotNull
-    public DungeonPlayer getDungeonPlayer(@NotNull OfflinePlayer player) {
-        return getDungeonPlayer(player.getUniqueId());
-    }
-
-    @NotNull
-    public DungeonPlayer getDungeonPlayer(@NotNull UUID uuid) {
-        DungeonPlayer value = dungeonPlayers.get(uuid);
-        if (value != null)
-            return value;
-        value = new DungeonPlayer();
-        dungeonPlayers.put(uuid, value);
-        return value;
     }
 }

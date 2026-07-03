@@ -35,28 +35,6 @@ public class RoomInstanceManager extends DRegistry<RoomInstance> {
         return readInstance(new YMLConfig(DeepDungeons.get(), file), fileName);
     }
 
-    private RoomInstance readInstance(@NotNull YMLConfig config, String fileName) {
-        String type = config.getString("type");
-        if (type == null) {
-            logIssue("Can't read room file &erooms" + File.separator + config.getFile().getName() + "&f because path &etype:&f leads to nothing (corrupted file?)");
-            return null;
-        }
-        RoomType roomType = RoomTypeManager.getInstance().get(type);
-        if (roomType == null) {
-            logIssue("Can't read room file &erooms" + File.separator + config.getFile().getName() + "&f because room type &etype &fdoesn't match any existing type (maybe a 3rd party plugin didn't load or was removed?)");
-            return null;
-        }
-        RoomInstance room;
-        try {
-            room = roomType.read(fileName, config);
-        } catch (Throwable t) {
-            t.printStackTrace();
-            logIssue("Can't read room file &erooms" + File.separator + config.getFile().getName() + "&f please report the above stack trace to the developer ( https://discord.com/invite/w5HVCDPtRp )");
-            return null;
-        }
-        return room;
-    }
-
     @Override
     public void load() {
         File roomsFolder = getFolder();
@@ -82,5 +60,27 @@ public class RoomInstanceManager extends DRegistry<RoomInstance> {
     @NotNull
     public File getFolder() {
         return new File(DeepDungeons.get().getDataFolder(), "rooms");
+    }
+
+    private RoomInstance readInstance(@NotNull YMLConfig config, String fileName) {
+        String type = config.getString("type");
+        if (type == null) {
+            logIssue("Can't read room file &erooms" + File.separator + config.getFile().getName() + "&f because path &etype:&f leads to nothing (corrupted file?)");
+            return null;
+        }
+        RoomType roomType = RoomTypeManager.getInstance().get(type);
+        if (roomType == null) {
+            logIssue("Can't read room file &erooms" + File.separator + config.getFile().getName() + "&f because room type &etype &fdoesn't match any existing type (maybe a 3rd party plugin didn't load or was removed?)");
+            return null;
+        }
+        RoomInstance room;
+        try {
+            room = roomType.read(fileName, config);
+        } catch (Throwable t) {
+            t.printStackTrace();
+            logIssue("Can't read room file &erooms" + File.separator + config.getFile().getName() + "&f please report the above stack trace to the developer ( https://discord.com/invite/w5HVCDPtRp )");
+            return null;
+        }
+        return room;
     }
 }

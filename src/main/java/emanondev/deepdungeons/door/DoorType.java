@@ -120,8 +120,6 @@ public abstract class DoorType extends DRegistryElement {
             this.spawnPitch = spawnPitch;
         }
 
-        protected abstract void writeToImpl(@NotNull YMLSection section);
-
         public void setupTools() {
             Player player = getPlayer();
             /*if (player == null || !player.isValid())
@@ -149,10 +147,6 @@ public abstract class DoorType extends DRegistryElement {
             }
             this.setupToolsImpl();
         }
-
-        protected abstract void handleInteractImpl(@NotNull PlayerInteractEvent event);
-
-        protected abstract void setupToolsImpl();
 
         public void handleInteract(@NotNull PlayerInteractEvent event) {
             if (getArea() == null) {
@@ -230,24 +224,10 @@ public abstract class DoorType extends DRegistryElement {
             this.handleInteractImpl(event);
         }
 
-        @NotNull
-        private BlockFace guessFace() {
-            Vector v = roomBuilder.getArea().shift(roomBuilder.getOffset().multiply(-1)).getCenter();
-            if (area.getWidthX() < area.getWidthZ()) {
-                if (v.distanceSquared(area.getMin()) > v.distanceSquared(area.getMin().add(new Vector(area.getWidthX(), 0, 0))))
-                    return BlockFace.EAST;
-                return BlockFace.WEST;
-            }
-            if (v.distanceSquared(area.getMin()) > v.distanceSquared(area.getMin().add(new Vector(0, 0, area.getWidthZ()))))
-                return BlockFace.SOUTH;
-            return BlockFace.NORTH;
-        }
-
         @Nullable
         public Player getPlayer() {
             return roomBuilder.getPlayer();
         }
-
 
         @Nullable
         public BlockVector getDoorOffset() {
@@ -263,11 +243,6 @@ public abstract class DoorType extends DRegistryElement {
         public BoundingBox getArea() {
             return area == null ? null : area.clone();
         }
-
-        protected void setArea(@NotNull BoundingBox box) {
-            area = box.clone();
-        }
-
 
         public void timerTick(@NotNull Player player, @NotNull Color color) {
 
@@ -288,6 +263,31 @@ public abstract class DoorType extends DRegistryElement {
             }
 
             tickTimerImpl(player, color);
+        }
+
+        protected abstract void writeToImpl(@NotNull YMLSection section);
+
+        protected abstract void handleInteractImpl(@NotNull PlayerInteractEvent event);
+
+        protected abstract void setupToolsImpl();
+
+        protected void setArea(@NotNull BoundingBox box) {
+            area = box.clone();
+        }
+
+        protected abstract void tickTimerImpl(@NotNull Player player, @NotNull Color color);
+
+        @NotNull
+        private BlockFace guessFace() {
+            Vector v = roomBuilder.getArea().shift(roomBuilder.getOffset().multiply(-1)).getCenter();
+            if (area.getWidthX() < area.getWidthZ()) {
+                if (v.distanceSquared(area.getMin()) > v.distanceSquared(area.getMin().add(new Vector(area.getWidthX(), 0, 0))))
+                    return BlockFace.EAST;
+                return BlockFace.WEST;
+            }
+            if (v.distanceSquared(area.getMin()) > v.distanceSquared(area.getMin().add(new Vector(0, 0, area.getWidthZ()))))
+                return BlockFace.SOUTH;
+            return BlockFace.NORTH;
         }
 
         private void showFaceArrow(@NotNull Player player, @NotNull Color color) {
@@ -323,8 +323,6 @@ public abstract class DoorType extends DRegistryElement {
                 }*/
             }
         }
-
-        protected abstract void tickTimerImpl(@NotNull Player player, @NotNull Color color);
     }
 
 
@@ -452,70 +450,6 @@ public abstract class DoorType extends DRegistryElement {
                 return roomHandler.getWorld();
             }
 
-            private void setCooldown(Player player, int cooldownSeconds) {
-                if (cooldownSeconds == 0)
-                    return;
-                if (cooldownSeconds > 0)
-                    cooldowns.put(player.getUniqueId(), cooldownSeconds * 1000L + System.currentTimeMillis());
-                else
-                    blocked.add(player.getUniqueId());
-                World world = getRoomHandler().getDungeonHandler().getWorld();
-                Vector center = this.getBoundingBox().getCenter();
-                ItemDisplay item = (ItemDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() + 0.25, center.getZ())
-                        .setDirection(getDoorFace().getDirection()), EntityType.ITEM_DISPLAY);
-                item.setItemStack(new ItemStack(Material.BARRIER));
-                item.setBrightness(new Display.Brightness(15, 15));
-                TextDisplay text = (TextDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() - 0.5, center.getZ())
-                        .setDirection(getDoorFace().getDirection()), EntityType.TEXT_DISPLAY);
-                text.setBrightness(new Display.Brightness(15, 15));
-                PartyManager.getInstance().getParty(player).getPlayers()
-                        .forEach(player1 -> {
-                            if (player1 != player) {
-                                player1.hideEntity(DeepDungeons.get(), item);
-                                player1.hideEntity(DeepDungeons.get(), text);
-                            }
-                        });
-                if (cooldownSeconds < 0)
-                    text.setText(CUtils.craftMsg(player, "door.cooldown_info",
-                            "%left%", "∞").toLegacy()); //TODO doesn't update if player change language
-
-                cooldownItems.put(player.getUniqueId(), item);
-                cooldownText.put(player.getUniqueId(), text);
-
-                if (!(cooldownSeconds > 0 && (this.cooldownTask == null || cooldownTask.isCancelled())))
-                    return;
-
-                cooldownTask = new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (getRoomHandler().getDungeonHandler().getState() != DungeonHandler.State.STARTED) {
-                            cooldownItems.values().forEach(Entity::remove);
-                            cooldownText.values().forEach(Entity::remove);
-                            this.cancel();
-                            return;
-                        }
-                        long now = System.currentTimeMillis();
-                        for (UUID uuid : new ArrayList<>(cooldowns.keySet()))
-                            if (cooldowns.get(uuid) < now) {
-                                cooldowns.remove(uuid);
-                                cooldownItems.remove(uuid).remove();
-                                cooldownText.remove(uuid).remove();
-                            }
-                        if (cooldowns.isEmpty()) {
-                            this.cancel();
-                            return;
-                        }
-
-                        cooldowns.keySet().forEach((uuid) -> {
-                            Player player = Bukkit.getPlayer(uuid);
-                            if (player != null)
-                                cooldownText.get(uuid).setText(CUtils.craftMsg(player, "door.cooldown_info",
-                                        "%left%", String.valueOf((cooldowns.get(uuid) - now) / 1000 + 1)).toLegacy());
-                        });
-                    }
-                }.runTaskTimer(DeepDungeons.get(), 10L, 10L);
-            }
-
             @NotNull
             @Contract(pure = true, value = "-> new")
             public Location getSpawn() {
@@ -599,6 +533,70 @@ public abstract class DoorType extends DRegistryElement {
             }
 
             public void onFirstPlayerEnter(@NotNull Player player) {
+            }
+
+            private void setCooldown(Player player, int cooldownSeconds) {
+                if (cooldownSeconds == 0)
+                    return;
+                if (cooldownSeconds > 0)
+                    cooldowns.put(player.getUniqueId(), cooldownSeconds * 1000L + System.currentTimeMillis());
+                else
+                    blocked.add(player.getUniqueId());
+                World world = getRoomHandler().getDungeonHandler().getWorld();
+                Vector center = this.getBoundingBox().getCenter();
+                ItemDisplay item = (ItemDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() + 0.25, center.getZ())
+                        .setDirection(getDoorFace().getDirection()), EntityType.ITEM_DISPLAY);
+                item.setItemStack(new ItemStack(Material.BARRIER));
+                item.setBrightness(new Display.Brightness(15, 15));
+                TextDisplay text = (TextDisplay) world.spawnEntity(new Location(world, center.getX(), center.getY() - 0.5, center.getZ())
+                        .setDirection(getDoorFace().getDirection()), EntityType.TEXT_DISPLAY);
+                text.setBrightness(new Display.Brightness(15, 15));
+                PartyManager.getInstance().getParty(player).getPlayers()
+                        .forEach(player1 -> {
+                            if (player1 != player) {
+                                player1.hideEntity(DeepDungeons.get(), item);
+                                player1.hideEntity(DeepDungeons.get(), text);
+                            }
+                        });
+                if (cooldownSeconds < 0)
+                    text.setText(CUtils.craftMsg(player, "door.cooldown_info",
+                            "%left%", "∞").toLegacy()); //TODO doesn't update if player change language
+
+                cooldownItems.put(player.getUniqueId(), item);
+                cooldownText.put(player.getUniqueId(), text);
+
+                if (!(cooldownSeconds > 0 && (this.cooldownTask == null || cooldownTask.isCancelled())))
+                    return;
+
+                cooldownTask = new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (getRoomHandler().getDungeonHandler().getState() != DungeonHandler.State.STARTED) {
+                            cooldownItems.values().forEach(Entity::remove);
+                            cooldownText.values().forEach(Entity::remove);
+                            this.cancel();
+                            return;
+                        }
+                        long now = System.currentTimeMillis();
+                        for (UUID uuid : new ArrayList<>(cooldowns.keySet()))
+                            if (cooldowns.get(uuid) < now) {
+                                cooldowns.remove(uuid);
+                                cooldownItems.remove(uuid).remove();
+                                cooldownText.remove(uuid).remove();
+                            }
+                        if (cooldowns.isEmpty()) {
+                            this.cancel();
+                            return;
+                        }
+
+                        cooldowns.keySet().forEach((uuid) -> {
+                            Player player = Bukkit.getPlayer(uuid);
+                            if (player != null)
+                                cooldownText.get(uuid).setText(CUtils.craftMsg(player, "door.cooldown_info",
+                                        "%left%", String.valueOf((cooldowns.get(uuid) - now) / 1000 + 1)).toLegacy());
+                        });
+                    }
+                }.runTaskTimer(DeepDungeons.get(), 10L, 10L);
             }
         }
 

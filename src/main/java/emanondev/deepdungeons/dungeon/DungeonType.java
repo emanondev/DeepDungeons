@@ -92,14 +92,9 @@ public abstract class DungeonType extends DRegistryElement {
             setupToolsImpl();
         }
 
-        protected abstract void setupToolsImpl();
-
         public void timerTick() {
             tickCounter++;
             timerTickImpl();
-        }
-
-        private void timerTickImpl() {
         }
 
         @NotNull
@@ -121,15 +116,20 @@ public abstract class DungeonType extends DRegistryElement {
             DungeonInstanceManager.getInstance().readInstance(section.getFile());
         }
 
-        protected abstract void writeToImpl(@NotNull YMLSection section);
-
         @Override
         public void handleInteract(@NotNull PlayerInteractEvent event) {
             //int heldSlot = event.getPlayer().getInventory().getHeldItemSlot();
             handleInteractImpl(event);
         }
 
+        protected abstract void setupToolsImpl();
+
+        protected abstract void writeToImpl(@NotNull YMLSection section);
+
         protected abstract void handleInteractImpl(@NotNull PlayerInteractEvent event);
+
+        private void timerTickImpl() {
+        }
     }
 
     public abstract class DungeonInstance extends DRInstance<DungeonType> {
@@ -186,7 +186,8 @@ public abstract class DungeonType extends DRegistryElement {
 
             public void onCreatureSpawn(@NotNull CreatureSpawnEvent event) {
                 switch (event.getSpawnReason()) {
-                    case NETHER_PORTAL, TRAP, RAID, VILLAGE_DEFENSE, VILLAGE_INVASION, REINFORCEMENTS, PATROL, NATURAL -> event.setCancelled(true);
+                    case NETHER_PORTAL, TRAP, RAID, VILLAGE_DEFENSE, VILLAGE_INVASION, REINFORCEMENTS, PATROL,
+                         NATURAL -> event.setCancelled(true);
                     default -> {
                         for (RoomHandler room : getRooms())
                             if (room.contains(event.getLocation())) {
@@ -469,14 +470,14 @@ public abstract class DungeonType extends DRegistryElement {
                 AreaManager.getInstance().flagStarted(this);
             }
 
+            public abstract void flagCompleted();
+
             /**
              * at the end of this call getState() should return STARTED
              *
              * @param party
              */
             protected abstract void startImpl(@NotNull Party party);
-
-            public abstract void flagCompleted();
 
             public enum State {
                 LOADING,

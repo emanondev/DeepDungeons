@@ -44,6 +44,20 @@ public class DungeonPopulatorCommand extends CoreCommand {
         help(sender, label, args);
     }
 
+    @Override
+    @Nullable
+    public List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
+        return switch (args.length) {
+            case 1 -> this.complete(args[0], "create");
+            case 2 -> {
+                if (args[0].equalsIgnoreCase("create"))
+                    yield this.complete(args[1], PopulatorTypeManager.getInstance().getPaperIds());
+                yield Collections.emptyList();
+            }
+            default -> Collections.emptyList();
+        };
+    }
+
     private void help(CommandSender sender, String label, String[] args) {
         sender.sendMessage("Message not implemented yet (command help)");//TODO
     }
@@ -111,19 +125,5 @@ public class DungeonPopulatorCommand extends CoreCommand {
             }
         }
         sender.sendMessage("Message not implemented yet (create command help");//TODO
-    }
-
-    @Override
-    @Nullable
-    public List<String> onComplete(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, @Nullable Location location) {
-        return switch (args.length) {
-            case 1 -> this.complete(args[0], "create");
-            case 2 -> {
-                if (args[0].equalsIgnoreCase("create"))
-                    yield this.complete(args[1], PopulatorTypeManager.getInstance().getPaperIds());
-                yield Collections.emptyList();
-            }
-            default -> Collections.emptyList();
-        };
     }
 }

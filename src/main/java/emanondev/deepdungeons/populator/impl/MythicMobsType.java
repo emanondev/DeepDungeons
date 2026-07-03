@@ -16,7 +16,6 @@ import io.lumine.mythic.api.mobs.MythicMob;
 import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -55,138 +54,6 @@ public class MythicMobsType extends APaperPopulatorType {
     public MythicMobsPaperBuilder getPaperBuilder() {
         return new MythicMobsPaperBuilder();
     }
-
-    public class MythicMobsBuilder extends APopulatorBuilder {
-        private final List<Location> offsets = new ArrayList<>();
-        @Nullable
-        private MythicMob type = null;
-        @Getter
-        private int min = 1;
-        @Getter
-        private int max = 1;
-        @Getter
-        private int levelMin = 1;
-        @Getter
-        private int levelMax = 1;
-
-        public MythicMobsBuilder(@NotNull RoomType.RoomBuilder room) {
-            super(room);
-        }
-
-
-        @Override
-        protected void writeToImpl(@NotNull YMLSection section) throws Exception {
-            if (offsets.isEmpty())
-                throw new Exception("Location not set");
-            if (type == null)
-                throw new IllegalStateException();
-            section.set("mobtype", type.getInternalName());
-            section.set("min", min);
-            section.set("max", max);
-            section.set("level_min", levelMin);
-            section.set("level_max", levelMax);
-            List<String> offsetsString = new ArrayList<>();
-            offsets.forEach(off -> offsetsString.add(Util.toStringNoWorld(off)));
-            section.set("offsets", offsetsString);
-        }
-
-        public void toggleOffset(@NotNull Location location) {
-            location = location.clone();
-            location.setWorld(null);
-            location.subtract(getRoomOffset());
-            location.setX(location.getBlockX() + 0.5D);
-            location.setY(location.getBlockY());
-            location.setZ(location.getBlockZ() + 0.5D);
-            Location finalLocation = location;
-            if (!offsets.removeIf(loc -> CUtils.isEqual(loc, finalLocation)))
-                offsets.add(location);
-        }
-
-        @Override
-        protected void handleInteractImpl(@NotNull PlayerInteractEvent event) {
-            switch (event.getPlayer().getInventory().getHeldItemSlot()) {
-                case 1 -> {
-                    if (event.getClickedBlock() == null)
-                        return;
-                    Location loc = event.getClickedBlock().getRelative(event.getBlockFace()).getLocation();
-                    loc.setYaw(event.getPlayer().getLocation().getYaw() + 180);
-                    this.toggleOffset(loc);
-                    this.getRoomBuilder().setupTools();
-                }
-                case 6 -> {
-                    if (offsets.isEmpty() || type == null) {
-                        CUtils.sendMsg(event.getPlayer(), "populatorbuilder.msg_uncompleted_settings");
-                        return;
-                    }
-                    this.complete();
-                    this.getRoomBuilder().setupTools();
-                }
-            }
-        }
-
-        @Override
-        protected void setupToolsImpl(@NotNull PlayerInventory inv, @NotNull Player player) {
-            inv.setItem(0, CUtils.createItem(player, Material.PAPER, "populatorbuilder.mythicmobs_info"));
-            inv.setItem(1, CUtils.createItem(player, Material.STICK, offsets.size(), false, "populatorbuilder.mythicmobs_selector"));
-            inv.setItem(6, CUtils.createItem(player, Material.LIME_DYE, "populatorbuilder.base_confirm"));
-        }
-
-        @Override
-        protected void tickTimerImpl(@NotNull Player player, @NotNull Color color) {
-            offsets.forEach(loc -> CUtils.markBlock(player, loc.toVector().add(getRoomOffset()).toBlockVector(), color));
-        }
-
-        @Override
-        protected void craftGuiButtonsImpl(@NotNull PagedMapGui gui, @NotNull Player player) {
-            createButtons(gui, player, () -> type, this::setEntityType, this::getMin, this::setMin, this::getMax, this::setMax,
-                    this::getLevelMin, this::setLevelMin, this::getLevelMax, this::setLevelMax);
-        }
-
-        public void setLevelMin(int min) {
-            if (min < 0)
-                min = 0;
-            if (min > 10000)
-                min = 10000;
-            if (min > levelMax)
-                this.levelMax = min;
-            this.levelMin = min;
-        }
-
-        public void setLevelMax(int max) {
-            if (max < 1)
-                max = 1;
-            if (max > 10000)
-                max = 10000;
-            if (max < levelMin)
-                this.levelMin = max;
-            this.levelMax = max;
-        }
-
-        public void setMin(int min) {
-            if (min < 0)
-                min = 0;
-            if (min > 100)
-                min = 100;
-            if (min > max)
-                this.max = min;
-            this.min = min;
-        }
-
-        public void setMax(int max) {
-            if (max < 1)
-                max = 1;
-            if (max > 100)
-                max = 100;
-            if (max < min)
-                this.min = max;
-            this.max = max;
-        }
-
-        public void setEntityType(@NotNull MythicMob type) {
-            this.type = type;
-        }
-    }
-
 
     private static void createButtons(PagedMapGui gui, Player player, Supplier<MythicMob> getMob, Consumer<MythicMob> setMob,
                                       Supplier<Integer> getMin, Consumer<Integer> setMin,
@@ -242,8 +109,8 @@ public class MythicMobsType extends APaperPopulatorType {
                         "%max%", String.valueOf(getMaxLv.get())), true));
     }
 
-    private class MythicMobsPaperBuilder extends APaperPopulatorBuilder {
-
+    public class MythicMobsBuilder extends APopulatorBuilder {
+        private final List<Location> offsets = new ArrayList<>();
         @Nullable
         private MythicMob type = null;
         @Getter
@@ -255,51 +122,20 @@ public class MythicMobsType extends APaperPopulatorType {
         @Getter
         private int levelMax = 1;
 
-        @Override
-        public boolean preserveContainer() {
-            return false;
+        public MythicMobsBuilder(@NotNull RoomType.RoomBuilder room) {
+            super(room);
         }
 
-        @Override
-        @NotNull
-        protected List<String> toItemLinesImpl() {
-            List<String> list = new ArrayList<>();
-            list.add("&9MobType:&6 " + (type == null ? "null" : type.getInternalName()));
-            list.add("&9Min:&6 " + min);
-            list.add("&9Max:&6 " + max);
-            list.add("&9LevelMin:&6 " + levelMin);
-            list.add("&9LevelMax:&6 " + levelMax);
-            return list;
-        }
-
-        @Override
-        protected void writeToImpl(@NotNull YMLSection section) throws Exception {
-            Location offset = getOffset();
-            if (offset == null)
-                throw new Exception("Location not set");
-            if (type == null)
-                throw new IllegalStateException();
-            section.set("mobtype", type.getInternalName());
-            section.set("min", min);
-            section.set("max", max);
-            section.set("level_min", levelMin);
-            section.set("level_max", levelMax);
-            section.set("offsets", List.of(Util.toStringNoWorld(offset)));
-        }
-
-        @Override
-        public void fromItemLinesImpl(@NotNull List<String> lines) {
-            type = MythicBukkit.inst().getMobManager().getMythicMob(lines.getFirst().split(" ")[1]).orElse(null);
-            min = Integer.parseInt(lines.get(1).split(" ")[1]);
-            max = Integer.parseInt(lines.get(2).split(" ")[1]);
-            levelMin = Integer.parseInt(lines.get(3).split(" ")[1]);
-            levelMax = Integer.parseInt(lines.get(4).split(" ")[1]);
-        }
-
-        @Override
-        protected void craftGuiButtonsImpl(@NotNull PagedMapGui gui, @NotNull Player player) {
-            createButtons(gui, player, () -> type, this::setEntityType, this::getMin, this::setMin, this::getMax, this::setMax,
-                    this::getLevelMin, this::setLevelMin, this::getLevelMax, this::setLevelMax);
+        public void toggleOffset(@NotNull Location location) {
+            location = location.clone();
+            location.setWorld(null);
+            location.subtract(getRoomOffset());
+            location.setX(location.getBlockX() + 0.5D);
+            location.setY(location.getBlockY());
+            location.setZ(location.getBlockZ() + 0.5D);
+            Location finalLocation = location;
+            if (!offsets.removeIf(loc -> CUtils.isEqual(loc, finalLocation)))
+                offsets.add(location);
         }
 
         public void setLevelMin(int min) {
@@ -344,6 +180,167 @@ public class MythicMobsType extends APaperPopulatorType {
 
         public void setEntityType(@NotNull MythicMob type) {
             this.type = type;
+        }
+
+        @Override
+        protected void writeToImpl(@NotNull YMLSection section) throws Exception {
+            if (offsets.isEmpty())
+                throw new Exception("Location not set");
+            if (type == null)
+                throw new IllegalStateException();
+            section.set("mobtype", type.getInternalName());
+            section.set("min", min);
+            section.set("max", max);
+            section.set("level_min", levelMin);
+            section.set("level_max", levelMax);
+            List<String> offsetsString = new ArrayList<>();
+            offsets.forEach(off -> offsetsString.add(Util.toStringNoWorld(off)));
+            section.set("offsets", offsetsString);
+        }
+
+        @Override
+        protected void handleInteractImpl(@NotNull PlayerInteractEvent event) {
+            switch (event.getPlayer().getInventory().getHeldItemSlot()) {
+                case 1 -> {
+                    if (event.getClickedBlock() == null)
+                        return;
+                    Location loc = event.getClickedBlock().getRelative(event.getBlockFace()).getLocation();
+                    loc.setYaw(event.getPlayer().getLocation().getYaw() + 180);
+                    this.toggleOffset(loc);
+                    this.getRoomBuilder().setupTools();
+                }
+                case 6 -> {
+                    if (offsets.isEmpty() || type == null) {
+                        CUtils.sendMsg(event.getPlayer(), "populatorbuilder.msg_uncompleted_settings");
+                        return;
+                    }
+                    this.complete();
+                    this.getRoomBuilder().setupTools();
+                }
+            }
+        }
+
+        @Override
+        protected void setupToolsImpl(@NotNull PlayerInventory inv, @NotNull Player player) {
+            inv.setItem(0, CUtils.createItem(player, Material.PAPER, "populatorbuilder.mythicmobs_info"));
+            inv.setItem(1, CUtils.createItem(player, Material.STICK, offsets.size(), false, "populatorbuilder.mythicmobs_selector"));
+            inv.setItem(6, CUtils.createItem(player, Material.LIME_DYE, "populatorbuilder.base_confirm"));
+        }
+
+        @Override
+        protected void tickTimerImpl(@NotNull Player player, @NotNull Color color) {
+            offsets.forEach(loc -> CUtils.markBlock(player, loc.toVector().add(getRoomOffset()).toBlockVector(), color));
+        }
+
+        @Override
+        protected void craftGuiButtonsImpl(@NotNull PagedMapGui gui, @NotNull Player player) {
+            createButtons(gui, player, () -> type, this::setEntityType, this::getMin, this::setMin, this::getMax, this::setMax,
+                    this::getLevelMin, this::setLevelMin, this::getLevelMax, this::setLevelMax);
+        }
+    }
+
+    private class MythicMobsPaperBuilder extends APaperPopulatorBuilder {
+
+        @Nullable
+        private MythicMob type = null;
+        @Getter
+        private int min = 1;
+        @Getter
+        private int max = 1;
+        @Getter
+        private int levelMin = 1;
+        @Getter
+        private int levelMax = 1;
+
+        @Override
+        public boolean preserveContainer() {
+            return false;
+        }
+
+        @Override
+        public void fromItemLinesImpl(@NotNull List<String> lines) {
+            type = MythicBukkit.inst().getMobManager().getMythicMob(lines.getFirst().split(" ")[1]).orElse(null);
+            min = Integer.parseInt(lines.get(1).split(" ")[1]);
+            max = Integer.parseInt(lines.get(2).split(" ")[1]);
+            levelMin = Integer.parseInt(lines.get(3).split(" ")[1]);
+            levelMax = Integer.parseInt(lines.get(4).split(" ")[1]);
+        }
+
+        public void setLevelMin(int min) {
+            if (min < 0)
+                min = 0;
+            if (min > 10000)
+                min = 10000;
+            if (min > levelMax)
+                this.levelMax = min;
+            this.levelMin = min;
+        }
+
+        public void setLevelMax(int max) {
+            if (max < 1)
+                max = 1;
+            if (max > 10000)
+                max = 10000;
+            if (max < levelMin)
+                this.levelMin = max;
+            this.levelMax = max;
+        }
+
+        public void setMin(int min) {
+            if (min < 0)
+                min = 0;
+            if (min > 100)
+                min = 100;
+            if (min > max)
+                this.max = min;
+            this.min = min;
+        }
+
+        public void setMax(int max) {
+            if (max < 1)
+                max = 1;
+            if (max > 100)
+                max = 100;
+            if (max < min)
+                this.min = max;
+            this.max = max;
+        }
+
+        public void setEntityType(@NotNull MythicMob type) {
+            this.type = type;
+        }
+
+        @Override
+        @NotNull
+        protected List<String> toItemLinesImpl() {
+            List<String> list = new ArrayList<>();
+            list.add("&9MobType:&6 " + (type == null ? "null" : type.getInternalName()));
+            list.add("&9Min:&6 " + min);
+            list.add("&9Max:&6 " + max);
+            list.add("&9LevelMin:&6 " + levelMin);
+            list.add("&9LevelMax:&6 " + levelMax);
+            return list;
+        }
+
+        @Override
+        protected void writeToImpl(@NotNull YMLSection section) throws Exception {
+            Location offset = getOffset();
+            if (offset == null)
+                throw new Exception("Location not set");
+            if (type == null)
+                throw new IllegalStateException();
+            section.set("mobtype", type.getInternalName());
+            section.set("min", min);
+            section.set("max", max);
+            section.set("level_min", levelMin);
+            section.set("level_max", levelMax);
+            section.set("offsets", List.of(Util.toStringNoWorld(offset)));
+        }
+
+        @Override
+        protected void craftGuiButtonsImpl(@NotNull PagedMapGui gui, @NotNull Player player) {
+            createButtons(gui, player, () -> type, this::setEntityType, this::getMin, this::setMin, this::getMax, this::setMax,
+                    this::getLevelMin, this::setLevelMin, this::getLevelMax, this::setLevelMax);
         }
     }
 
