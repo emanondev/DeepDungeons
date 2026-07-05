@@ -6,6 +6,7 @@ import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
 import emanondev.deepdungeons.dungeon.DungeonType.DungeonBuilder;
 import emanondev.deepdungeons.room.RoomInstanceManager;
 import emanondev.deepdungeons.room.RoomType.RoomBuilder;
+import lombok.extern.slf4j.Slf4j;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.entity.Player;
@@ -33,6 +34,7 @@ import java.util.UUID;
 /**
  * A class to manage {@link ActiveBuilder}, controlling events related to builders and granting calls to methods handled by ActiveBuilder
  */
+@Slf4j
 public class BuilderMode implements Listener {
 
     private static final BuilderMode instance = new BuilderMode();
@@ -127,7 +129,7 @@ public class BuilderMode implements Listener {
                                 new File(DungeonInstanceManager.getInstance().getFolder(), builder.getId() + ".yml")));
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    log.warn("warning",e);
                 }
             }
         });
