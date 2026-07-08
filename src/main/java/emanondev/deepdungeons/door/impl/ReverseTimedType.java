@@ -88,7 +88,7 @@ public class ReverseTimedType extends DoorType {
                 Player player = getPlayer();
                 PlayerInventory inv = player.getInventory();
                 CUtils.setSlot(player, 0, inv, Material.PAPER, "doorbuilder.reversed_timed_door_info");
-                CUtils.setSlot(player, 1, inv, Material.CHAIN, "doorbuilder.reversed_timed_door_selector",
+                CUtils.setSlot(player, 1, inv, Material.IRON_BARS, "doorbuilder.reversed_timed_door_selector",
                         "%value%", UtilsString.getTimeStringSeconds(getPlayer(), timeToLock), "%value_raw%", String.valueOf(timeToLock));
                 CUtils.setSlot(player, 2, inv, Material.CLOCK, "doorbuilder.reversed_timed_lock_selector",
                         "%value%", String.valueOf(locksOpenIfPassThrough));

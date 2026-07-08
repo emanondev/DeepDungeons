@@ -83,16 +83,16 @@ public class Info implements Listener {
         world = Bukkit.getWorld(name);
         if (world == null)
             throw new IllegalStateException("Unable to create/load world " + name);
-        world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
-        world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
-        world.setGameRule(GameRule.DISABLE_RAIDS, true);
-        world.setGameRule(GameRule.DO_PATROL_SPAWNING, false);
-        world.setGameRule(GameRule.DO_INSOMNIA, false);
-        world.setGameRule(GameRule.DO_TRADER_SPAWNING, false);
+        world.setGameRule(GameRule.SPAWN_MOBS, false);
+        world.setGameRule(GameRule.ADVANCE_WEATHER, false);
+        world.setGameRule(GameRule.RAIDS, false);
+        world.setGameRule(GameRule.SPAWN_PATROLS, false);
+        world.setGameRule(GameRule.SPAWN_PHANTOMS, false);
+        world.setGameRule(GameRule.SPAWN_WANDERING_TRADERS, false);
         world.setGameRule(GameRule.GLOBAL_SOUND_EVENTS, false);
         world.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
         world.setGameRule(GameRule.UNIVERSAL_ANGER, true);
-        world.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
+        world.setGameRule(GameRule.IMMEDIATE_RESPAWN, true);
         return world;
     }
 
