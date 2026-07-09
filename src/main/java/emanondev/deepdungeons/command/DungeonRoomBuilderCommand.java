@@ -1,9 +1,11 @@
 package emanondev.deepdungeons.command;
 
 import emanondev.core.command.CoreCommand;
+import emanondev.core.message.DMessage;
 import emanondev.deepdungeons.BuilderMode;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Perms;
+import emanondev.deepdungeons.dungeon.DungeonTypeManager;
 import emanondev.deepdungeons.room.RoomInstanceManager;
 import emanondev.deepdungeons.room.RoomType;
 import emanondev.deepdungeons.room.RoomType.RoomBuilder;
@@ -75,7 +77,7 @@ public class DungeonRoomBuilderCommand extends CoreCommand {
             return;
         }
         if (!BuilderMode.getInstance().unpauseBuilder(player))
-            sender.sendMessage("Message not implemented yet (not on paused mode)");//TODO
+            new DMessage(getPlugin(), sender).appendLang("commands.droom.cannot_continue").send();
     }
 
     private void pause(CommandSender sender, String label, String[] args) {
@@ -84,12 +86,12 @@ public class DungeonRoomBuilderCommand extends CoreCommand {
             return;
         }
         if (!BuilderMode.getInstance().pauseBuilder(player))
-            sender.sendMessage("Message not implemented yet (not on builder mode)");//TODO
+            new DMessage(getPlugin(), sender).appendLang("commands.droom.cannot_pause").send();
         //TODO check
     }
 
     private void help(CommandSender sender, String label, String[] args) {
-        sender.sendMessage("Message not implemented yet (command help)");//TODO
+        new DMessage(getPlugin(), sender).appendLang("commands.droom.help").send();
     }
 
     private void create(CommandSender sender, String label, String[] args) {
@@ -98,19 +100,24 @@ public class DungeonRoomBuilderCommand extends CoreCommand {
             return;
         }
         if (args.length != 3) {
-            sender.sendMessage("Message not implemented yet (wrong arguments /droom create <type> <id>)");//TODO
+            new DMessage(getPlugin(), sender).appendLang("commands.droom.create.missing_params").send();
             return;
         }
 
         // type name
         RoomType type = RoomTypeManager.getInstance().get(args[1]);
         if (type == null) {
-            sender.sendMessage("Message not implemented yet (selected type do not exist)");//TODO
+            StringBuilder allowedTypes=new StringBuilder();
+            for(String atype : DungeonTypeManager.getInstance().getIds()) {
+                allowedTypes.append(atype).append(", ");
+            }
+
+            new DMessage(getPlugin(), sender).appendLang("commands.droom.create.wrong_type","%types%",allowedTypes.toString()).send();
             return;
         }
         String name = args[2].toLowerCase(Locale.ENGLISH);
         if (RoomInstanceManager.getInstance().get(name) != null) {
-            sender.sendMessage("Message not implemented yet (id already used)");//TODO
+            new DMessage(getPlugin(), sender).appendLang("commands.droom.create.invalid_id").send();
             return;
         }
         RoomBuilder builder = type.getBuilder(name, player);

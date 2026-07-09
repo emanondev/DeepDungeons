@@ -152,7 +152,12 @@ public class DungeonPartyCommand extends CoreCommand {
         if (args.length == 1) {
             DungeonPlayer dPlayer = PartyManager.getInstance().getDungeonPlayer(player);
             dPlayer.setOnPartyChat(!dPlayer.isOnPartyChat());
-            //TODO feedback
+            if(dPlayer.isOnPartyChat()) {
+                new DMessage(getPlugin(), sender).appendLang("commands.dungeonparty.party_chat_on").send();
+            }else {
+                new DMessage(getPlugin(), sender).appendLang("commands.dungeonparty.party_chat_off").send();
+            }
+
             return;
         }
         Party party = PartyManager.getInstance().getParty(player);
@@ -294,11 +299,11 @@ public class DungeonPartyCommand extends CoreCommand {
         String leaderName = party.getOfflineLeader().getName();
         if (party.isPartyPublic()) {
             if (cooldown.hasCooldown(player, "p_i_s_" + target.getName())) {
-                //TODO already sended
+                new DMessage(getPlugin(), sender).appendLang("commands.dungeonparty.already_sended").send();
                 return;
             }
             if (cooldown.hasCooldown(target, "p_i_r_" + party.getId())) {
-                //TODO already reiceved
+                new DMessage(getPlugin(), sender).appendLang("commands.dungeonparty.already_received").send();
                 return;
             }
             cooldown.setCooldownSeconds(player, "p_i_s_" + target.getName(), 60);
@@ -307,7 +312,7 @@ public class DungeonPartyCommand extends CoreCommand {
             return;
         }
         if (cooldown.hasCooldown(target, "p_i_p_" + party.getId())) {
-            //TODO already sended
+            new DMessage(getPlugin(), sender).appendLang("commands.dungeonparty.already_sended").send();
             return;
         }
         cooldown.setCooldownSeconds(target, "p_i_p_" + party.getId(), 30);

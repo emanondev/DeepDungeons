@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class PopulatorTypeManager extends DRegistry<APopulatorType> {
@@ -43,7 +44,7 @@ public class PopulatorTypeManager extends DRegistry<APopulatorType> {
         return get(id) instanceof PaperPopulatorType pap ? pap : null;
     }
 
-    @Nullable
+    @NotNull
     public Collection<PaperPopulatorType> getAllPapers() {
         List<PaperPopulatorType> values = new ArrayList<>();
         getAll().forEach(pop -> {
@@ -52,13 +53,13 @@ public class PopulatorTypeManager extends DRegistry<APopulatorType> {
         return values;
     }
 
-    @Nullable
+    @NotNull
     public Collection<String> getPaperIds() {
         List<String> values = new ArrayList<>();
         getAll().forEach(pop -> {
             if (pop instanceof PaperPopulatorType paper) values.add(paper.getId());
         });
-        return values;
+        return Collections.unmodifiableCollection(values);
     }
 
     @Contract("null -> null")

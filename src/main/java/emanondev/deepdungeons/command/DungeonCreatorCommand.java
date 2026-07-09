@@ -98,17 +98,17 @@ public class DungeonCreatorCommand extends CoreCommand {
 
     private void create(CommandSender sender, String label, String[] args) {
         if (args.length != 2) {
-            sender.sendMessage("Help Message not implemented");
+            sender.sendMessage("Missing Arguments");
             return;
         }
         String id = args[1];
         DungeonInstance dungeon = DungeonInstanceManager.getInstance().get(id);
         if (dungeon == null) {
-            sender.sendMessage("Help Message not implemented");
+            sender.sendMessage("Dungeon null");
             return;
         }
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("Help Message not implemented");
+            sender.sendMessage("Player Only");
             return;
         }
         DungeonHandler handler = dungeon.createHandler(null);

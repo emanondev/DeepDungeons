@@ -59,7 +59,7 @@ public class DungeonPopulatorCommand extends CoreCommand {
     }
 
     private void help(CommandSender sender, String label, String[] args) {
-        sender.sendMessage("Message not implemented yet (command help)");//TODO
+        new DMessage(getPlugin(), sender).appendLang("commands.dpopulator.help").send();
     }
 
     private void create(CommandSender sender, String label, String[] args) {
@@ -72,7 +72,7 @@ public class DungeonPopulatorCommand extends CoreCommand {
             case 1 -> {
                 PaperPopulatorBuilder builder = PopulatorTypeManager.getInstance().getPaperPopulatorBuilder(item);
                 if (builder == null && !UtilsInventory.isAirOrNull(item)) {
-                    sender.sendMessage("Message not implemented yet (hand must be a populator blueprint or empty)");//TODO
+                    new DMessage(getPlugin(), sender).appendLang("commands.dpopulator.wrong_hand").send();
                     return;
                 }
                 if (builder == null) {
@@ -102,7 +102,12 @@ public class DungeonPopulatorCommand extends CoreCommand {
             case 2 -> {
                 PaperPopulatorType typeArg = PopulatorTypeManager.getInstance().getPaper(args[1]);
                 if (typeArg == null) {
-                    sender.sendMessage("Message not implemented yet (invalid type)");//TODO
+                    StringBuilder allowedTypes=new StringBuilder();
+                    for(String type : PopulatorTypeManager.getInstance().getPaperIds()) {
+                        allowedTypes.append(type).append(", ");
+                    }
+                    new DMessage(getPlugin(), sender).appendLang("commands.dpopulator.wrong_type","%types%", allowedTypes.toString()).send();
+
                     return;
                 }
                 PaperPopulatorType typeItem = PopulatorTypeManager.getInstance().getPaperPopulatorType(item);
@@ -112,18 +117,18 @@ public class DungeonPopulatorCommand extends CoreCommand {
                         item = typeArg.getPaperBuilder().toItem();
                         player.getInventory().setItemInMainHand(item);
                     } else {
-                        sender.sendMessage("Message not implemented yet (hand must be populator blueprint or empty)");//TODO
+                        new DMessage(getPlugin(), sender).appendLang("commands.dpopulator.wrong_hand").send();
                         return;
                     }
                 }
                 if (typeArg != typeItem) {
-                    sender.sendMessage("Message not implemented yet (hand populator blueprint and argument populator mismatch)");//TODO
+                    new DMessage(getPlugin(), sender).appendLang("commands.dpopulator.populator_mismatch").send();
                     return;
                 }
                 PaperPopulatorBuilder builder = PopulatorTypeManager.getInstance().getPaperPopulatorBuilder(item);
                 builder.openGui(player);
             }
         }
-        sender.sendMessage("Message not implemented yet (create command help");//TODO
+        new DMessage(getPlugin(), sender).appendLang("commands.dpopulator.help").send();
     }
 }

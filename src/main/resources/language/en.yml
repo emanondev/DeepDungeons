@@ -625,3 +625,34 @@ populatorbuilder:
     - "<gold>Maximus spawned Mobs"
     - "<gold><blue>Max: </blue>%max%"
     - "<gold><blue>Min: </blue>%min%"
+commands:
+  droom:
+    help: "<green>[DRoom] <gold>=== Commands=== \n /droom create <type> <id> \n /droom pause \n /droom continue"
+    cannot_continue: "<red>[DRoom] Impossibile Continue</red>"
+    cannot_pause: "<red>[DRoom] Impossibile Pause</red>"
+    create:
+      missing_params: "<red>[DRoom] Missing Arguments: /droom create <type> <id> </red>"
+      wrong_type: "<red>[DRoom] Unsupported Type: Allowed Type are: %types% </red>"
+      invalid_id: "<red>[DRoom] ID already used </red>"
+  dpopulator:
+    help: "<green>[DPopulator] <gold>=== Commands=== \n /dpopulator create <id>"
+    wrong_hand: "<red>[DPopulator] hand must be a populator blueprint or empty </red>"
+    wrong_type: "<red>[DPopulator] Wrong Type: Allowed Type are [%types%] </red>"
+    populator_mismatch: "<red>[DPopulator] hand populator blueprint and argument populator mismatch </red>"
+  dungeonparty:
+    party_chat_on: "<green>[DPopulator] <blue> Dungeon Party Chat Enabled"
+    party_chat_off: "<green>[DPopulator] <blue> Dungeon Party Chat Disabled"
+    already_sended: "<red>[DPopulator] Invite to Join Party Already Sended"
+    already_received: "<red>[DPopulator] Invite to Join Party Already Received"
+  ddungeon:
+    help: "<green>[DDungeon] <gold>=== Commands=== \n /ddungeon create <type> <id> \n /ddungeon pause \n /ddungeon continue"
+    cannot_continue: "<red>[DDungeon] Impossibile Continue</red>"
+    cannot_pause: "<red>[DDungeon] Impossibile Pause</red>"
+    create:
+      missing_params: "<red>[DDungeon] Missing Arguments: /ddungeon create <type> <id> </red>"
+      wrong_type: "<red>[DDungeon] Unsupported Type: Allowed Type are: %types% </red>"
+      invalid_id: "<red>[DDungeon] ID already used </red>"
+
+
+
+
