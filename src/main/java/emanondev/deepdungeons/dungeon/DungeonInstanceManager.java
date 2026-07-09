@@ -25,6 +25,7 @@ public class DungeonInstanceManager extends DRegistry<DungeonInstance> {
     @Override
     public void load() {
         File dungeonsFolder = getFolder();
+        dungeonsFolder.mkdirs();
         if (!dungeonsFolder.isDirectory()) {
             new IllegalStateException().printStackTrace();
             //TODO
