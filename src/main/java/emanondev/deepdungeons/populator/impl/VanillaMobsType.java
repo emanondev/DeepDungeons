@@ -58,7 +58,7 @@ public class VanillaMobsType extends APaperPopulatorType {
                                       Supplier<Integer> getMin, Consumer<Integer> setMin,
                                       Supplier<Integer> getMax, Consumer<Integer> setMax) {
         gui.addButton(new ResearchFButton<>(gui, () ->
-                CUtils.createItem(player, Material.SPAWNER, "mythicmobs_guimobselector", "%type%",
+                CUtils.createItem(player, Material.SPAWNER, "vanillamobs_guimobselector", "%type%",
                         (getMob.get().getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
                                 getMob.get().getKey().toString().substring(10) : getMob.get().getKey().toString())),
                 (String text, EntityType type) -> {
@@ -76,7 +76,7 @@ public class VanillaMobsType extends APaperPopulatorType {
                     return false;
                 },
                 (EntityType type) ->
-                        CUtils.createItem(player, Material.SPAWNER, "mythicmobs_guimobitem", "%name%", type.name(), "%type%",
+                        CUtils.createItem(player, Material.SPAWNER, "vanillamobs_guimobitem", "%name%", type.name(), "%type%",
                                 (type.getKey().getNamespace().equals(NamespacedKey.MINECRAFT) ?
                                         type.getKey().toString().substring(10) : type.getKey().toString())),
                 () -> {
@@ -87,13 +87,13 @@ public class VanillaMobsType extends APaperPopulatorType {
                 }));
         gui.addButton(new NumberEditorFButton<>(
                 gui, 1, 1, 100, getMin, setMin, () ->
-                CUtils.createItem(player, Material.REPEATER, getMin.get(), false, "mythicmobs_guimobmin",
+                CUtils.createItem(player, Material.REPEATER, getMin.get(), false, "vanillamobs_guimin",
                         "%min%", String.valueOf(getMin.get()),
                         "%max%", String.valueOf(getMax.get())), true
         ));
         gui.addButton(new NumberEditorFButton<>(
                 gui, 1, 1, 100, getMax, setMax, () ->
-                CUtils.createItem(player, Material.REPEATER, getMax.get(), false, "mythicmobs_guimobmax",
+                CUtils.createItem(player, Material.REPEATER, getMax.get(), false, "vanillamobs_guimax",
                         "%min%", String.valueOf(getMin.get()),
                         "%max%", String.valueOf(getMax.get())), true));
     }
