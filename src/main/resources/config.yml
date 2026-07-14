@@ -2,3 +2,5 @@ buildermode:
   actionbar_reminder: true
 dungeon:
   default_world: "DungeonsWorld"
+debug:
+  message: true

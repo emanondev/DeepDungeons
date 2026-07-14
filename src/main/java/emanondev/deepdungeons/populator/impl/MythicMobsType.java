@@ -61,7 +61,7 @@ public class MythicMobsType extends APaperPopulatorType {
                                       Supplier<Integer> getMinLv, Consumer<Integer> setMinLv,
                                       Supplier<Integer> getMaxLv, Consumer<Integer> setMaxLv) {
         gui.addButton(new ResearchFButton<>(gui, () ->
-                CUtils.createItem(player, Material.SPAWNER, "mythicmobs_guimobselector", "%type%",
+                CUtils.createItem(player, Material.SPAWNER, "populatorbuilder.mythicmobs_guimobselector", "%type%",
                         (getMob.get() == null ? "null" : getMob.get().getInternalName())),
                 (String text, MythicMob type) -> {
                     String[] split = text.split(" ");
@@ -77,7 +77,7 @@ public class MythicMobsType extends APaperPopulatorType {
                     return false;
                 },
                 (MythicMob type) ->
-                        CUtils.createItem(player, Material.SPAWNER, "mythicmobs_guimobitem", "%type%",
+                        CUtils.createItem(player, Material.SPAWNER, "populatorbuilder.mythicmobs_guimobitem", "%type%",
                                 type.getInternalName(), "%name%", type.getDisplayName().get()),
                 () -> {
                     ArrayList<MythicMob> list = new ArrayList<>(MythicBukkit.inst().getMobManager().getMobTypes());
@@ -87,24 +87,24 @@ public class MythicMobsType extends APaperPopulatorType {
         ));
         gui.addButton(new NumberEditorFButton<>(
                 gui, 1, 1, 100, getMin, setMin, () ->
-                CUtils.createItem(player, Material.REPEATER, getMin.get(), false, "mythicmobs_guimin",
+                CUtils.createItem(player, Material.REPEATER, getMin.get(), false, "populatorbuilder.mythicmobs_guimin",
                         "%min%", String.valueOf(getMin.get()),
                         "%max%", String.valueOf(getMax.get())), true
         ));
         gui.addButton(new NumberEditorFButton<>(
                 gui, 1, 1, 100, getMax, setMax, () ->
-                CUtils.createItem(player, Material.REPEATER, getMax.get(), false, "mythicmobs_guimax",
+                CUtils.createItem(player, Material.REPEATER, getMax.get(), false, "populatorbuilder.mythicmobs_guimax",
                         "%min%", String.valueOf(getMin.get()),
                         "%max%", String.valueOf(getMax.get())), true));
 
         gui.addButton(new NumberEditorFButton<>(
                 gui, 1, 1, 10000, getMinLv, setMinLv, () ->
-                CUtils.createItem(player, Material.REPEATER, getMinLv.get(), false, "mythicmobs_guiminlevel",
+                CUtils.createItem(player, Material.REPEATER, getMinLv.get(), false, "populatorbuilder.mythicmobs_guiminlevel",
                         "%min%", String.valueOf(getMinLv.get()),
                         "%max%", String.valueOf(getMaxLv.get())), true));
         gui.addButton(new NumberEditorFButton<>(
                 gui, 1, 1, 10000, getMaxLv, setMaxLv, () ->
-                CUtils.createItem(player, Material.REPEATER, getMaxLv.get(), false, "mythicmobs_guimaxlevel",
+                CUtils.createItem(player, Material.REPEATER, getMaxLv.get(), false, "populatorbuilder.mythicmobs_guimaxlevel",
                         "%min%", String.valueOf(getMinLv.get()),
                         "%max%", String.valueOf(getMaxLv.get())), true));
     }
