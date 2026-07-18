@@ -1,10 +1,10 @@
 package emanondev.deepdungeons.command;
 
 import emanondev.core.ItemBuilder;
-import emanondev.core.UtilsInventory;
 import emanondev.core.command.CoreCommand;
 import emanondev.core.gui.PagedListFGui;
 import emanondev.core.message.DMessage;
+import emanondev.core.utility.InventoryUtility;
 import emanondev.deepdungeons.DeepDungeons;
 import emanondev.deepdungeons.Perms;
 import emanondev.deepdungeons.interfaces.PaperPopulatorType;
@@ -71,7 +71,7 @@ public class DungeonPopulatorCommand extends CoreCommand {
         switch (args.length) {
             case 1 -> {
                 PaperPopulatorBuilder builder = PopulatorTypeManager.getInstance().getPaperPopulatorBuilder(item);
-                if (builder == null && !UtilsInventory.isAirOrNull(item)) {
+                if (builder == null && !InventoryUtility.isAirOrNull(item)) {
                     new DMessage(getPlugin(), sender).appendLang("commands.dpopulator.wrong_hand").send();
                     return;
                 }
@@ -102,17 +102,17 @@ public class DungeonPopulatorCommand extends CoreCommand {
             case 2 -> {
                 PaperPopulatorType typeArg = PopulatorTypeManager.getInstance().getPaper(args[1]);
                 if (typeArg == null) {
-                    StringBuilder allowedTypes=new StringBuilder();
-                    for(String type : PopulatorTypeManager.getInstance().getPaperIds()) {
+                    StringBuilder allowedTypes = new StringBuilder();
+                    for (String type : PopulatorTypeManager.getInstance().getPaperIds()) {
                         allowedTypes.append(type).append(", ");
                     }
-                    new DMessage(getPlugin(), sender).appendLang("commands.dpopulator.wrong_type","%types%", allowedTypes.toString()).send();
+                    new DMessage(getPlugin(), sender).appendLang("commands.dpopulator.wrong_type", "%types%", allowedTypes.toString()).send();
 
                     return;
                 }
                 PaperPopulatorType typeItem = PopulatorTypeManager.getInstance().getPaperPopulatorType(item);
                 if (typeItem == null) {
-                    if (UtilsInventory.isAirOrNull(item)) {
+                    if (InventoryUtility.isAirOrNull(item)) {
                         typeItem = typeArg;
                         item = typeArg.getPaperBuilder().toItem();
                         player.getInventory().setItemInMainHand(item);
