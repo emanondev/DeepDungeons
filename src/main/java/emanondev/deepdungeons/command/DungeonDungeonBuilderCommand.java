@@ -8,7 +8,6 @@ import emanondev.deepdungeons.Perms;
 import emanondev.deepdungeons.dungeon.DungeonInstanceManager;
 import emanondev.deepdungeons.dungeon.DungeonType;
 import emanondev.deepdungeons.dungeon.DungeonTypeManager;
-import emanondev.deepdungeons.populator.PopulatorTypeManager;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -106,12 +105,12 @@ public class DungeonDungeonBuilderCommand extends CoreCommand {
         // type name
         DungeonType type = DungeonTypeManager.getInstance().get(args[1]);
         if (type == null) {
-            StringBuilder allowedTypes=new StringBuilder();
-            for(String atype : DungeonTypeManager.getInstance().getIds()) {
+            StringBuilder allowedTypes = new StringBuilder();
+            for (String atype : DungeonTypeManager.getInstance().getIds()) {
                 allowedTypes.append(atype).append(", ");
             }
 
-            new DMessage(getPlugin(), sender).appendLang("commands.ddungeon.create.wrong_type","%types%",allowedTypes.toString()).send();
+            new DMessage(getPlugin(), sender).appendLang("commands.ddungeon.create.wrong_type", "%types%", allowedTypes.toString()).send();
             return;
         }
         String name = args[2].toLowerCase(Locale.ENGLISH);

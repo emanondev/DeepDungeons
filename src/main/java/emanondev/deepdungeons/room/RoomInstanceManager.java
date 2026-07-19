@@ -43,17 +43,18 @@ public class RoomInstanceManager extends DRegistry<RoomInstance> {
             return;
         }
         File[] files = roomsFolder.listFiles(File::isFile);
-        if (files != null) for (File file : files) {
-            try {
-                RoomInstance room = readInstance(file);
-                if (room != null)
-                    RoomInstanceManager.getInstance().register(room);
-            } catch (Throwable t) {
-                t.printStackTrace();
-                logIssue("Can't read room file &erooms" + File.separator + file.getName() + "&f please report the above stack trace to the developer ( https://discord.com/invite/w5HVCDPtRp )");
-                continue;
+        if (files != null)
+            for (File file : files) {
+                try {
+                    RoomInstance room = readInstance(file);
+                    if (room != null)
+                        RoomInstanceManager.getInstance().register(room);
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                    logIssue("Can't read room file &erooms" + File.separator + file.getName() + "&f please report the above stack trace to the developer ( https://discord.com/invite/w5HVCDPtRp )");
+                    continue;
+                }
             }
-        }
 
     }
 
